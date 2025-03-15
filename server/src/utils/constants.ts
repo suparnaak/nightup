@@ -6,6 +6,9 @@ export const MESSAGES = {
     SUCCESS: {
       REGISTERED: "Registered successfully. OTP sent to email for verification.",
       PAYMENT_SUCCESSFUL: "Payment successful.",
+      OTP_VERIFIED: "OTP verification successful. You can now log in.",
+      OTP_RESENT: "A new OTP has been sent to your email.",
+      LOGIN:"Login successfull"
     },
     ERROR: {
       INVALID_NAME: "Invalid name.",
@@ -20,6 +23,13 @@ export const MESSAGES = {
       UNKNOWN_ERROR: "An unknown error occurred. Please try again later.",
       ACCOUNT_NOT_VERIFIED: "Account not verified. Please verify your email.",
       NOT_FOUND: "Email not found.",
+      OTP_EXPIRED: "OTP has expired. Request a new OTP.",
+      INVALID_OTP: "Invalid OTP. Please check and try again.",
+      ALREADY_VERIFIED: "Account is already verified.",
+      NO_OTP_FOUND: "No OTP found. Please request a new one.",
+      BLOCKED: "Your account is blocked",
+      JWT_SECRET_MISSING:"JWT token is not configured"
+      
     },
   },
 
@@ -52,6 +62,7 @@ export const STATUS_CODES = {
   UNAUTHORIZED: 401,
   NOT_FOUND: 404,
   SERVER_ERROR: 500,
+  FORBIDDEN:403
 };
 
 

@@ -1,6 +1,7 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document,  Types } from "mongoose";
 
 export interface IUser extends Document {
+  _id: Types.ObjectId;
   name: string;
   email: string;
   phone: string;
@@ -11,6 +12,7 @@ export interface IUser extends Document {
   isBlocked: boolean;
   otp: string;
   otpExpiry?: Date; // Optional: If you are using OTP expiration
+  role?: 'user' | 'host' | 'admin';
 }
 
 const userSchema: Schema = new Schema(

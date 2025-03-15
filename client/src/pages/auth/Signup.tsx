@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+
 import { 
   validateName, 
   validateEmail, 
@@ -56,14 +57,20 @@ const Signup: React.FC = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+  
     if (!validateForm()) return;
-    
+  
     try {
-      await signup(formData.name, formData.email, formData.phone, formData.password,formData.confirmPassword);
-      navigate('/user/dashboard');
+      const response = await signup(
+        formData.name,
+        formData.email,
+        formData.phone,
+        formData.password,
+        formData.confirmPassword
+      );
+      // Pass otpExpiry via state
+      navigate('/verify-otp', { state: { otpExpiry: response.otpExpiry, email: response.user.email } });
     } catch (error) {
-      // Error is already handled in the store
       console.error('Signup failed:', error);
     }
   };
@@ -84,6 +91,7 @@ const Signup: React.FC = () => {
   };
   
   return (
+   
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -203,6 +211,7 @@ const Signup: React.FC = () => {
         </div>
       </div>
     </div>
+    
   );
 };
 

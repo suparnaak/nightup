@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AppRoutes from './routes'; // or './routes/index'
-import './index.css'; // if you have tailwind or global styles
+import App from './App';  // ✅ we use App now
+import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AppRoutes />
+    <App />
   </React.StrictMode>
 );

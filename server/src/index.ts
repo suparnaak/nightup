@@ -1,21 +1,22 @@
 import express, { Application } from "express";
 import dotenv from "dotenv";
-import cors from "cors"; // ✅ Step 1: Import cors
+import cors from "cors"; 
 import connectDB from "./config/database";
 import userRoutes from "./routes/userRoutes";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 connectDB();
 
 const app: Application = express();
 
+app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:5173", // ✅ Step 2: Use cors middleware
+  origin: process.env.CORS_ORIGIN, 
   credentials: true
 }));
-
 app.use(express.json());
-
+app.use(express.urlencoded({ extended: true }));
 // Routes for user
 app.use("/api/users", userRoutes);
 

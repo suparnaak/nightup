@@ -1,57 +1,26 @@
-import React, { ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
+// src/routes/index.tsx
 
-// Auth pages
-import Login from '../pages/auth/Login';
-import Signup from '../pages/auth/Signup';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// User pages (placeholders)
-import UserDashboard from '../pages/user/Dashboard';
-
-// Other pages (placeholders)
-import Home from '../pages/Home';
-
-interface ProtectedRouteProps {
-  children: ReactNode;
-  requiredRole?: string;
-}
-
-const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { isAuthenticated, user } = useAuthStore();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-
-  if (requiredRole && user?.role !== requiredRole) {
-    return <Navigate to="/" />;
-  }
-
-  return <>{children}</>;
-};
+// Import your page components
+import Home from "../pages/Home";
+import Login from "../pages/auth/Login";
+import Signup from "../pages/auth/Signup";
+import OtpVerification from "../pages/auth/OtpVerification";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public routes */}
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify-otp" element={<OtpVerification />} />
 
-        {/* Protected user routes */}
-        <Route
-          path="/user/dashboard"
-          element={
-            <ProtectedRoute requiredRole="user">
-              <UserDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Redirect for unknown routes */}
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* Fallback: redirect any unknown route to Home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
