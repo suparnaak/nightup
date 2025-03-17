@@ -1,6 +1,3 @@
-// src/pages/user/Dashboard.tsx
-import React from 'react';
-
 const Dashboard = () => {
   return (
     <div className="min-h-screen bg-purple-50 p-6">

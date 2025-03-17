@@ -1,34 +1,35 @@
-import mongoose, { Schema, Document,  Types } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
-export interface IUser extends Document {
+export interface IHost extends Document {
   _id: Types.ObjectId;
   name: string;
   email: string;
   phone: string;
   password: string;
-  googleId: string;
-  isAdmin: boolean;
+  hostType: string; 
   isVerified: boolean;
   isBlocked: boolean;
+  subStatus: boolean;
   otp: string;
-  otpExpiry?: Date; 
+  otpExpiry?: Date;
   role?: 'user' | 'host' | 'admin';
 }
 
-const userSchema: Schema = new Schema(
+const hostSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
-    googleId: { type: String, required: false },
-    isAdmin: { type: Boolean, default: false },
+    hostType: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
+    subStatus: { type: Boolean, default: false },
     otp: { type: String, default: '' },
-    otpExpiry: { type: Date }, 
+    otpExpiry: { type: Date },
+    
   },
   { timestamps: true }
 );
 
-export default mongoose.model<IUser>("User", userSchema);
+export default mongoose.model<IHost>("Host", hostSchema);

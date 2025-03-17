@@ -9,22 +9,31 @@ interface User {
   role: 'user' | 'host' | 'admin';
 }
 
-interface SignupResponse {
-  user: User;
-  otpExpiry: string; // OTP expiration as ISO string
-}
-
 interface AuthState {
   user: User | null;
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
-  signup: (name: string, email: string, phone: string, password: string, confirmPassword: string) => Promise<SignupResponse>;
+  
+  signup: (
+    name: string,
+    email: string,
+    phone: string,
+    password: string,
+    confirmPassword: string
+  ) => Promise<any>;
+  hostSignup: (
+    name: string,
+    email: string,
+    phone: string,
+    password: string,
+    confirmPassword: string,
+    hostType: string
+  ) => Promise<any>;
   googleSignup: (token: string) => Promise<void>;
   login: (user: User) => void;
+  hostLogin: (email: string, password: string) => Promise<any>;
   logout: () => void;
-  /* logout: () => void;
-  fetchProfile: () => Promise<void>; */
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -36,19 +45,49 @@ export const useAuthStore = create<AuthState>((set) => ({
   signup: async (name, email, phone, password, confirmPassword) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await authRepository.signup({ name, email, phone, password, confirmPassword });
-
+      const response = await authRepository.signup({
+        name,
+        email,
+        phone,
+        password,
+        confirmPassword,
+      });
       set({
         user: response.user,
         isAuthenticated: true,
-        isLoading: false
+        isLoading: false,
       });
-
       return response;
     } catch (error: any) {
       set({
         isLoading: false,
-        error: error.response?.data?.message || 'Signup failed. Please try again.'
+        error: error.response?.data?.message || 'Signup failed. Please try again.',
+      });
+      throw error;
+    }
+  },
+
+  hostSignup: async (name, email, phone, password, confirmPassword, hostType) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await authRepository.hostSignup({
+        name,
+        email,
+        phone,
+        password,
+        confirmPassword,
+        hostType,
+      });
+      set({
+        user: response.host,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      return response;
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || 'Host signup failed. Please try again.',
       });
       throw error;
     }
@@ -58,25 +97,40 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const response = await authRepository.googleSignup(token);
-
       set({
         user: response.user,
         isAuthenticated: true,
-        isLoading: false
+        isLoading: false,
       });
     } catch (error: any) {
       set({
         isLoading: false,
-        error: error.response?.data?.message || 'Google signup failed. Please try again.'
+        error: error.response?.data?.message || 'Google signup failed. Please try again.',
       });
       throw error;
     }
   },
+
   login: (user: User) => set({ user, isAuthenticated: true }),
 
-  logout: () => {
-    // Optionally, you can call your backend logout endpoint here.
-    // e.g., await authRepository.logout();
-    set({ user: null, isAuthenticated: false });
+  logout: () => set({ user: null, isAuthenticated: false }),
+
+  hostLogin: async (email: string, password: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await authRepository.hostLogin({ email, password });
+      set({
+        user: response.host,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      return response;
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || 'Host login failed. Please try again.',
+      });
+      throw error;
+    }
   },
 }));

@@ -21,7 +21,7 @@ class UserService implements IUserService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOTP();
-    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); 
 
     const newUser = await this.userRepository.createUser({
       name,
@@ -67,7 +67,6 @@ class UserService implements IUserService {
       throw new Error(MESSAGES.COMMON.ERROR.INVALID_OTP);
     }
 
-    // OTP is valid and update user
     user.isVerified = true;
     user.otp = "";
     user.otpExpiry = undefined;

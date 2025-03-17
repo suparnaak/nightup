@@ -1,11 +1,11 @@
 import axios from "axios";
 
-const axiosClient = axios.create({
-  baseURL: "/api/users",
+const axiosHostClient = axios.create({
+  baseURL: "/api/hosts",
   headers: {
     "Content-Type": "application/json",
   },
   withCredentials: true,
 });
 
-export default axiosClient;
+export default axiosHostClient;

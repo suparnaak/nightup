@@ -6,10 +6,10 @@ console.log("EMAIL_USER:", process.env.EMAIL_USER);
 console.log("EMAIL_PASS:", process.env.EMAIL_PASS ? "Exists" : "Missing");
 
 const transporter = nodemailer.createTransport({
-  service: 'Gmail', // or another SMTP service like 'Yahoo', 'Outlook'
+  service: 'Gmail', 
   auth: {
-    user: process.env.EMAIL_USER,  // Add in your .env
-    pass: process.env.EMAIL_PASS,  // Add in your .env
+    user: process.env.EMAIL_USER,  
+    pass: process.env.EMAIL_PASS,  
   },
 });
 
@@ -24,9 +24,9 @@ export const sendOtpEmail = async (email: string, otp: string) => {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`✅ OTP email sent to ${email}`);
+    console.log(`OTP email sent to ${email}`);
   } catch (error) {
-    console.error('❌ Error sending OTP email:', error);
+    console.error('Error sending OTP email:', error);
     throw new Error('Failed to send OTP email.');
   }
 };

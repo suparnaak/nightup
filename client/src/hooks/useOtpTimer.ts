@@ -1,16 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 interface UseOtpTimerReturn {
-  timeLeft: number;       // Remaining time in seconds
-  resetTimer: () => void; // Function to reset the timer to the initial duration
-  isExpired: boolean;     // True if the timer has reached 0
+  timeLeft: number;
+  resetTimer: () => void;
+  isExpired: boolean;
 }
 
-/**
- * Custom hook to manage an OTP countdown timer.
- * @param initialTime - The initial countdown duration in seconds (default is 300 seconds = 5 minutes)
- * @returns timeLeft, a reset function, and an isExpired flag.
- */
 const useOtpTimer = (initialTime: number = 300): UseOtpTimerReturn => {
   const [timeLeft, setTimeLeft] = useState<number>(initialTime);
 

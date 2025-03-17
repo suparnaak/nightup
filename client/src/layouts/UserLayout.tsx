@@ -1,7 +1,6 @@
-// src/layout/UserLayout.tsx
-import React, { ReactNode } from 'react';
-import Header from '../components/common/Header';
-import Footer from '../components/common/Footer';
+import React, { ReactNode } from "react";
+import Header from "../components/common/Header";
+import Footer from "../components/common/Footer";
 
 interface UserLayoutProps {
   children: ReactNode;

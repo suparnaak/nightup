@@ -20,13 +20,11 @@ class UserController {
     try {
       const { name, email, phone, password, confirmPassword } = req.body;
 
-      // ✅ Check if all fields are provided
       if (!name || !email || !phone || !password || !confirmPassword) {
         res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.MISSING_FIELDS });
         return;
       }
 
-      // ✅ Name Validation (only letters and spaces, no symbols or numbers)
       const nameTrimmed = name.trim();
 
       if (!nameTrimmed) {
@@ -39,44 +37,36 @@ class UserController {
         res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.INVALID_NAME });
         return;
       }
-
-      // ✅ Email Format Validation
       const emailRegex = /^\S+@\S+\.\S+$/;
       if (!emailRegex.test(email)) {
         res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.INVALID_EMAIL });
         return;
       }
 
-      // ✅ Phone Number Validation (10 digits, not all zeros)
       const phoneRegex = /^\d{10}$/;
       if (!phoneRegex.test(phone) || phone === "0000000000") {
         res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.INVALID_PHONE });
         return;
       }
 
-      // ✅ Password Length Validation
       if (password.length < PASSWORD_RULES.MIN_LENGTH) {
         res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.WEAK_PASSWORD });
         return;
       }
 
-      // ✅ Password and Confirm Password Match
       if (password !== confirmPassword) {
         res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Passwords do not match" });
         return;
       }
 
-      // ✅ Check if Email Already Exists (service layer validation)
       const existingUser = await this.userService.findUserByEmail(email);
       if (existingUser) {
         res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.EMAIL_IN_USE });
         return;
       }
 
-      // 🚀 Register User
       const user = await this.userService.signup(name, email, phone, password);
 
-      // 🚀 Send Success Response
       res.status(STATUS_CODES.CREATED).json({
         message: MESSAGES.COMMON.SUCCESS.REGISTERED,
         user: {
@@ -119,7 +109,6 @@ async verifyOtp(req: Request, res: Response): Promise<void> {
     res.status(STATUS_CODES.SUCCESS).json({
       success: true,
       message: result.message,
-      //token: result.token,
       user: result.user,
     });
   } catch (error) {
@@ -141,8 +130,6 @@ async resendOtp(req: Request, res: Response): Promise<void> {
       res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.MISSING_FIELDS });
       return;
     }
-
-    // Call service to resend OTP
     const result = await this.userService.resendOtp(email);
 
     if (!result.success) {
@@ -166,7 +153,6 @@ async login(req: Request, res: Response): Promise<void> {
     const { email, password } = req.body;
     const errors: { [key: string]: string } = {};
 
-    // Input validation
     if (!isRequired(email)) {
       errors.email = MESSAGES.COMMON.ERROR.MISSING_FIELDS || "Email is required";
     } else if (!isEmail(email)) {
@@ -186,11 +172,8 @@ async login(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Business logic delegated to service
     const result = await this.userService.login(email, password);
-   // console.log(result);
-
-    // Handle login failure scenarios
+   
     if (!result.success) {
       //console.log(result.otpRequired)
       const statusCode =
@@ -208,12 +191,11 @@ async login(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Successful login - Set cookie
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict' as 'strict',
-      maxAge: 1 * 60 * 60 * 1000, // 1 hour
+      maxAge: 1 * 60 * 60 * 1000, 
     };
 
     res
@@ -228,7 +210,7 @@ async login(req: Request, res: Response): Promise<void> {
   } catch (error) {
     console.error("Login Error:", error);
 
-    // Generic error handling
+    
     const errMessage = error instanceof Error
       ? error.message
       : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR || "An unknown error occurred";
@@ -239,9 +221,10 @@ async login(req: Request, res: Response): Promise<void> {
     });
   }
 }
+
 //logout
 async logout(req: Request, res: Response): Promise<void> {
-  // Clear the 'token' cookie with the same options used when setting it
+ 
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

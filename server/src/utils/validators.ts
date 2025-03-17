@@ -12,7 +12,6 @@ export const isEmail = (email: string): boolean => {
     return regex.test(phone);
   };
   
-  // A generic required field checker
   export const isRequired = (value: string | undefined | null): boolean => {
     return value !== undefined && value !== null && value.toString().trim() !== '';
   };

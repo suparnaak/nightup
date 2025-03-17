@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface InputProps {
   type: string;
@@ -19,15 +19,18 @@ const Input: React.FC<InputProps> = ({
   name,
   value,
   onChange,
-  placeholder = '',
+  placeholder = "",
   error = null,
   required = false,
-  autoComplete = '',
-  className = ''
+  autoComplete = "",
+  className = "",
 }) => {
   return (
     <div className={`mb-4 ${className}`}>
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+      <label
+        htmlFor={name}
+        className="block text-sm font-medium text-gray-700 mb-1"
+      >
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <input
@@ -39,7 +42,7 @@ const Input: React.FC<InputProps> = ({
         autoComplete={autoComplete}
         placeholder={placeholder}
         className={`w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all ${
-          error ? 'border-red-500' : 'border-gray-300'
+          error ? "border-red-500" : "border-gray-300"
         }`}
       />
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}

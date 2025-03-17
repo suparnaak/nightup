@@ -1,13 +1,21 @@
-// src/routes/index.tsx
 
-import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// Import your page components
+// Public Pages for host, user
 import Home from "../pages/Home";
 import Login from "../pages/auth/Login";
 import Signup from "../pages/auth/Signup";
 import OtpVerification from "../pages/auth/OtpVerification";
+import HostSignup from "../pages/auth/HostSignup";
+import HostOtpVerification from "../pages/auth/HostOtpVerification";
+import HostLogin from "../pages/auth/HostLogin";
+
+// ProtectedRoutes
+import ProtectedRoute from "../components/ProtectedRoute";
+
+import HostDashboard from "../pages/host/HostDashboard";
+import HostEvents from "../pages/host/HostEvents";
+import HostAddEvent from "../pages/host/HostAddEvent";
 
 const AppRoutes = () => {
   return (
@@ -15,11 +23,26 @@ const AppRoutes = () => {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
+
+        {/* user specific */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<OtpVerification />} />
 
-        {/* Fallback: redirect any unknown route to Home */}
+        {/* host specific */}
+        <Route path="/host/signup" element={<HostSignup />} />
+        <Route path="/host/verify-otp" element={<HostOtpVerification />} />
+        <Route path="/host/login" element={<HostLogin />} />
+
+        {/* Protected Routes */}
+        {/* host specific */}
+        <Route element={<ProtectedRoute allowedRoles={["host"]} />}>
+          <Route path="/host/dashboard" element={<HostDashboard />} />
+          <Route path="/host/events" element={<HostEvents />} />
+          <Route path="/host/events/add" element={<HostAddEvent />} />
+        </Route>
+
+       {/* for all other routes */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

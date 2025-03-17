@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import useOtpTimer from "../../hooks/useOtpTimer";
-import { authRepository } from "../../repositories/authRepository";
-import toast from "react-hot-toast";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import useOtpTimer from '../../hooks/useOtpTimer';
+import { authRepository } from '../../repositories/authRepository';
+import toast from 'react-hot-toast';
 
 interface LocationState {
-  otpExpiry: string;
+  otpExpiry: string; 
   email: string;
 }
 
@@ -13,71 +13,66 @@ const OtpVerification: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as LocationState;
-  const otpExpiryTimestamp = state?.otpExpiry
-    ? new Date(state.otpExpiry).getTime()
-    : 0;
-  const initialTimeLeft = otpExpiryTimestamp
-    ? Math.floor((otpExpiryTimestamp - Date.now()) / 1000)
-    : 300;
+  
+  const otpExpiryTimestamp = state?.otpExpiry ? new Date(state.otpExpiry).getTime() : 0;
+  const initialTimeLeft = otpExpiryTimestamp ? Math.floor((otpExpiryTimestamp - Date.now()) / 1000) : 300; 
   const { timeLeft, resetTimer, isExpired } = useOtpTimer(initialTimeLeft);
-
-  const [otp, setOtp] = useState<string>("");
-  const [error, setError] = useState<string>("");
+  
+  const [otp, setOtp] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
-      setError("Please enter a valid 6-digit OTP");
-      toast.error("Please enter a valid 6-digit OTP");
+      setError('Please enter a valid 6-digit OTP');
+      toast.error('Please enter a valid 6-digit OTP');
       return;
     }
-
+  
     if (isExpired) {
-      setError("OTP has expired. Please resend OTP.");
-      toast.error("OTP has expired. Please resend OTP.");
+      setError('OTP has expired. Please resend OTP.');
+      toast.error('OTP has expired. Please resend OTP.');
       return;
     }
-
+  
     try {
-      const response = await authRepository.verifyOtp({
-        email: state.email,
-        otp,
-      });
-      console.log(response);
-
+      const response = await authRepository.hostVerifyOtp({ email: state.email, otp });
+      console.log(response); 
+  
       if (response.success) {
-        toast.success("OTP Verified Successfully! You can login now.");
+        toast.success('OTP Verified Successfully! You can login now.');
+  
         setTimeout(() => {
-          navigate("/login");
+          navigate('/host/login');
         }, 2000);
       } else {
-        toast.error("Invalid OTP");
-        setError("Invalid OTP");
+        toast.error('Invalid OTP');
+        setError('Invalid OTP');
       }
     } catch (err) {
-      toast.error("Something went wrong!");
-      setError("Something went wrong!");
+      toast.error('Something went wrong!');
+      setError('Something went wrong!');
     }
   };
+  
 
   const handleResendOtp = async () => {
     try {
       const response = await authRepository.resendOtp(state.email);
       if (response.data.success) {
-        alert("OTP Resent Successfully!");
-        if (response.data.otpExpiry) {
+        alert('OTP Resent Successfully!');
+        if(response.data.otpExpiry) {
           const newExpiry = new Date(response.data.otpExpiry).getTime();
           const newTimeLeft = Math.floor((newExpiry - Date.now()) / 1000);
-
           resetTimer();
         } else {
           resetTimer();
         }
-        setError("");
+        setError('');
       } else {
-        setError("Failed to resend OTP.");
+        setError('Failed to resend OTP.');
       }
     } catch (err) {
-      setError("Something went wrong while resending OTP!");
+      setError('Something went wrong while resending OTP!');
     }
   };
 
@@ -88,8 +83,7 @@ const OtpVerification: React.FC = () => {
           Verify Your OTP
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Enter the OTP sent to your registered email. This OTP is valid for 5
-          minutes.
+          Enter the OTP sent to your registered email. This OTP is valid for 5 minutes.
         </p>
       </div>
 
@@ -102,10 +96,7 @@ const OtpVerification: React.FC = () => {
           )}
 
           <div className="mb-6">
-            <label
-              htmlFor="otp"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
               OTP
             </label>
             <input
@@ -122,11 +113,11 @@ const OtpVerification: React.FC = () => {
 
           <button
             onClick={handleVerify}
-            disabled={isExpired}
+            disabled={isExpired}  
             className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition duration-200 ${
               !isExpired
-                ? "bg-purple-600 hover:bg-purple-700 focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                : "bg-gray-400 cursor-not-allowed"
+                ? 'bg-purple-600 hover:bg-purple-700 focus:ring-2 focus:ring-offset-2 focus:ring-purple-500'
+                : 'bg-gray-400 cursor-not-allowed'
             }`}
           >
             Verify OTP
@@ -142,8 +133,7 @@ const OtpVerification: React.FC = () => {
               </button>
             ) : (
               <p>
-                OTP expires in{" "}
-                <span className="font-medium text-purple-600">{timeLeft}s</span>
+                OTP expires in <span className="font-medium text-purple-600">{timeLeft}s</span>
               </p>
             )}
           </div>
