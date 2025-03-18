@@ -11,7 +11,7 @@ router.post("/verify-otp", HostController.verifyOtp);
 router.post("/resend-otp", HostController.resendOtp);
 
 //event management routes
-router.post("/events/add", authMiddleware, EventController.addEvent);
-router.get("/events", authMiddleware, EventController.getEvents); //fetch all event - host specific
+router.post("/events/add", authMiddleware(["host"]), EventController.addEvent);
+router.get("/events", authMiddleware(["host"]), EventController.getEvents); //list all events host specific
 
 export default router;
