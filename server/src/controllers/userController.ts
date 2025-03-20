@@ -14,6 +14,9 @@ class UserController {
     this.verifyOtp = this.verifyOtp.bind(this); 
     this.resendOtp = this.resendOtp.bind(this); 
     this.login = this.login.bind(this); 
+    //this.googleAuthCallback = this.googleAuthCallback.bind(this);
+    this.forgotPassword = this.forgotPassword.bind(this);
+    this.resetPassword = this.resetPassword.bind(this);
   }
 
   async signup(req: Request, res: Response): Promise<void> {
@@ -86,9 +89,9 @@ class UserController {
 // otp verification and resend otp
 async verifyOtp(req: Request, res: Response): Promise<void> {
   try {
-    const { email, otp } = req.body;
+    const { email, otp, verificationType } = req.body;
 
-    if (!email || !otp) {
+    if (!email || !otp || !verificationType) {
       res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: MESSAGES.COMMON.ERROR.MISSING_FIELDS
@@ -96,7 +99,7 @@ async verifyOtp(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const result = await this.userService.verifyOtp(email, otp);
+    const result = await this.userService.verifyOtp(email, otp, verificationType);
 
     if (!result.success) {
       res.status(STATUS_CODES.BAD_REQUEST).json({
@@ -124,13 +127,13 @@ async verifyOtp(req: Request, res: Response): Promise<void> {
 
 async resendOtp(req: Request, res: Response): Promise<void> {
   try {
-    const { email } = req.body;
+    const { email, verificationType } = req.body;
 
-    if (!email) {
+    if (!email || !verificationType) {
       res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.MISSING_FIELDS });
       return;
     }
-    const result = await this.userService.resendOtp(email);
+    const result = await this.userService.resendOtp(email, verificationType);
 
     if (!result.success) {
       res.status(STATUS_CODES.BAD_REQUEST).json({ message: result.message });
@@ -235,6 +238,101 @@ async logout(req: Request, res: Response): Promise<void> {
     message: "Logout successful"
   });
 }
+
+/* async googleAuthCallback(req: Request, res: Response): Promise<void> {
+  try {
+    // req.user is set by Passport; we'll pass its data to the service method.
+    // Depending on your implementation, you might pass the token or JSON-stringified user.
+    // Here, we'll assume the service expects a JSON string representing the Google profile.
+    const profileData = JSON.stringify(req.user);
+
+    const result = await this.userService.googleAuth(profileData);
+
+    if (!result.success) {
+      res.status(STATUS_CODES.UNAUTHORIZED).json({
+        success: false,
+        message: result.message,
+      });
+      return;
+    }
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict" as "strict",
+      maxAge: 1 * 60 * 60 * 1000, // 1 hour
+    };
+
+    // Set the JWT token in an HTTP-only cookie and redirect the user
+    res
+      .cookie("token", result.token, cookieOptions)
+      .redirect(process.env.FRONTEND_URL || "http://localhost:5000");
+  } catch (error) {
+    console.error("Google Auth Callback Error:", error);
+    res.status(STATUS_CODES.SERVER_ERROR).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+} */
+  
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+  
+      if (!email) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.MISSING_FIELDS,
+        });
+        return;
+      }
+  
+      // Call the service
+      const result = await this.userService.forgotPassword(email);
+  
+      // Check if the call was successful and send the result
+      res.status(result.success ? STATUS_CODES.SUCCESS : STATUS_CODES.BAD_REQUEST).json(result);
+  
+    } catch (error) {
+      console.error("Forgot Password Controller Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { email, password, confirmPassword } = req.body;
+  
+      if (!email || !password || !confirmPassword) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.MISSING_FIELDS,
+        });
+        return;
+      }
+      if (password !== confirmPassword) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Passwords do not match" });
+        return;
+      }
+  
+      // Call the service
+      const result = await this.userService.resetPassword(email, password);
+      console.log(result)
+      // Check if the call was successful and send the result
+      res.status(result.success ? STATUS_CODES.SUCCESS : STATUS_CODES.BAD_REQUEST).json(result);
+  
+    } catch (error) {
+      console.error("Reset Password Controller Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
+
 
 }
 

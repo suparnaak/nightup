@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { authRepository } from '../../repositories/authRepository';
 
-const Login = () => {
+const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
 
@@ -13,7 +13,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     if (!email || !password) {
       setError('Please enter both email and password');
       return false;
@@ -44,8 +44,7 @@ const Login = () => {
 
     try {
       const data = await authRepository.login({ email, password });
-
-      console.log(data)
+      console.log(data);
       if (data.success) {
         login(data.user);
         toast.success('Logged in successfully!');
@@ -53,11 +52,9 @@ const Login = () => {
       } else {
         setError(data.message || 'Something went wrong');
       }
-
     } catch (err: any) {
       if (err.response) {
         const { data } = err.response;
-
         if (data.error === 'unverified') {
           setError('Your email is not verified');
           toast.error('Your email is not verified');
@@ -66,11 +63,9 @@ const Login = () => {
         } else {
           setError(data.message || 'Something went wrong');
         }
-
       } else {
         setError('Something went wrong. Please try again.');
       }
-
     } finally {
       setIsLoading(false);
     }
@@ -132,6 +127,13 @@ const Login = () => {
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
+
+          {/* Forgot Password Link */}
+          <div className="mt-4 text-center">
+            <Link to="/forgot-password" className="text-purple-600 hover:underline">
+              Forgot Password?
+            </Link>
+          </div>
 
           <div className="text-center mt-4 text-gray-500">
             Or login with{' '}

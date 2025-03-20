@@ -13,7 +13,7 @@ interface AuthRequest extends Request {
 }
 
 export const authMiddleware = (allowedRoles: string[] = []) => {
-  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     try {
       const token = req.cookies.token;
 

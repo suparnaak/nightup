@@ -14,7 +14,8 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
-  
+
+  // Auth actions
   signup: (
     name: string,
     email: string,
@@ -22,6 +23,7 @@ interface AuthState {
     password: string,
     confirmPassword: string
   ) => Promise<any>;
+
   hostSignup: (
     name: string,
     email: string,
@@ -30,10 +32,15 @@ interface AuthState {
     confirmPassword: string,
     hostType: string
   ) => Promise<any>;
+
   googleSignup: (token: string) => Promise<void>;
+
   login: (user: User) => void;
   hostLogin: (email: string, password: string) => Promise<any>;
   logout: () => void;
+
+  forgotPassword: (email: string) => Promise<any>;
+  resetPassword: (email:string, password: string, confirmPassword:string) => Promise<any>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -111,9 +118,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  login: (user: User) => set({ user, isAuthenticated: true }),
+  login: (user: User) => {
+    set({ user, isAuthenticated: true });
+  },
 
-  logout: () => set({ user: null, isAuthenticated: false }),
+  logout: () => {
+    set({ user: null, isAuthenticated: false });
+  },
 
   hostLogin: async (email: string, password: string) => {
     try {
@@ -131,6 +142,39 @@ export const useAuthStore = create<AuthState>((set) => ({
         error: error.response?.data?.message || 'Host login failed. Please try again.',
       });
       throw error;
+    }
+  },
+
+  forgotPassword: async (email: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await authRepository.forgotPassword({ email });
+      set({ isLoading: false });
+      return response;
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || 'Failed to send reset link. Please try again.',
+      });
+      throw error;
+    }
+  },
+  resetPassword: async ( email, password, confirmPassword ) => {
+    set({ isLoading: true });
+
+    try {
+      const res = await authRepository.resetPassword({
+        email,
+        password,
+        confirmPassword
+        
+      });
+
+      return res;
+    } catch (error: any) {
+      throw error;
+    } finally {
+      set({ isLoading: false });
     }
   },
 }));

@@ -29,13 +29,13 @@ export const authRepository = {
     const response = await axiosClient.post('/login', credentials);
     return response.data;
   },
-  verifyOtp: async ({ email, otp }: { email: string; otp: string }) => {
-    const response = await axiosClient.post('/verify-otp', { email, otp });
+  verifyOtp: async ({ email, otp, verificationType }: { email: string; otp: string; verificationType:string }) => {
+    const response = await axiosClient.post('/verify-otp', { email, otp,verificationType });
     return response.data;
   },
 
-  resendOtp: async (email: string) => {
-    const response = await axiosClient.post('/resend-otp', { email });
+  resendOtp: async (email: string,verificationType:string) => {
+    const response = await axiosClient.post('/resend-otp', { email,verificationType });
     return response.data;
   },
 
@@ -59,6 +59,14 @@ export const authRepository = {
   
   hostVerifyOtp: async ({ email, otp }: { email: string; otp: string }) => {
     const response = await axiosHostClient.post('/verify-otp', { email, otp });
+    return response.data;
+  },
+  forgotPassword: async ({ email }: { email: string }) => {
+    const response = await axiosClient.post('/forgot-password', { email });
+    return response.data;
+  },
+  resetPassword: async ({ email, password, confirmPassword }: { email: string, password: string, confirmPassword:string }) => {
+    const response = await axiosClient.post('/reset-password', { email,password, confirmPassword });
     return response.data;
   },
 };

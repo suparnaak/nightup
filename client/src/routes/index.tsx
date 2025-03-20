@@ -9,6 +9,7 @@ import OtpVerification from "../pages/auth/OtpVerification";
 import HostSignup from "../pages/auth/HostSignup";
 import HostOtpVerification from "../pages/auth/HostOtpVerification";
 import HostLogin from "../pages/auth/HostLogin";
+import ResetPassword from "../pages/auth/ResetPassword";
 
 // ProtectedRoutes
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -16,6 +17,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import HostDashboard from "../pages/host/HostDashboard";
 import HostEvents from "../pages/host/HostEvents";
 import HostAddEvent from "../pages/host/HostAddEvent";
+import ForgotPassword from "../pages/auth/ForgotPassword";
 
 const AppRoutes = () => {
   return (
@@ -28,6 +30,9 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<OtpVerification />} />
+
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* host specific */}
         <Route path="/host/signup" element={<HostSignup />} />

@@ -14,7 +14,7 @@ import {
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const { signup, googleSignup, isLoading, error } = useAuthStore();
+  const { signup,  isLoading, error } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -70,7 +70,7 @@ const Signup: React.FC = () => {
         formData.confirmPassword
       );
       navigate("/verify-otp", {
-        state: { otpExpiry: response.otpExpiry, email: response.user.email },
+        state: { otpExpiry: response.otpExpiry, email: response.user.email,verificationType: "emailVerification" },
       });
     } catch (error) {
       console.error("Signup failed:", error);

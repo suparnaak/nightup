@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 interface LocationState {
   otpExpiry: string;
   email: string;
+  verificationType: "emailVerification" | "passwordReset";
 }
 
 const OtpVerification: React.FC = () => {
@@ -38,22 +39,43 @@ const OtpVerification: React.FC = () => {
     }
 
     try {
-      const response = await authRepository.verifyOtp({
-        email: state.email,
-        otp,
-      });
-      console.log(response);
+      if (state.verificationType === "emailVerification") {
+        const response = await authRepository.verifyOtp({
+          email: state.email,
+          otp,
+          verificationType: state.verificationType
+        });
 
-      if (response.success) {
-        toast.success("OTP Verified Successfully! You can login now.");
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-      } else {
-        toast.error("Invalid OTP");
-        setError("Invalid OTP");
+        if (response.success) {
+          toast.success("Email Verified Successfully! You can login now.");
+          setTimeout(() => {
+            navigate("/login");
+          }, 2000);
+        } else {
+          toast.error("Invalid OTP");
+          setError("Invalid OTP");
+        }
+
+      } else if (state.verificationType === "passwordReset") {
+        const response = await authRepository.verifyOtp({
+          email: state.email,
+          otp,
+          verificationType: state.verificationType
+        });
+
+        if (response.success) {
+          toast.success("OTP Verified! Proceed to reset password.");
+          setTimeout(() => {
+            navigate("/reset-password", { state: { email: state.email } });
+          }, 2000);
+        } else {
+          toast.error("Invalid OTP");
+          setError("Invalid OTP");
+        }
       }
+
     } catch (err) {
+      console.error(err);
       toast.error("Something went wrong!");
       setError("Something went wrong!");
     }
@@ -61,25 +83,35 @@ const OtpVerification: React.FC = () => {
 
   const handleResendOtp = async () => {
     try {
-      const response = await authRepository.resendOtp(state.email);
+      const response = await authRepository.resendOtp(
+        state.email,
+        state.verificationType
+      );
+  
       if (response.data.success) {
-        alert("OTP Resent Successfully!");
+        toast.success("OTP Resent Successfully!");
+  
         if (response.data.otpExpiry) {
-          const newExpiry = new Date(response.data.otpExpiry).getTime();
-          const newTimeLeft = Math.floor((newExpiry - Date.now()) / 1000);
-
+          //const newExpiry = new Date(response.data.otpExpiry).getTime();
+          //const newTimeLeft = Math.floor((newExpiry - Date.now()) / 1000);
+  
           resetTimer();
         } else {
+          // Optional fallback if otpExpiry isn't returned
           resetTimer();
         }
+  
         setError("");
       } else {
+        toast.error("Failed to resend OTP.");
         setError("Failed to resend OTP.");
       }
     } catch (err) {
+      toast.error("Something went wrong while resending OTP!");
       setError("Something went wrong while resending OTP!");
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

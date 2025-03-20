@@ -9,7 +9,9 @@ export interface IHost extends Document {
   hostType: string; 
   isVerified: boolean;
   isBlocked: boolean;
+  document: string,
   subStatus: boolean;
+  adminVerified: boolean;
   otp: string;
   otpExpiry?: Date;
   role?: 'user' | 'host' | 'admin';
@@ -24,6 +26,8 @@ const hostSchema: Schema = new Schema(
     hostType: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
+    document: { type: Boolean, default: false },
+    adminVerified: { type: Boolean, default: false },
     subStatus: { type: Boolean, default: false },
     otp: { type: String, default: '' },
     otpExpiry: { type: Date },
