@@ -8,11 +8,7 @@ import { generateOTP } from "../utils/otpGenerator";
 import { MESSAGES } from "../utils/constants";
 
 class HostService implements IHostService {
-  private hostRepository: HostRepository;
-
-  constructor() {
-    this.hostRepository = new HostRepository();
-  }
+  
 
   async signup(
     name: string,
@@ -21,14 +17,14 @@ class HostService implements IHostService {
     password: string,
     hostType: string
   ): Promise<IHost> {
-    const existingHost = await this.hostRepository.findByEmail(email);
+    const existingHost = await HostRepository.findByEmail(email);
     if (existingHost) throw new Error(MESSAGES.COMMON.ERROR.EMAIL_IN_USE);
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); 
 
-    const newHost = await this.hostRepository.createHost({
+    const newHost = await HostRepository.createHost({
       name,
       email,
       phone,
@@ -51,7 +47,7 @@ class HostService implements IHostService {
     token?: string;
     host?: Partial<IHost>;
   }> {
-    const host = await this.hostRepository.findByEmail(email);
+    const host = await HostRepository.findByEmail(email);
     if (!host) {
       throw new Error(MESSAGES.COMMON.ERROR.INVALID_EMAIL);
     }
@@ -77,7 +73,7 @@ class HostService implements IHostService {
     host.otp = "";
     host.otpExpiry = undefined;
 
-    await this.hostRepository.updateHost(host._id, {
+    await HostRepository.updateHost(host._id, {
       isVerified: true,
       otp: "",
       otpExpiry: undefined,
@@ -107,7 +103,7 @@ class HostService implements IHostService {
     message: string;
     otpExpiry: Date;
   }> {
-    const host = await this.hostRepository.findByEmail(email);
+    const host = await HostRepository.findByEmail(email);
     if (!host) {
       throw new Error(MESSAGES.COMMON.ERROR.NOT_FOUND);
     }
@@ -122,7 +118,7 @@ class HostService implements IHostService {
     host.otp = newOtp;
     host.otpExpiry = otpExpiry;
 
-    await this.hostRepository.updateHost(host._id, {
+    await HostRepository.updateHost(host._id, {
       otp: newOtp,
       otpExpiry,
     });
@@ -143,7 +139,7 @@ class HostService implements IHostService {
     otpRequired?: boolean;
     host: Partial<IHost>;
   }> {
-    const host = await this.hostRepository.findByEmail(email);
+    const host = await HostRepository.findByEmail(email);
     if (!host) {
       return {
         success: false,

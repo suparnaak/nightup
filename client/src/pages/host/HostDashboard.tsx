@@ -12,7 +12,10 @@ const HostDashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-gray-900">Welcome, {hostName}!</h1>
           <p className="mt-4 text-gray-700">
-            This is your host dashboard. Here you can manage your events, view bookings, and update your profile.
+            This is your host dashboard. 
+            Please Do Subscription here...
+            Please Upload your License Documents at your profile and apply for admin verification.
+            Here you can manage your events, view bookings, and update your profile.
           </p>
         </div>
       </div>

@@ -37,6 +37,8 @@ interface AuthState {
 
   login: (user: User) => void;
   hostLogin: (email: string, password: string) => Promise<any>;
+  adminLogin: (email: string, password: string) => Promise<any>;
+
   logout: () => void;
 
   forgotPassword: (email: string) => Promise<any>;
@@ -177,4 +179,27 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ isLoading: false });
     }
   },
+  //admin login
+  adminLogin: async (email: string, password: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await authRepository.adminLogin({ email, password });
+      set({
+        user: response.admin, // Assuming the admin object is returned under 'admin'
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      return response;
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || 'Admin login failed. Please try again.',
+      });
+      throw error;
+    }
+  },
+
+
+
+
 }));

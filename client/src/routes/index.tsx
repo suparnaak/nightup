@@ -10,6 +10,7 @@ import HostSignup from "../pages/auth/HostSignup";
 import HostOtpVerification from "../pages/auth/HostOtpVerification";
 import HostLogin from "../pages/auth/HostLogin";
 import ResetPassword from "../pages/auth/ResetPassword";
+import AdminLogin from "../pages/auth/AdminLogin";
 
 // ProtectedRoutes
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -18,6 +19,7 @@ import HostDashboard from "../pages/host/HostDashboard";
 import HostEvents from "../pages/host/HostEvents";
 import HostAddEvent from "../pages/host/HostAddEvent";
 import ForgotPassword from "../pages/auth/ForgotPassword";
+import HostProfileManagement from "../pages/host/HostProfileManagement";
 
 const AppRoutes = () => {
   return (
@@ -39,12 +41,16 @@ const AppRoutes = () => {
         <Route path="/host/verify-otp" element={<HostOtpVerification />} />
         <Route path="/host/login" element={<HostLogin />} />
 
+        {/* admin specific */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+
         {/* Protected Routes */}
         {/* host specific */}
         <Route element={<ProtectedRoute allowedRoles={["host"]} />}>
           <Route path="/host/dashboard" element={<HostDashboard />} />
           <Route path="/host/events" element={<HostEvents />} />
           <Route path="/host/events/add" element={<HostAddEvent />} />
+          <Route path="/host/profile" element={<HostProfileManagement />} />
         </Route>
 
        {/* for all other routes */}

@@ -15,6 +15,20 @@ class HostRepository implements IHostRepository {
   async updateHost(hostId: string | Types.ObjectId, updateData: Partial<IHost>): Promise<IHost | null> {
     return await Host.findByIdAndUpdate(hostId, updateData, { new: true });
   }
+
+  async getHostProfile(hostId: string): Promise<IHost | null> {
+    return await Host.findById(hostId);
+  }
+
+  // New: updateHostProfile that accepts hostId and a plain object of update data
+  async updateHostProfile(
+    hostId: string,
+    updateData: Record<string, any>
+  ): Promise<IHost | null> {
+    console.log("repository")
+    console.log(updateData)
+    return await this.updateHost(hostId, updateData);
+  }
 }
 
-export default HostRepository;
+export default new HostRepository();

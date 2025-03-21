@@ -1,5 +1,6 @@
 import axiosClient from '../api/axiosUserClient';
 import axiosHostClient from '../api/axiosHostClient';
+import axiosAdminClient from '../api/axiosAdminClient';
 
 interface SignupData {
   name: string;
@@ -67,6 +68,10 @@ export const authRepository = {
   },
   resetPassword: async ({ email, password, confirmPassword }: { email: string, password: string, confirmPassword:string }) => {
     const response = await axiosClient.post('/reset-password', { email,password, confirmPassword });
+    return response.data;
+  },
+  adminLogin: async (credentials: LoginData) => {
+    const response = await axiosAdminClient.post('/login', credentials);
     return response.data;
   },
 };

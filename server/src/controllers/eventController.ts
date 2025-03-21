@@ -5,6 +5,7 @@ import EventService from "../services/eventService";
 import { IEvent } from "../services/interfaces/IEventService";
 import { MESSAGES, STATUS_CODES } from "../utils/constants";
 
+
 interface AuthRequest extends Request {
   user?: {
     userId?: string;
