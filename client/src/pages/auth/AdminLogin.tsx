@@ -7,7 +7,7 @@ import { validateEmail, validatePassword } from "../../utils/validationUtils";
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
-  const { adminLogin, isLoading, error } = useAuthStore(); // Make sure adminLogin is implemented
+  const { adminLogin, isLoading, error } = useAuthStore();
 
   const [formData, setFormData] = useState({
     email: "",

@@ -235,7 +235,7 @@ async logout(req: Request, res: Response): Promise<void> {
   });
   res.status(STATUS_CODES.SUCCESS).json({
     success: true,
-    message: "Logout successful"
+    message: MESSAGES.COMMON.SUCCESS.LOGOUT
   });
 }
 

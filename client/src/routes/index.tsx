@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Public Pages for host, user
@@ -20,6 +19,7 @@ import HostEvents from "../pages/host/HostEvents";
 import HostAddEvent from "../pages/host/HostAddEvent";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import HostProfileManagement from "../pages/host/HostProfileManagement";
+import AdminDashboard from "../pages/admin/AdminDashboard";
 
 const AppRoutes = () => {
   return (
@@ -53,7 +53,12 @@ const AppRoutes = () => {
           <Route path="/host/profile" element={<HostProfileManagement />} />
         </Route>
 
-       {/* for all other routes */}
+        {/* admin specific */}
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        </Route>
+
+        {/* for all other routes */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

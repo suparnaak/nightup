@@ -5,6 +5,8 @@ export interface IAdmin extends Document {
   name: string;
   email: string;
   password: string;
+  refreshToken?: string; // New field for storing refresh token
+  role?: 'user' | 'host' | 'admin';
 }
 
 const adminSchema: Schema = new Schema(
@@ -12,6 +14,7 @@ const adminSchema: Schema = new Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    refreshToken: { type: String, default: "" }, 
   },
   { timestamps: true }
 );

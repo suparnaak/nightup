@@ -74,4 +74,9 @@ export const authRepository = {
     const response = await axiosAdminClient.post('/login', credentials);
     return response.data;
   },
+  adminLogout: async () => {
+    const response = await axiosAdminClient.post('/logout');
+    return response.data;
+  },
+  
 };
