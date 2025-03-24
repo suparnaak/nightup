@@ -43,10 +43,10 @@ const Login: React.FC = () => {
     setError('');
 
     try {
-      const data = await authRepository.login({ email, password });
+      const data = await login( email, password );
       console.log(data);
       if (data.success) {
-        login(data.user);
+        
         toast.success('Logged in successfully!');
         navigate('/home');
       } else {

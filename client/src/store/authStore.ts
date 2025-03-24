@@ -35,7 +35,7 @@ interface AuthState {
 
   googleSignup: (token: string) => Promise<void>;
 
-  login: (user: User) => void;
+  login: (email: string, password: string) => Promise<any>;
   hostLogin: (email: string, password: string) => Promise<any>;
   adminLogin: (email: string, password: string) => Promise<any>;
 
@@ -120,8 +120,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  login: (user: User) => {
-    set({ user, isAuthenticated: true });
+  login: async (email: string, password: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await authRepository.login({ email, password });
+      set({
+        user: response.user,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      return response;
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || 'User login failed. Please try again.',
+      });
+      throw error;
+    }
   },
 
   logout: () => {

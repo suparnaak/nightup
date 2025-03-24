@@ -7,6 +7,8 @@ import AdminRepository from "../repositories/adminRepository";
 import HostRepository from "../repositories/hostRepository";
 import { IHost } from "../models/host";
 import { sendDocumentVerificationEmail } from "../utils/mailer";
+import UserRepository from "../repositories/userRepository";
+import { IUser } from "../models/user";
 
 class AdminService implements IAdminService {
   async login(
@@ -143,6 +145,18 @@ class AdminService implements IAdminService {
     }
     return { success: true, message: `Host has been ${newStatus ? "blocked" : "unblocked"} successfully` };
   }
+  async getUsers(): Promise<IUser[]> {
+    return await UserRepository.getAllUsers();
+  }
+    //block or unblock users
+    async userToggleStatus(userId: string, newStatus: boolean): Promise<{ success: boolean; message: string }> {
+      console.log(newStatus)
+      const updatedUser = await UserRepository.updateUser(userId, { isBlocked: newStatus });
+      if (!updatedUser) {
+        return { success: false, message: "Failed to update block status" };
+      }
+      return { success: true, message: `User has been ${newStatus ? "blocked" : "unblocked"} successfully` };
+    }
 }
 
 export default new AdminService();

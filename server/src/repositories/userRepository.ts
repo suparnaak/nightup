@@ -16,7 +16,10 @@ class UserRepository implements IUserRepository {
   async updateUser(userId: string | Types.ObjectId, updateData: Partial<IUser>): Promise<IUser | null> {
     return await User.findByIdAndUpdate(userId, updateData, { new: true });
   }
+    async getAllUsers(): Promise<IUser[]> {
+      return await User.find();
+    }
 
 }
 
-export default UserRepository;
+export default new UserRepository;

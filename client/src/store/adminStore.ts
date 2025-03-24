@@ -1,42 +1,51 @@
 // src/store/adminStore.ts
 import { create } from 'zustand';
 import { adminRepository } from '../repositories/adminRepository';
-
-export interface Host {
+export interface BaseUser {
   id: string;
   name: string;
   email: string;
   phone: string;
-  hostType: string;
-  subscriptionPlan: string;
-  subStatus: string;
-  documentUrl: string;
   isVerified: boolean;
-  adminVerified: boolean;
   isBlocked: boolean;
   createdAt: string | number | Date;
 }
 
+export interface User extends BaseUser {}
+
+export interface Host extends BaseUser {
+  hostType: string;
+  subscriptionPlan: string;
+  subStatus: string;
+  documentUrl: string;
+  adminVerified: boolean;
+}
+
+
 interface AdminState {
   hosts: Host[];
+  users: User[];
   isLoading: boolean;
   error: string | null;
   getHosts: () => Promise<Host[]>;
   clearHosts: () => void;
   verifyDocument: (payload: { hostId: string; action: "approve" | "reject" }) => Promise<any>;
   hostToggleStatus: (hostId: string, newStatus: boolean) => Promise<any>;
+  getUsers: () => Promise<User[]>;
+  userToggleStatus: (userId: string, newStatus: boolean) => Promise<any>;
 }
 
-export const useAdminStore = create<AdminState>((set,get) => ({
+export const useAdminStore = create<AdminState>((set, get) => ({
   hosts: [],
+  users: [], 
   isLoading: false,
   error: null,
+  
   getHosts: async () => {
     set({ isLoading: true, error: null });
     try {
       const data = await adminRepository.getHosts();
-      
-      const transformedHosts = data.hosts.map((host: any) => ({ //to change objid(_id) to id
+      const transformedHosts = data.hosts.map((host: any) => ({
         id: host._id.toString(),
         ...host,
       }));
@@ -50,8 +59,9 @@ export const useAdminStore = create<AdminState>((set,get) => ({
       throw error;
     }
   },
+
   clearHosts: () => set({ hosts: [] }),
-  //approve or reject doc
+
   verifyDocument: async ({ hostId, action }) => {
     set({ isLoading: true, error: null });
     try {
@@ -66,20 +76,58 @@ export const useAdminStore = create<AdminState>((set,get) => ({
       throw error;
     }
   },
-//block or unblock host
-hostToggleStatus: async (hostId: string, newStatus: boolean) => {
-  set({ isLoading: true, error: null });
-  try {
-    const response = await adminRepository.hostToggleStatus({ hostId, newStatus });
-    await get().getHosts();
-    set({ isLoading: false });
-    return response;
-  } catch (error: any) {
-    set({
-      error: error.response?.data?.message || "Failed to update block status",
-      isLoading: false,
-    });
-    throw error;
-  }
-},
+
+  hostToggleStatus: async (hostId: string, newStatus: boolean) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await adminRepository.hostToggleStatus({ hostId, newStatus });
+      await get().getHosts();
+      set({ isLoading: false });
+      return response;
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to update block status",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  getUsers: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await adminRepository.getUsers();
+      //console.log(data)
+      const transformedUsers = data.users.map((user: any) => ({
+        id: user._id.toString(),
+        ...user,
+      }));
+
+      set({ users: transformedUsers, isLoading: false });
+      return transformedUsers;
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to load users",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  userToggleStatus: async (userId: string, newStatus: boolean) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await adminRepository.userToggleStatus({ userId, newStatus });
+      //console.log(response)
+      await get().getUsers();
+      set({ isLoading: false });
+      return response;
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to update user block status",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
 }));

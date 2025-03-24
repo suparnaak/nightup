@@ -6,7 +6,7 @@ import { isRequired, isEmail } from "../utils/validators";
 
 
 class UserController {
-  private userService: UserService;
+  /* private userService: UserService;
 
   constructor() {
     this.userService = new UserService();
@@ -17,7 +17,7 @@ class UserController {
     //this.googleAuthCallback = this.googleAuthCallback.bind(this);
     this.forgotPassword = this.forgotPassword.bind(this);
     this.resetPassword = this.resetPassword.bind(this);
-  }
+  } */
 
   async signup(req: Request, res: Response): Promise<void> {
     try {
@@ -62,13 +62,13 @@ class UserController {
         return;
       }
 
-      const existingUser = await this.userService.findUserByEmail(email);
+      const existingUser = await UserService.findUserByEmail(email);
       if (existingUser) {
         res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.EMAIL_IN_USE });
         return;
       }
 
-      const user = await this.userService.signup(name, email, phone, password);
+      const user = await UserService.signup(name, email, phone, password);
 
       res.status(STATUS_CODES.CREATED).json({
         message: MESSAGES.COMMON.SUCCESS.REGISTERED,
@@ -99,7 +99,7 @@ async verifyOtp(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const result = await this.userService.verifyOtp(email, otp, verificationType);
+    const result = await UserService.verifyOtp(email, otp, verificationType);
 
     if (!result.success) {
       res.status(STATUS_CODES.BAD_REQUEST).json({
@@ -133,7 +133,7 @@ async resendOtp(req: Request, res: Response): Promise<void> {
       res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.MISSING_FIELDS });
       return;
     }
-    const result = await this.userService.resendOtp(email, verificationType);
+    const result = await UserService.resendOtp(email, verificationType);
 
     if (!result.success) {
       res.status(STATUS_CODES.BAD_REQUEST).json({ message: result.message });
@@ -175,10 +175,11 @@ async login(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const result = await this.userService.login(email, password);
-   
+    const result = await UserService.login(email, password);
+   console.log(result)
     if (!result.success) {
       //console.log(result.otpRequired)
+      console.log("success false")
       const statusCode =
         result.otpRequired
           ? STATUS_CODES.FORBIDDEN
@@ -187,7 +188,7 @@ async login(req: Request, res: Response): Promise<void> {
       res.status(statusCode).json({
         success: false,
         message: result.message,
-        error: result.otpRequired ? 'unverified' : 'invalid', 
+        //error: result.otpRequired ? 'unverified' : 'invalid', 
         otpRequired: result.otpRequired || false,
       });
       
@@ -289,7 +290,7 @@ async logout(req: Request, res: Response): Promise<void> {
       }
   
       // Call the service
-      const result = await this.userService.forgotPassword(email);
+      const result = await UserService.forgotPassword(email);
   
       // Check if the call was successful and send the result
       res.status(result.success ? STATUS_CODES.SUCCESS : STATUS_CODES.BAD_REQUEST).json(result);
@@ -319,7 +320,7 @@ async logout(req: Request, res: Response): Promise<void> {
       }
   
       // Call the service
-      const result = await this.userService.resetPassword(email, password);
+      const result = await UserService.resetPassword(email, password);
       console.log(result)
       // Check if the call was successful and send the result
       res.status(result.success ? STATUS_CODES.SUCCESS : STATUS_CODES.BAD_REQUEST).json(result);

@@ -9,21 +9,15 @@ import jwt from "jsonwebtoken";
 
 class UserService implements IUserService {
   
-  private userRepository: UserRepository;
-
-  constructor() {
-    this.userRepository = new UserRepository();
-  }
-
-  async signup(name: string, email: string, phone: string, password: string): Promise<IUser> {
-    const existingUser = await this.userRepository.findByEmail(email);
+   async signup(name: string, email: string, phone: string, password: string): Promise<IUser> {
+    const existingUser = await UserRepository.findByEmail(email);
     if (existingUser) throw new Error(MESSAGES.COMMON.ERROR.EMAIL_IN_USE);
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); 
 
-    const newUser = await this.userRepository.createUser({
+    const newUser = await UserRepository.createUser({
       name,
       email,
       phone,
@@ -40,12 +34,12 @@ class UserService implements IUserService {
   }
 
   async findUserByEmail(email: string): Promise<IUser | null> {
-    return this.userRepository.findByEmail(email);
+    return UserRepository.findByEmail(email);
   }
 
   // Verify OTP
   async verifyOtp(email: string, otp: string, verificationType: string) {
-    const user = await this.userRepository.findByEmail(email);
+    const user = await UserRepository.findByEmail(email);
     if (!user) {
       throw new Error(MESSAGES.COMMON.ERROR.INVALID_EMAIL);
     }
@@ -72,7 +66,7 @@ class UserService implements IUserService {
   
       // Mark email as verified
       user.isVerified = true;
-      await this.userRepository.updateUser(user._id, {
+      await UserRepository.updateUser(user._id, {
         isVerified: true,
         otp: "",
         otpExpiry: undefined,
@@ -90,7 +84,7 @@ class UserService implements IUserService {
       };
     } else if (verificationType === 'passwordReset') {
       // OTP verified, proceed to password reset (do not set isVerified)
-      await this.userRepository.updateUser(user._id, {
+      await UserRepository.updateUser(user._id, {
         otp: "",
         otpExpiry: undefined,
       });
@@ -113,7 +107,7 @@ class UserService implements IUserService {
 
   //  Resend OTP
   async resendOtp(email: string, verificationType: string) {
-    const user = await this.userRepository.findByEmail(email);
+    const user = await UserRepository.findByEmail(email);
     if (!user) {
       throw new Error(MESSAGES.COMMON.ERROR.NOT_FOUND);
     }
@@ -126,7 +120,7 @@ class UserService implements IUserService {
     const newOtp = generateOTP();
     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
   
-    await this.userRepository.updateUser(user._id, {
+    await UserRepository.updateUser(user._id, {
       otp: newOtp,
       otpExpiry,
     });
@@ -148,8 +142,8 @@ class UserService implements IUserService {
 
   //login
   async login(email: string, password: string): Promise<{ success: boolean; message: string; token: string; otpRequired?: boolean; user: Partial<IUser> }> {
-    const user = await this.userRepository.findByEmail(email);
-    //console.log("got user")
+    const user = await UserRepository.findByEmail(email);
+    console.log(user)
     if (!user) {
      // console.log("here is the error no user")
       return { 
@@ -171,6 +165,7 @@ class UserService implements IUserService {
     }
   
     if (user.isBlocked) {
+      console.log("here")
       return { 
         success: false, 
         message: MESSAGES.COMMON.ERROR.BLOCKED || "Your account is blocked.", 
@@ -230,14 +225,14 @@ class UserService implements IUserService {
       if (!email) {
         return { success: false, message: "Email not found in Google profile" };
       }
-      let user = await this.userRepository.findByEmail(email);
+      let user = await UserRepository.findByEmail(email);
       if (user) {
         if (!user.googleId) {
-          user = await this.userRepository.updateUser(user._id.toString(), { googleId: profile.id }) as IUser;
+          user = await UserRepository.updateUser(user._id.toString(), { googleId: profile.id }) as IUser;
         }
       } else {
         // Create a new user with Google data
-        user = await this.userRepository.createUser({
+        user = await UserRepository.createUser({
           googleId: profile.id,
           name: profile.displayName,
           email,
@@ -294,7 +289,7 @@ class UserService implements IUserService {
   }> {
     try {
       // 1. Check if user exists
-      const user = await this.userRepository.findByEmail(email);
+      const user = await UserRepository.findByEmail(email);
       if (!user) {
         return {
           success: false,
@@ -315,7 +310,7 @@ class UserService implements IUserService {
       const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min expiry
   
       // 4. Update OTP and expiry in the DB
-      await this.userRepository.updateUser(user._id, {
+      await UserRepository.updateUser(user._id, {
         otp,
         otpExpiry,
       });
@@ -344,7 +339,7 @@ class UserService implements IUserService {
     success: boolean; 
     message: string;  
   }> {
-    const user = await this.userRepository.findByEmail(email);
+    const user = await UserRepository.findByEmail(email);
     if (!user) {
       throw new Error(MESSAGES.COMMON.ERROR.NOT_FOUND);
     }
@@ -352,7 +347,7 @@ class UserService implements IUserService {
     const hashedPassword = await bcrypt.hash(password, 10);
 
 
-    await this.userRepository.updateUser(user._id, {
+    await UserRepository.updateUser(user._id, {
       password: hashedPassword
       
     });
@@ -366,4 +361,4 @@ class UserService implements IUserService {
 
 }
 
-export default UserService;
+export default new  UserService;

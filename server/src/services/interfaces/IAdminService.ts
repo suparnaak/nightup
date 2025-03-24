@@ -7,5 +7,6 @@ export interface IAdminService{
      getHosts(): Promise<IHost[]>;
      verifyDocument(hostId: string, action: "approve" | "reject"): Promise<{ success: boolean; message: string }>
      hostToggleStatus(hostId: string, newStatus: boolean): Promise<{ success: boolean; message: string }>
-     
+     userToggleStatus(userId: string, newStatus: boolean): Promise<{ success: boolean; message: string }>
+
 }

@@ -198,6 +198,50 @@ class AdminController implements IAdminController {
       });
     }
   }
+  async getUsers(req: Request, res: Response): Promise<void> {
+    try {
+      const users = await AdminService.getUsers();
+      //console.log(hosts)
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        message: "Users retrieved successfully",
+        users,
+      });
+    } catch (error) {
+      console.error("Error fetching hosts:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
+   //block or unblock users
+   async userToggleStatus(req: Request, res: Response): Promise<void> {
+    try {
+      //console.log(req.body)
+      const { userId, newStatus } = req.body;
+     // console.log(newStatus)
+      if (!userId || newStatus === undefined) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.MISSING_FIELDS,
+        });
+        return;
+      }
+      const result = await AdminService.userToggleStatus(userId, newStatus);
+
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      console.error("Toggle Block Status Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
 }
 
 export default new AdminController();

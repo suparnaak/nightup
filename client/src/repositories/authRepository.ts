@@ -28,6 +28,7 @@ export const authRepository = {
 
   login: async (credentials: LoginData) => {
     const response = await axiosClient.post('/login', credentials);
+    //console.log(response)
     return response.data;
   },
   verifyOtp: async ({ email, otp, verificationType }: { email: string; otp: string; verificationType:string }) => {
