@@ -9,8 +9,8 @@ export interface IHost extends Document {
   hostType: string; 
   isVerified: boolean;
   isBlocked: boolean;
-  documentUrl: string,
-  subStatus: boolean;
+  documentUrl: string;
+  subStatus: "Not Subscribed" | "Active" | "Expired";
   adminVerified: boolean;
   otp: string;
   otpExpiry?: Date;
@@ -26,12 +26,15 @@ const hostSchema: Schema = new Schema(
     hostType: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
-    documentUrl: { type: String, default: ""},
+    documentUrl: { type: String, default: "" },
     adminVerified: { type: Boolean, default: false },
-    subStatus: { type: Boolean, default: false },
-    otp: { type: String, default: '' },
+    subStatus: {
+      type: String,
+      enum: ["Not Subscribed", "Active", "Expired"],
+      default: "Not Subscribed",
+    },
+    otp: { type: String, default: "" },
     otpExpiry: { type: Date },
-    
   },
   { timestamps: true }
 );

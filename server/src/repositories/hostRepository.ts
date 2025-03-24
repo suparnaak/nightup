@@ -29,6 +29,11 @@ class HostRepository implements IHostRepository {
     console.log(updateData)
     return await this.updateHost(hostId, updateData);
   }
+
+  //get all hosts
+  async getAllHosts(): Promise<IHost[]> {
+    return await Host.find();
+  }
 }
 
 export default new HostRepository();

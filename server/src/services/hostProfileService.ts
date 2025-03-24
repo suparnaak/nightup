@@ -14,7 +14,7 @@ class HostProfileService implements IHostProfileService {
       email: host.email,
       phone: host.phone,
       hostType: host.hostType,
-      documentUrl: host.documentUrl, // assuming your DB field is "document" for the URL.
+      documentUrl: host.documentUrl, 
       subscriptionPlan: host.subStatus ? "Subscribed" : "Not subscribed",
       adminVerified: host.adminVerified,
     };
@@ -30,7 +30,6 @@ class HostProfileService implements IHostProfileService {
         updateData[key] = value;
       });
     } else {
-      // If it's already a plain object
       updateData = profileData;
     }
     if (updateData.password) {

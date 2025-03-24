@@ -26,7 +26,7 @@ export const authMiddleware = (allowedRoles: string[] = []) => {
 
       const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
 
-      const userId = decoded.userId || decoded.hostId;
+      const userId = decoded.userId || decoded.hostId || decoded.adminId;
       const type = decoded.type;
 
       if (!userId || !type) {

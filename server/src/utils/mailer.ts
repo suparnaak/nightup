@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,  
   },
 });
-
+//mail for otp verification
 export const sendOtpEmail = async (email: string, otp: string) => {
   const mailOptions = {
     from: `"Your App Name" <${process.env.EMAIL_USER}>`,
@@ -28,5 +28,34 @@ export const sendOtpEmail = async (email: string, otp: string) => {
   } catch (error) {
     console.error('Error sending OTP email:', error);
     throw new Error('Failed to send OTP email.');
+  }
+};
+
+//verify document mail by admin
+export const sendDocumentVerificationEmail = async (email: string, action: "approve" | "reject") => {
+  const subject = action === "approve" 
+    ? "Your Document has been Approved" 
+    : "Your Document has been Rejected";
+  const text = action === "approve" 
+    ? "Congratulations! Your uploaded document has been approved by our admin." 
+    : "We regret to inform you that your uploaded document has been rejected. Please update your document and try again.";
+  const html = action === "approve"
+    ? `<p>Congratulations!</p><p>Your uploaded document has been <b>approved</b> by our admin.</p>`
+    : `<p>We regret to inform you that your uploaded document has been <b>rejected</b>.</p><p>Please update your document and try again.</p>`;
+
+  const mailOptions = {
+    from: `"Your App Name" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject,
+    text,
+    html,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Document verification email sent to ${email} with action: ${action}`);
+  } catch (error) {
+    console.error('Error sending document verification email:', error);
+    throw new Error('Failed to send document verification email.');
   }
 };

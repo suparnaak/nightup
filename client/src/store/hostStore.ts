@@ -10,6 +10,7 @@ export interface HostProfile {
   documentUrl: string; // using documentUrl for display
   subscriptionPlan: string;
   adminVerified: boolean;
+  //createdAt: string;
   // Add other fields as needed
 }
 

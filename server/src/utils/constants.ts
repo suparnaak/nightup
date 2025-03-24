@@ -54,6 +54,15 @@ export const MESSAGES = {
       
     },
   },
+  ADMIN:{
+    SUCCESS:{
+      DOCUMENT_VERIFIED: "Document has been verified successfully",
+      DOCUMENT_REJECTED: "Document has been rejected",
+    },
+    ERROR:{
+      FAILED_DOC_VERIFY:"Document "
+    }
+  }
 };
 
 

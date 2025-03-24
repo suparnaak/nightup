@@ -210,13 +210,18 @@ const HostAddEvent: React.FC = () => {
           {/* Category, Artist, Description */}
           <div>
             <label className="block text-gray-700">Category</label>
-            <input
-              type="text"
+            <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
               className="w-full border border-gray-300 p-2 rounded"
-            />
+            >
+              <option value="">Select a category</option>
+              <option value="Music">Music</option>
+              <option value="DJ">DJ</option>
+              <option value="Tech">Tech</option>
+              <option value="Workshops">Workshops</option>
+            </select>
           </div>
           <div>
             <label className="block text-gray-700">Artist</label>

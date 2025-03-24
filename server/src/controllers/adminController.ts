@@ -120,6 +120,84 @@ class AdminController implements IAdminController {
       message: MESSAGES.COMMON.SUCCESS.LOGOUT
     });
   }
+  //get all hosts
+  async getHosts(req: Request, res: Response): Promise<void> {
+    try {
+      const hosts = await AdminService.getHosts();
+      //console.log(hosts)
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        message: "Hosts retrieved successfully",
+        hosts,
+      });
+    } catch (error) {
+      console.error("Error fetching hosts:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
+  //document verification
+  async verifyDocument(req: Request, res: Response): Promise<void> {
+    try {
+      const { hostId, action } = req.body;
+      if (!hostId || !action) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.MISSING_FIELDS,
+        });
+        return;
+      }
+      const result = await AdminService.verifyDocument(hostId, action);
+      
+      if (!result.success) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: result.message || MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+        });
+        return;
+      }
+      
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      console.error("Verify Document Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
+  //block or unblock hosts
+  async hostToggleStatus(req: Request, res: Response): Promise<void> {
+    try {
+      //console.log(req.body)
+      const { hostId, newStatus } = req.body;
+     // console.log(newStatus)
+      if (!hostId || newStatus === undefined) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.MISSING_FIELDS,
+        });
+        return;
+      }
+      const result = await AdminService.hostToggleStatus(hostId, newStatus);
+
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      console.error("Toggle Block Status Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
 }
 
 export default new AdminController();
