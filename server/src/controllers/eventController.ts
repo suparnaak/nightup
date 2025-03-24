@@ -97,9 +97,9 @@ class EventController implements IEventController {
       });
     } catch (error: any) {
       console.error("Error creating event:", error);
-      res
-        .status(STATUS_CODES.SERVER_ERROR)
-        .json({ message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR });
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        message: error.message || MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
     }
   }
 

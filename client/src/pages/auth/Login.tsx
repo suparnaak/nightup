@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
-import { authRepository } from '../../repositories/authRepository';
+//import { authRepository } from '../../repositories/authRepository';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
