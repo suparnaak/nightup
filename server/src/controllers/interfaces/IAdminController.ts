@@ -7,5 +7,6 @@ export interface IAdminController {
     verifyDocument(req: Request, res: Response): Promise<void>
     hostToggleStatus(req: Request, res: Response): Promise<void>
     userToggleStatus(req: Request, res: Response): Promise<void>
+    getUsers(req: Request, res: Response): Promise<void>
 
 }

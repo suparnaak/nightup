@@ -7,6 +7,6 @@ export interface IUserService {
   login(email: string, password: string): Promise<{ success: boolean; message: string; token: string; user: Partial<IUser> }>;
   forgotPassword(email: string): Promise<{success: boolean;message: string;email?: string;otpExpiry?: Date; }>;  
   resetPassword(email: string,password: string):Promise<{success: boolean;message: string; }>;
-  googleAuth(googleToken: string): Promise<{ success: boolean; message: string; token?: string; user?: Partial<IUser> }>;
+  //googleAuth(googleToken: string): Promise<{ success: boolean; message: string; token?: string; user?: Partial<IUser> }>;
   
 }

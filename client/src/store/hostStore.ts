@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { hostRepository } from '../repositories/hostRepository'
+import { create } from "zustand";
+import { hostRepository } from "../repositories/hostRepository";
 
 export interface HostProfile {
   id: string;
@@ -7,14 +7,11 @@ export interface HostProfile {
   email: string;
   phone: string;
   hostType: string;
-  documentUrl: string; // using documentUrl for display
+  documentUrl: string;
   subscriptionPlan: string;
   adminVerified: boolean;
-  //createdAt: string;
-  // Add other fields as needed
 }
 
-// Define a type for the response returned by updateHostProfile
 export interface HostProfileResponse {
   hostProfile: HostProfile;
   message: string;
@@ -25,7 +22,6 @@ interface HostProfileState {
   isLoading: boolean;
   error: string | null;
 
-  // Profile management actions
   getHostProfile: () => Promise<HostProfile>;
   updateHostProfile: (profileData: FormData) => Promise<HostProfileResponse>;
   clearProfile: () => void;
@@ -50,13 +46,11 @@ export const useHostStore = create<HostProfileState>((set) => ({
       throw error;
     }
   },
-  
 
   updateHostProfile: async (profileData: FormData) => {
     set({ isLoading: true, error: null });
     try {
       const response = await hostRepository.updateHostProfile(profileData);
-      // Assume the repository returns an object with hostProfile and message
       set({ host: response.hostProfile, isLoading: false });
       return response;
     } catch (error: any) {

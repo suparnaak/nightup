@@ -41,66 +41,45 @@ class UserService implements IUserService {
   async verifyOtp(email: string, otp: string, verificationType: string) {
     const user = await UserRepository.findByEmail(email);
     if (!user) {
-      throw new Error(MESSAGES.COMMON.ERROR.INVALID_EMAIL);
+      return { success: false, message: MESSAGES.COMMON.ERROR.INVALID_EMAIL };
     }
   
-    // Check OTP existence and expiry
     if (!user.otp || !user.otpExpiry) {
-      throw new Error(MESSAGES.COMMON.ERROR.NO_OTP_FOUND);
+      return { success: false, message: MESSAGES.COMMON.ERROR.NO_OTP_FOUND };
     }
   
     const currentTime = new Date();
     if (user.otpExpiry < currentTime) {
-      throw new Error(MESSAGES.COMMON.ERROR.OTP_EXPIRED);
+      return { success: false, message: MESSAGES.COMMON.ERROR.OTP_EXPIRED };
     }
   
     if (user.otp !== otp) {
-      throw new Error(MESSAGES.COMMON.ERROR.INVALID_OTP);
+      return { success: false, message: MESSAGES.COMMON.ERROR.INVALID_OTP };
     }
   
     // Handle different verification flows
-    if (verificationType === 'emailVerification') {
+    if (verificationType === "emailVerification") {
       if (user.isVerified) {
-        throw new Error(MESSAGES.COMMON.ERROR.ALREADY_VERIFIED);
+        return { success: false, message: MESSAGES.COMMON.ERROR.ALREADY_VERIFIED };
       }
   
-      // Mark email as verified
-      user.isVerified = true;
-      await UserRepository.updateUser(user._id, {
-        isVerified: true,
-        otp: "",
-        otpExpiry: undefined,
-      });
+      await UserRepository.updateUser(user._id, { isVerified: true, otp: "", otpExpiry: undefined });
   
       return {
         success: true,
         message: MESSAGES.COMMON.SUCCESS.OTP_VERIFIED,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-        },
+        user: { id: user._id, name: user.name, email: user.email, phone: user.phone },
       };
-    } else if (verificationType === 'passwordReset') {
-      // OTP verified, proceed to password reset (do not set isVerified)
-      await UserRepository.updateUser(user._id, {
-        otp: "",
-        otpExpiry: undefined,
-      });
+    } else if (verificationType === "passwordReset") {
+      await UserRepository.updateUser(user._id, { otp: "", otpExpiry: undefined });
   
       return {
         success: true,
         message: MESSAGES.COMMON.SUCCESS.OTP_VERIFIED,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-        },
+        user: { id: user._id, name: user.name, email: user.email, phone: user.phone },
       };
     } else {
-      throw new Error(MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS);
+      return { success: false, message: MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS };
     }
   }
   
@@ -138,7 +117,47 @@ class UserService implements IUserService {
     };
   }
   
+  //google signup
+  async processGoogleAuth(profile: any): Promise<{ user: IUser; token: string; message: string; status: number }> {
+    // Instead of trying to read from an emails array, read the email directly:
+    const email = profile.email;
+    if (!email) {
+      throw new Error("Google profile did not return an email address.");
+    }
   
+    // Proceed with finding or creating the user
+    let user = await UserRepository.findByEmail(email);
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = profile.id;
+        await UserRepository.updateUser(user._id, { googleId: profile.id });
+      }
+    } else {
+      user = await UserRepository.createUser({
+        googleId: profile.id,
+        name: profile.displayName,
+        email, // use the extracted email
+        password: "", // no password required for Google signups
+        isVerified: true,
+        isBlocked: false,
+        isAdmin: false,
+      } as IUser);
+    }
+  
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error("JWT secret is missing.");
+    }
+  
+    const token = jwt.sign({ userId: user._id, type: "user" }, jwtSecret, { expiresIn: "1h" });
+  
+    return {
+      user,
+      token,
+      message: "Login successful",
+      status: 200,
+    };
+  }  
 
   //login
   async login(email: string, password: string): Promise<{ success: boolean; message: string; token: string; otpRequired?: boolean; user: Partial<IUser> }> {
@@ -213,72 +232,7 @@ class UserService implements IUserService {
     };
   }
   
-  async googleAuth(
-    googleToken: string
-  ): Promise<{ success: boolean; message: string; token?: string; user?: Partial<IUser> }> {
-    try {
-      // In a real-world scenario, you might verify the token with Google's API.
-      // Since Passport is handling the verification, here we assume googleToken has been verified and contains the Google profile.
-      // For this example, we assume that googleToken is a JSON stringified profile.
-      const profile = JSON.parse(googleToken);
-      const email = profile.emails?.[0]?.value || profile.email;
-      if (!email) {
-        return { success: false, message: "Email not found in Google profile" };
-      }
-      let user = await UserRepository.findByEmail(email);
-      if (user) {
-        if (!user.googleId) {
-          user = await UserRepository.updateUser(user._id.toString(), { googleId: profile.id }) as IUser;
-        }
-      } else {
-        // Create a new user with Google data
-        user = await UserRepository.createUser({
-          googleId: profile.id,
-          name: profile.displayName,
-          email,
-          phone: "",             // No phone provided by Google
-          password: "",          // No password required for Google signup
-          isVerified: true,      // Mark as verified since Google verifies the email
-          isBlocked: false,      // Defaults
-          isAdmin: false,        // Defaults
-          otp: "",               // Not required
-          otpExpiry: undefined,  // Not required
-        } as IUser);
-      }
-      const jwtSecret = process.env.JWT_SECRET;
-      if (!jwtSecret) {
-        throw new Error(MESSAGES.COMMON.ERROR.JWT_SECRET_MISSING);
-      }
-      const token = jwt.sign(
-        {
-          userId: user._id,
-          type: "user",
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          profileImage: (user as any).profileImage,
-        },
-        jwtSecret,
-        { expiresIn: "1h" }
-      );
-      return {
-        success: true,
-        message: MESSAGES.COMMON.SUCCESS.LOGIN,
-        token,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          googleId: user.googleId,
-          role: user.role,
-        },
-      };
-    } catch (error) {
-      console.error("Google Auth Service Error:", error);
-      return { success: false, message: "Google authentication failed" };
-    }
-  }
+  
 
   //forgot password
   async forgotPassword(email: string): Promise<{ 

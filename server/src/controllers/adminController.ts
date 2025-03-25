@@ -26,16 +26,12 @@ class AdminController implements IAdminController {
         });
         return;
       }
-
-      // Token cookie options
       const accessTokenCookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict' as 'strict',
         maxAge: 1 * 60 * 60 * 1000, // 1 hour
       };
-
-      // Refresh token cookie options
       const refreshTokenCookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -44,7 +40,6 @@ class AdminController implements IAdminController {
       };
 
       res
-        // Set both access and refresh tokens as httpOnly cookies
         .cookie('token', result.token, accessTokenCookieOptions)
         .cookie('refreshToken', result.refreshToken, refreshTokenCookieOptions)
         .status(STATUS_CODES.SUCCESS)
@@ -68,17 +63,13 @@ class AdminController implements IAdminController {
   }
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
-      // Read the refresh token from cookies
       const refreshToken = req.cookies.refreshToken;
       if (!refreshToken) {
         res.status(STATUS_CODES.UNAUTHORIZED).json({ success: false, message: "Refresh token not provided" });
         return;
       }
-
-      // Call service to refresh the access token
       const result = await AdminService.refreshToken(refreshToken);
 
-      // Set the new access token in cookie
       const accessTokenCookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',

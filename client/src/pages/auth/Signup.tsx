@@ -11,10 +11,12 @@ import {
   validatePassword,
   validateConfirmPassword,
 } from "../../utils/validationUtils";
+import { authRepository } from "../../repositories/authRepository";
+import toast from "react-hot-toast";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const { signup,  isLoading, error } = useAuthStore();
+  const { signup,  isLoading, error, /* googleSignup */ } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -77,7 +79,14 @@ const Signup: React.FC = () => {
     }
   };
 
-  const handleGoogleSignup = async () => {};
+  const handleGoogleSignup = () => {
+    try {
+      window.location.href = `${import.meta.env.VITE_API_URL}/api/users/auth/google`;
+
+    } catch (error) {
+      console.error("Google signup failed:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

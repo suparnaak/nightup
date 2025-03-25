@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import HostLayout from "../../layouts/HostLayout";
 import { uploadImageToCloudinary } from "../../utils/cloudinary";
 import { useEventStore } from "../../store/eventStore";
+import { validateEventForm } from "../../utils/eventValidation";
 
 const HostAddEvent: React.FC = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const HostAddEvent: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // State for form data
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -26,10 +28,18 @@ const HostAddEvent: React.FC = () => {
     { ticketType: "", ticketPrice: 0, ticketCount: 0 },
   ]);
   const [eventImageFile, setEventImageFile] = useState<File | null>(null);
-  const [eventImagePreview, setEventImagePreview] = useState<string | null>(
-    null
-  );
+  const [eventImagePreview, setEventImagePreview] = useState<string | null>(null);
   const [additionalDetails, setAdditionalDetails] = useState("");
+
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string | null }>({});
+
+  const getTodayDate = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -50,21 +60,39 @@ const HostAddEvent: React.FC = () => {
   };
 
   const addTicketField = () => {
-    setTickets([
-      ...tickets,
-      { ticketType: "", ticketPrice: 0, ticketCount: 0 },
-    ]);
+    setTickets([...tickets, { ticketType: "", ticketPrice: 0, ticketCount: 0 }]);
   };
 
   const removeTicketField = (index: number) => {
     setTickets(tickets.filter((_, i) => i !== index));
   };
 
+  const validateForm = (): boolean => {
+    const errors = validateEventForm(
+      title,
+      date,
+      startTime,
+      endTime,
+      venueName,
+      venueCity,
+      venueState,
+      venueZip,
+      venueCapacity,
+      category,
+      artist,
+      description,
+      tickets
+    );
+    setFormErrors(errors);
+    return !Object.values(errors).some((err) => err !== null);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    if (!validateForm()) return;
 
+    setLoading(true);
     try {
       let eventImageUrl = "";
       if (eventImageFile) {
@@ -120,6 +148,7 @@ const HostAddEvent: React.FC = () => {
               required
               className="w-full border border-gray-300 p-2 rounded"
             />
+            {formErrors.title && <p className="text-red-500 text-sm mt-1">{formErrors.title}</p>}
           </div>
           {/* Date and Times */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -129,9 +158,11 @@ const HostAddEvent: React.FC = () => {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                min={getTodayDate()}
                 required
                 className="w-full border border-gray-300 p-2 rounded"
               />
+              {formErrors.date && <p className="text-red-500 text-sm mt-1">{formErrors.date}</p>}
             </div>
             <div>
               <label className="block text-gray-700">Start Time</label>
@@ -142,6 +173,7 @@ const HostAddEvent: React.FC = () => {
                 required
                 className="w-full border border-gray-300 p-2 rounded"
               />
+              {formErrors.startTime && <p className="text-red-500 text-sm mt-1">{formErrors.startTime}</p>}
             </div>
             <div>
               <label className="block text-gray-700">End Time</label>
@@ -152,6 +184,7 @@ const HostAddEvent: React.FC = () => {
                 required
                 className="w-full border border-gray-300 p-2 rounded"
               />
+              {formErrors.endTime && <p className="text-red-500 text-sm mt-1">{formErrors.endTime}</p>}
             </div>
           </div>
           {/* Venue Details */}
@@ -164,6 +197,7 @@ const HostAddEvent: React.FC = () => {
               required
               className="w-full border border-gray-300 p-2 rounded"
             />
+            {formErrors.venueName && <p className="text-red-500 text-sm mt-1">{formErrors.venueName}</p>}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -175,6 +209,7 @@ const HostAddEvent: React.FC = () => {
                 required
                 className="w-full border border-gray-300 p-2 rounded"
               />
+              {formErrors.venueCity && <p className="text-red-500 text-sm mt-1">{formErrors.venueCity}</p>}
             </div>
             <div>
               <label className="block text-gray-700">State</label>
@@ -185,6 +220,7 @@ const HostAddEvent: React.FC = () => {
                 required
                 className="w-full border border-gray-300 p-2 rounded"
               />
+              {formErrors.venueState && <p className="text-red-500 text-sm mt-1">{formErrors.venueState}</p>}
             </div>
             <div>
               <label className="block text-gray-700">Zip</label>
@@ -195,6 +231,7 @@ const HostAddEvent: React.FC = () => {
                 required
                 className="w-full border border-gray-300 p-2 rounded"
               />
+              {formErrors.venueZip && <p className="text-red-500 text-sm mt-1">{formErrors.venueZip}</p>}
             </div>
           </div>
           <div>
@@ -206,6 +243,7 @@ const HostAddEvent: React.FC = () => {
               required
               className="w-full border border-gray-300 p-2 rounded"
             />
+            {formErrors.venueCapacity && <p className="text-red-500 text-sm mt-1">{formErrors.venueCapacity}</p>}
           </div>
           {/* Category, Artist, Description */}
           <div>
@@ -222,6 +260,7 @@ const HostAddEvent: React.FC = () => {
               <option value="Tech">Tech</option>
               <option value="Workshops">Workshops</option>
             </select>
+            {formErrors.category && <p className="text-red-500 text-sm mt-1">{formErrors.category}</p>}
           </div>
           <div>
             <label className="block text-gray-700">Artist</label>
@@ -232,6 +271,7 @@ const HostAddEvent: React.FC = () => {
               required
               className="w-full border border-gray-300 p-2 rounded"
             />
+            {formErrors.artist && <p className="text-red-500 text-sm mt-1">{formErrors.artist}</p>}
           </div>
           <div>
             <label className="block text-gray-700">Description</label>
@@ -241,6 +281,7 @@ const HostAddEvent: React.FC = () => {
               required
               className="w-full border border-gray-300 p-2 rounded"
             ></textarea>
+            {formErrors.description && <p className="text-red-500 text-sm mt-1">{formErrors.description}</p>}
           </div>
           {/* Tickets */}
           <div>
@@ -274,11 +315,7 @@ const HostAddEvent: React.FC = () => {
                     placeholder="Price"
                     value={ticket.ticketPrice}
                     onChange={(e) =>
-                      handleTicketChange(
-                        index,
-                        "ticketPrice",
-                        Number(e.target.value)
-                      )
+                      handleTicketChange(index, "ticketPrice", Number(e.target.value))
                     }
                     required
                     className="w-full border border-gray-300 p-2 rounded"
@@ -293,11 +330,7 @@ const HostAddEvent: React.FC = () => {
                     placeholder="Count"
                     value={ticket.ticketCount}
                     onChange={(e) =>
-                      handleTicketChange(
-                        index,
-                        "ticketCount",
-                        Number(e.target.value)
-                      )
+                      handleTicketChange(index, "ticketCount", Number(e.target.value))
                     }
                     required
                     className="w-full border border-gray-300 p-2 rounded"
@@ -323,6 +356,7 @@ const HostAddEvent: React.FC = () => {
             >
               Add Another Ticket Type
             </button>
+            {formErrors.tickets && <p className="text-red-500 text-sm mt-1">{formErrors.tickets}</p>}
           </div>
           {/* Event Image Upload */}
           <div>

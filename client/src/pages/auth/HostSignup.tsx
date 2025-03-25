@@ -33,7 +33,7 @@ const HostSignup: React.FC = () => {
     hostType: null as string | null,
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFormErrors((prev) => ({ ...prev, [name]: null }));
@@ -49,8 +49,7 @@ const HostSignup: React.FC = () => {
         formData.password,
         formData.confirmPassword
       ),
-      hostType:
-        formData.hostType.trim() === "" ? "Host type is required" : null,
+      hostType: formData.hostType.trim() === "" ? "Host type is required" : null,
     };
 
     setFormErrors(errors);
@@ -141,15 +140,25 @@ const HostSignup: React.FC = () => {
               required
               autoComplete="tel"
             />
-            <Input
-              type="text"
-              label="Host Type"
-              name="hostType"
-              value={formData.hostType}
-              onChange={handleChange}
-              error={formErrors.hostType}
-              required
-            />
+            <div className="mb-4">
+              <label className="block text-gray-700">Host Type</label>
+              <select
+                name="hostType"
+                value={formData.hostType}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-300 p-2 rounded"
+              >
+                <option value="">Select Host Type</option>
+                <option value="Music">Music</option>
+                <option value="Tech">Tech</option>
+                <option value="Sports">Sports</option>
+                {/* Add more options as needed */}
+              </select>
+              {formErrors.hostType && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.hostType}</p>
+              )}
+            </div>
             <Input
               type="password"
               label="Password"

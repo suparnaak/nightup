@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { authRepository } from '../repositories/authRepository';
 
 interface User {
@@ -16,219 +17,190 @@ interface AuthState {
   isAuthenticated: boolean;
 
   // Auth actions
-  signup: (
-    name: string,
-    email: string,
-    phone: string,
-    password: string,
-    confirmPassword: string
-  ) => Promise<any>;
-
-  hostSignup: (
-    name: string,
-    email: string,
-    phone: string,
-    password: string,
-    confirmPassword: string,
-    hostType: string
-  ) => Promise<any>;
-
-  googleSignup: (token: string) => Promise<void>;
-
+  signup: (name: string, email: string, phone: string, password: string, confirmPassword: string) => Promise<any>;
+  hostSignup: (name: string, email: string, phone: string, password: string, confirmPassword: string, hostType: string) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
   hostLogin: (email: string, password: string) => Promise<any>;
   adminLogin: (email: string, password: string) => Promise<any>;
-
   logout: () => void;
   adminLogout: () => void;
   forgotPassword: (email: string) => Promise<any>;
-  resetPassword: (email:string, password: string, confirmPassword:string) => Promise<any>;
+  resetPassword: (email: string, password: string, confirmPassword: string) => Promise<any>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isLoading: false,
-  error: null,
-  isAuthenticated: false,
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
 
-  signup: async (name, email, phone, password, confirmPassword) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await authRepository.signup({
-        name,
-        email,
-        phone,
-        password,
-        confirmPassword,
-      });
-      set({
-        user: response.user,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      return response;
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || 'Signup failed. Please try again.',
-      });
-      throw error;
-    }
-  },
+      signup: async (name, email, phone, password, confirmPassword) => {
+        try {
+          set({ isLoading: true, error: null });
+          const response = await authRepository.signup({
+            name,
+            email,
+            phone,
+            password,
+            confirmPassword,
+          });
+          set({
+            user: response.user,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+          return response;
+        } catch (error: any) {
+          set({
+            isLoading: false,
+            error: error.response?.data?.message || 'Signup failed. Please try again.',
+          });
+          throw error;
+        }
+      },
 
-  hostSignup: async (name, email, phone, password, confirmPassword, hostType) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await authRepository.hostSignup({
-        name,
-        email,
-        phone,
-        password,
-        confirmPassword,
-        hostType,
-      });
-      set({
-        user: response.host,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      return response;
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || 'Host signup failed. Please try again.',
-      });
-      throw error;
-    }
-  },
+      hostSignup: async (name, email, phone, password, confirmPassword, hostType) => {
+        try {
+          set({ isLoading: true, error: null });
+          const response = await authRepository.hostSignup({
+            name,
+            email,
+            phone,
+            password,
+            confirmPassword,
+            hostType,
+          });
+          set({
+            user: response.host,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+          return response;
+        } catch (error: any) {
+          set({
+            isLoading: false,
+            error: error.response?.data?.message || 'Host signup failed. Please try again.',
+          });
+          throw error;
+        }
+      },
 
-  googleSignup: async (token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await authRepository.googleSignup(token);
-      set({
-        user: response.user,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || 'Google signup failed. Please try again.',
-      });
-      throw error;
-    }
-  },
+      login: async (email: string, password: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          const response = await authRepository.login({ email, password });
+          set({
+            user: response.user,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          return response;
+        } catch (error: any) {
+          set({
+            isLoading: false,
+            error: error.response?.data?.message || 'User login failed. Please try again.',
+          });
+          throw error;
+        }
+      },
 
-  login: async (email: string, password: string) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await authRepository.login({ email, password });
-      set({
-        user: response.user,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      return response;
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || 'User login failed. Please try again.',
-      });
-      throw error;
-    }
-  },
+      logout: () => {
+        set({ user: null, isAuthenticated: false });
+      },
 
-  logout: () => {
-    set({ user: null, isAuthenticated: false });
-  },
+      hostLogin: async (email: string, password: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          const response = await authRepository.hostLogin({ email, password });
+          set({
+            user: response.host,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          return response;
+        } catch (error: any) {
+          set({
+            isLoading: false,
+            error: error.response?.data?.message || 'Host login failed. Please try again.',
+          });
+          throw error;
+        }
+      },
 
-  hostLogin: async (email: string, password: string) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await authRepository.hostLogin({ email, password });
-      set({
-        user: response.host,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      return response;
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || 'Host login failed. Please try again.',
-      });
-      throw error;
-    }
-  },
+      forgotPassword: async (email: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          const response = await authRepository.forgotPassword({ email });
+          set({ isLoading: false });
+          return response;
+        } catch (error: any) {
+          set({
+            isLoading: false,
+            error: error.response?.data?.message || 'Failed to send reset link. Please try again.',
+          });
+          throw error;
+        }
+      },
 
-  forgotPassword: async (email: string) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await authRepository.forgotPassword({ email });
-      set({ isLoading: false });
-      return response;
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || 'Failed to send reset link. Please try again.',
-      });
-      throw error;
-    }
-  },
-  resetPassword: async ( email, password, confirmPassword ) => {
-    set({ isLoading: true });
+      resetPassword: async (email, password, confirmPassword) => {
+        set({ isLoading: true });
+        try {
+          const res = await authRepository.resetPassword({
+            email,
+            password,
+            confirmPassword,
+          });
+          return res;
+        } catch (error: any) {
+          throw error;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
 
-    try {
-      const res = await authRepository.resetPassword({
-        email,
-        password,
-        confirmPassword
-        
-      });
+      adminLogin: async (email: string, password: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          const response = await authRepository.adminLogin({ email, password });
+          set({
+            user: response.admin,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          return response;
+        } catch (error: any) {
+          set({
+            isLoading: false,
+            error: error.response?.data?.message || 'Admin login failed. Please try again.',
+          });
+          throw error;
+        }
+      },
 
-      return res;
-    } catch (error: any) {
-      throw error;
-    } finally {
-      set({ isLoading: false });
+      adminLogout: async () => {
+        try {
+          set({ isLoading: true, error: null });
+          await authRepository.adminLogout();
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        } catch (error: any) {
+          set({
+            isLoading: false,
+            error: error.response?.data?.message || 'Admin logout failed. Please try again.',
+          });
+          throw error;
+        }
+      },
+    }),
+    {
+      name: "auth-storage", 
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
     }
-  },
-  //admin login
-  adminLogin: async (email: string, password: string) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await authRepository.adminLogin({ email, password });
-      set({
-        user: response.admin, 
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      return response;
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || 'Admin login failed. Please try again.',
-      });
-      throw error;
-    }
-  },
-  adminLogout: async () => {
-    try {
-      set({ isLoading: true, error: null });
-      await authRepository.adminLogout();
-      set({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || 'Admin logout failed. Please try again.',
-      });
-      throw error;
-    }
-  },
-  
-}));
+  )
+);

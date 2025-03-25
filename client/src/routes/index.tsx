@@ -60,7 +60,6 @@ const AppRoutes = () => {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/hosts" element={<AdminHostsPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
-
         </Route>
 
         {/* for all other routes */}

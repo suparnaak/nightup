@@ -108,6 +108,11 @@ const HostLogin: React.FC = () => {
                 disabled={isLoading}
               />
             </div>
+            <div className="mt-4 text-center">
+              <Link to="/" className="text-purple-600 hover:underline">
+                Back to Home
+              </Link>
+            </div>
           </form>
         </div>
       </div>

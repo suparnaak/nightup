@@ -14,6 +14,12 @@ const Home: React.FC = () => {
   const error = useEventStore((state) => state.error);
 
   const navigate = useNavigate();
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function () {
+      window.history.pushState(null, "", window.location.href);
+    };
+  }, []);
 
   useEffect(() => {
     fetchEvents();

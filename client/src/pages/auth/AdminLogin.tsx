@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
@@ -94,6 +94,11 @@ const AdminLogin: React.FC = () => {
                 fullWidth
                 disabled={isLoading}
               />
+            </div>
+            <div className="mt-4 text-center">
+              <Link to="/" className="text-purple-600 hover:underline">
+                Back to Home
+              </Link>
             </div>
           </form>
         </div>

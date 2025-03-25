@@ -92,12 +92,8 @@ const OtpVerification: React.FC = () => {
         toast.success("OTP Resent Successfully!");
   
         if (response.data.otpExpiry) {
-          //const newExpiry = new Date(response.data.otpExpiry).getTime();
-          //const newTimeLeft = Math.floor((newExpiry - Date.now()) / 1000);
-  
           resetTimer();
         } else {
-          // Optional fallback if otpExpiry isn't returned
           resetTimer();
         }
   

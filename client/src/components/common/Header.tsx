@@ -8,7 +8,7 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuthStore();
   const userRole = user?.role;
-
+console.log(user)
   const handleLogout = () => {
     logout();
     if (userRole === "host") {

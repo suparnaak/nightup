@@ -41,8 +41,6 @@ class HostProfileController implements IHostProfileController {
         return;
       }
       console.log(req.body)
-      // Assume that middleware (like multer) has parsed the multipart/form-data into req.body (or similar)
-      // We'll assume the entire FormData is available (this may require additional handling depending on your setup)
       const result = await HostProfileService.updateHostProfile(hostId, req.body as unknown as FormData);
       res.status(STATUS_CODES.SUCCESS).json(result);
     } catch (error) {

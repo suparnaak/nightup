@@ -12,7 +12,7 @@ passport.use(
     },
     async (accessToken, refreshToken, profile: Profile, done) => {
       try {
-        // Find if the user exists
+        // Find if the user exists or not
         let user = await User.findOne({ email: profile.emails?.[0].value });
 
         if (user) {
@@ -27,12 +27,10 @@ passport.use(
             googleId: profile.id,
             name: profile.displayName,
             email: profile.emails?.[0].value,
-            password: "", // No password needed for Google signup
-            isVerified: true, // Mark as verified
+            password: "", 
+            isVerified: true, 
           });
         }
-
-        // Pass user to next middleware (where you'll generate JWT)
         return done(null, user);
       } catch (error) {
         console.error("Google Strategy Error", error);

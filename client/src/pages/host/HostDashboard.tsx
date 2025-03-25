@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import HostLayout from '../../layouts/HostLayout';
 
 const HostDashboard: React.FC = () => {
+    useEffect(() => {
+      window.history.pushState(null, "", window.location.href);
+      window.onpopstate = function () {
+        window.history.pushState(null, "", window.location.href);
+      };
+    }, []);
   const { user } = useAuthStore();
   const hostName = user?.name || 'Host';
 

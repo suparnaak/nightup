@@ -1,6 +1,6 @@
 // src/store/adminStore.ts
-import { create } from 'zustand';
-import { adminRepository } from '../repositories/adminRepository';
+import { create } from "zustand";
+import { adminRepository } from "../repositories/adminRepository";
 export interface BaseUser {
   id: string;
   name: string;
@@ -21,7 +21,6 @@ export interface Host extends BaseUser {
   adminVerified: boolean;
 }
 
-
 interface AdminState {
   hosts: Host[];
   users: User[];
@@ -29,7 +28,10 @@ interface AdminState {
   error: string | null;
   getHosts: () => Promise<Host[]>;
   clearHosts: () => void;
-  verifyDocument: (payload: { hostId: string; action: "approve" | "reject" }) => Promise<any>;
+  verifyDocument: (payload: {
+    hostId: string;
+    action: "approve" | "reject";
+  }) => Promise<any>;
   hostToggleStatus: (hostId: string, newStatus: boolean) => Promise<any>;
   getUsers: () => Promise<User[]>;
   userToggleStatus: (userId: string, newStatus: boolean) => Promise<any>;
@@ -37,10 +39,10 @@ interface AdminState {
 
 export const useAdminStore = create<AdminState>((set, get) => ({
   hosts: [],
-  users: [], 
+  users: [],
   isLoading: false,
   error: null,
-  
+
   getHosts: async () => {
     set({ isLoading: true, error: null });
     try {
@@ -70,7 +72,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       return response;
     } catch (error: any) {
       set({
-        error: error.response?.data?.message || "Failed to update document verification",
+        error:
+          error.response?.data?.message ||
+          "Failed to update document verification",
         isLoading: false,
       });
       throw error;
@@ -80,7 +84,10 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   hostToggleStatus: async (hostId: string, newStatus: boolean) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await adminRepository.hostToggleStatus({ hostId, newStatus });
+      const response = await adminRepository.hostToggleStatus({
+        hostId,
+        newStatus,
+      });
       await get().getHosts();
       set({ isLoading: false });
       return response;
@@ -117,14 +124,18 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   userToggleStatus: async (userId: string, newStatus: boolean) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await adminRepository.userToggleStatus({ userId, newStatus });
+      const response = await adminRepository.userToggleStatus({
+        userId,
+        newStatus,
+      });
       //console.log(response)
       await get().getUsers();
       set({ isLoading: false });
       return response;
     } catch (error: any) {
       set({
-        error: error.response?.data?.message || "Failed to update user block status",
+        error:
+          error.response?.data?.message || "Failed to update user block status",
         isLoading: false,
       });
       throw error;

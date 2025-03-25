@@ -9,10 +9,9 @@ const AdminHeader: React.FC = () => {
   const handleLogout = async () => {
     
     try {
-      await adminLogout(); // calls backend to clear cookie/session
+      await adminLogout(); 
     } catch (error) {
       console.error('Error during logout:', error);
-      // Optional: Show toast or alert
     }
     finally {
       
@@ -24,7 +23,7 @@ const AdminHeader: React.FC = () => {
     <header className="bg-black text-white py-4 px-6 flex justify-between items-center">
       <div className="flex items-center space-x-2">
         <img
-          src="/assets/images/nightup-logo.jpg" // Change to your admin logo if needed
+          src="/assets/images/nightup-logo.jpg" 
           alt="Admin Logo"
           className="h-10 w-auto"
         />

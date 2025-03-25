@@ -12,20 +12,28 @@ router.post("/resend-otp", UserController.resendOtp);
 router.post("/login", UserController.login);
 router.post("/logout", UserController.logout);
 
-router.post("/forgot-password", UserController.forgotPassword);
-router.post("/reset-password", UserController.resetPassword);
-
-// Google Authentication endpoints using Passport
-/* router.get(
+// Google authentication endpoints
+router.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
- */
-/* router.get(
+  
+// Google callback route
+router.get(
   "/auth/google/callback",
   passport.authenticate("google", { session: false, failureRedirect: "/login" }),
-  UserController.googleAuthCallback // This controller method will handle token generation & redirection.
-); */
+  UserController.googleCallback
+);
+
+router.post("/forgot-password", UserController.forgotPassword);
+router.post("/reset-password", UserController.resetPassword);
+
+// New endpoint to fetch the current authenticated user
+router.get(
+  "/me",
+  passport.authenticate("jwt", { session: false }),
+  UserController.getProfile
+);
 
 // Public events endpoint
 router.get("/events", EventController.getAllEvents);

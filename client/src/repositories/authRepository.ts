@@ -1,6 +1,6 @@
-import axiosClient from '../api/axiosUserClient';
-import axiosHostClient from '../api/axiosHostClient';
-import axiosAdminClient from '../api/axiosAdminClient';
+import axiosClient from "../api/axiosUserClient";
+import axiosHostClient from "../api/axiosHostClient";
+import axiosAdminClient from "../api/axiosAdminClient";
 
 interface SignupData {
   name: string;
@@ -22,62 +22,89 @@ interface LoginData {
 export const authRepository = {
   // methods for user
   signup: async (userData: SignupData) => {
-    const response = await axiosClient.post('/signup', userData);
+    const response = await axiosClient.post("/signup", userData);
     return response.data;
   },
 
   login: async (credentials: LoginData) => {
-    const response = await axiosClient.post('/login', credentials);
+    const response = await axiosClient.post("/login", credentials);
     //console.log(response)
     return response.data;
   },
-  verifyOtp: async ({ email, otp, verificationType }: { email: string; otp: string; verificationType:string }) => {
-    const response = await axiosClient.post('/verify-otp', { email, otp,verificationType });
+  verifyOtp: async ({
+    email,
+    otp,
+    verificationType,
+  }: {
+    email: string;
+    otp: string;
+    verificationType: string;
+  }) => {
+    const response = await axiosClient.post("/verify-otp", {
+      email,
+      otp,
+      verificationType,
+    });
     return response.data;
   },
 
-  resendOtp: async (email: string,verificationType:string) => {
-    const response = await axiosClient.post('/resend-otp', { email,verificationType });
+  resendOtp: async (email: string, verificationType: string) => {
+    const response = await axiosClient.post("/resend-otp", {
+      email,
+      verificationType,
+    });
+    return response.data;
+  },
+  forgotPassword: async ({ email }: { email: string }) => {
+    const response = await axiosClient.post("/forgot-password", { email });
+    return response.data;
+  },
+  resetPassword: async ({
+    email,
+    password,
+    confirmPassword,
+  }: {
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) => {
+    const response = await axiosClient.post("/reset-password", {
+      email,
+      password,
+      confirmPassword,
+    });
+    return response.data;
+  },
+  getCurrentUser: async () => {
+    const response = await axiosClient.get("/api/users/me", {
+      withCredentials: true,
+    });
     return response.data;
   },
 
   // Host methods
   hostSignup: async (hostData: HostSignupData) => {
-    const response = await axiosHostClient.post('/signup', hostData);
+    const response = await axiosHostClient.post("/signup", hostData);
     return response.data;
   },
 
   hostLogin: async (credentials: LoginData) => {
-    const response = await axiosHostClient.post('/login', credentials);
+    const response = await axiosHostClient.post("/login", credentials);
     return response.data;
   },
 
-  
-  googleSignup: async (token: string) => {
-    const response = await axiosClient.post('/google-signup', { token });
-    return response.data;
-  },
-
-  
   hostVerifyOtp: async ({ email, otp }: { email: string; otp: string }) => {
-    const response = await axiosHostClient.post('/verify-otp', { email, otp });
+    const response = await axiosHostClient.post("/verify-otp", { email, otp });
     return response.data;
   },
-  forgotPassword: async ({ email }: { email: string }) => {
-    const response = await axiosClient.post('/forgot-password', { email });
-    return response.data;
-  },
-  resetPassword: async ({ email, password, confirmPassword }: { email: string, password: string, confirmPassword:string }) => {
-    const response = await axiosClient.post('/reset-password', { email,password, confirmPassword });
-    return response.data;
-  },
+
+  //admins methdods
   adminLogin: async (credentials: LoginData) => {
-    const response = await axiosAdminClient.post('/login', credentials);
+    const response = await axiosAdminClient.post("/login", credentials);
     return response.data;
   },
   adminLogout: async () => {
-    const response = await axiosAdminClient.post('/logout');
+    const response = await axiosAdminClient.post("/logout");
     return response.data;
   },
-  
 };

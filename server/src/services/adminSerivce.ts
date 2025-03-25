@@ -22,7 +22,6 @@ class AdminService implements IAdminService {
     admin: Partial<IAdmin>;
   }> {
     const admin = await AdminRepository.findByEmail(email);
-
     if (!admin) {
       return {
         success: false,
@@ -92,7 +91,6 @@ class AdminService implements IAdminService {
     if (!jwtSecret || !jwtRefreshSecret) {
       throw new Error(MESSAGES.COMMON.ERROR.JWT_SECRET_MISSING);
     }
-
     try {
       const decoded = jwt.verify(refreshToken, jwtRefreshSecret) as {
         adminId: string;
@@ -118,7 +116,10 @@ class AdminService implements IAdminService {
   }
 
   //verify document
-  async verifyDocument(hostId: string, action: "approve" | "reject"): Promise<{ success: boolean; message: string }> {
+  async verifyDocument(
+    hostId: string,
+    action: "approve" | "reject"
+  ): Promise<{ success: boolean; message: string }> {
     const updateData = { adminVerified: action === "approve" };
     const updatedHost = await HostRepository.updateHost(hostId, updateData);
     if (!updatedHost) {
@@ -137,26 +138,46 @@ class AdminService implements IAdminService {
     };
   }
   //block or unblock hosts
-  async hostToggleStatus(hostId: string, newStatus: boolean): Promise<{ success: boolean; message: string }> {
-    console.log(newStatus)
-    const updatedHost = await HostRepository.updateHost(hostId, { isBlocked: newStatus });
+  async hostToggleStatus(
+    hostId: string,
+    newStatus: boolean
+  ): Promise<{ success: boolean; message: string }> {
+    console.log(newStatus);
+    const updatedHost = await HostRepository.updateHost(hostId, {
+      isBlocked: newStatus,
+    });
     if (!updatedHost) {
       return { success: false, message: "Failed to update block status" };
     }
-    return { success: true, message: `Host has been ${newStatus ? "blocked" : "unblocked"} successfully` };
+    return {
+      success: true,
+      message: `Host has been ${
+        newStatus ? "blocked" : "unblocked"
+      } successfully`,
+    };
   }
   async getUsers(): Promise<IUser[]> {
     return await UserRepository.getAllUsers();
   }
-    //block or unblock users
-    async userToggleStatus(userId: string, newStatus: boolean): Promise<{ success: boolean; message: string }> {
-      console.log(newStatus)
-      const updatedUser = await UserRepository.updateUser(userId, { isBlocked: newStatus });
-      if (!updatedUser) {
-        return { success: false, message: "Failed to update block status" };
-      }
-      return { success: true, message: `User has been ${newStatus ? "blocked" : "unblocked"} successfully` };
+  //block or unblock users
+  async userToggleStatus(
+    userId: string,
+    newStatus: boolean
+  ): Promise<{ success: boolean; message: string }> {
+    console.log(newStatus);
+    const updatedUser = await UserRepository.updateUser(userId, {
+      isBlocked: newStatus,
+    });
+    if (!updatedUser) {
+      return { success: false, message: "Failed to update block status" };
     }
+    return {
+      success: true,
+      message: `User has been ${
+        newStatus ? "blocked" : "unblocked"
+      } successfully`,
+    };
+  }
 }
 
 export default new AdminService();
