@@ -1,8 +1,14 @@
 // src/pages/admin/AdminDashboard.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 
 const AdminDashboard: React.FC = () => {
+  useEffect(() => {
+      window.history.pushState(null, "", window.location.href);
+      window.onpopstate = function () {
+        window.history.pushState(null, "", window.location.href);
+      };
+    }, []);
   return (
     <AdminLayout>
       <div className="bg-white p-8 rounded shadow">

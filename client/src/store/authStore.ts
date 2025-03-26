@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { authRepository } from '../repositories/authRepository';
-
+import {jwtDecode} from 'jwt-decode';
 interface User {
   id: string;
   name: string;
@@ -22,10 +22,12 @@ interface AuthState {
   login: (email: string, password: string) => Promise<any>;
   hostLogin: (email: string, password: string) => Promise<any>;
   adminLogin: (email: string, password: string) => Promise<any>;
+  
   logout: () => void;
-  adminLogout: () => void;
   forgotPassword: (email: string) => Promise<any>;
   resetPassword: (email: string, password: string, confirmPassword: string) => Promise<any>;
+  googleLogin: (token: string) => void;
+  getGoogleAuthUrl: () => string;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -106,9 +108,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: () => {
-        set({ user: null, isAuthenticated: false });
-      },
+  
 
       hostLogin: async (email: string, password: string) => {
         try {
@@ -179,10 +179,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      adminLogout: async () => {
+      logout: async () => {
         try {
           set({ isLoading: true, error: null });
-          await authRepository.adminLogout();
+          await authRepository.logout();
           set({
             user: null,
             isAuthenticated: false,
@@ -191,11 +191,37 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           set({
             isLoading: false,
-            error: error.response?.data?.message || 'Admin logout failed. Please try again.',
+            error: error.response?.data?.message || 'Logout failed. Please try again.',
           });
           throw error;
         }
       },
+      googleLogin: (token: string) => {
+        try {
+          const decoded: any = jwtDecode(token);
+          // Assuming your token payload includes these fields
+          const user = {
+            id: decoded.userId,
+            name: decoded.name,      // Ensure your JWT includes the user's name
+            email: decoded.email,    // And the user's email
+            phone: decoded.phone || "",
+            role: decoded.role || "user",
+          };
+      
+          set({
+            user,
+            isAuthenticated: true,
+          });
+        } catch (error) {
+          console.error("Error processing Google login token", error);
+        }
+      },
+
+      // Utility method to get the Google auth URL
+      getGoogleAuthUrl: () => {
+        return `${import.meta.env.VITE_API_URL}/api/users/auth/google`;
+      },
+      
     }),
     {
       name: "auth-storage", 

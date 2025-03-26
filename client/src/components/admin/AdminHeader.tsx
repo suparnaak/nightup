@@ -4,12 +4,12 @@ import { useAuthStore } from '../../store/authStore';
 
 const AdminHeader: React.FC = () => {
   const navigate = useNavigate();
-  const {adminLogout} = useAuthStore()
+  const {logout} = useAuthStore()
 
   const handleLogout = async () => {
     
     try {
-      await adminLogout(); 
+      await logout(); 
     } catch (error) {
       console.error('Error during logout:', error);
     }

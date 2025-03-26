@@ -149,7 +149,13 @@ class UserService implements IUserService {
       throw new Error("JWT secret is missing.");
     }
   
-    const token = jwt.sign({ userId: user._id, type: "user" }, jwtSecret, { expiresIn: "1h" });
+    const token = jwt.sign({ 
+    userId: user._id,
+    type: "user",
+    name: user.name,    // Include user's name
+    email: user.email,  // Include user's email
+    role: user.role,
+    }, jwtSecret, { expiresIn: "1h" });
   
     return {
       user,

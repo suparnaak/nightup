@@ -164,6 +164,7 @@ class UserController {
   async googleCallback(req: Request, res: Response): Promise<void> {
     try {
       const profile = req.user;
+      console.log(profile)
       if (!profile) {
         res.redirect(
           `${process.env.CORS_ORIGIN}/login?error=google_auth_failed`
@@ -171,6 +172,7 @@ class UserController {
         return;
       }
       const result = await UserService.processGoogleAuth(profile);
+      console.log(result)
       res.cookie("token", result.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -194,7 +196,7 @@ class UserController {
       if (!req.user) {
         res
           .status(STATUS_CODES.UNAUTHORIZED)
-          .json({ message: "Not authenticated" });
+          .json({ message: MESSAGES.COMMON.ERROR.UNAUTHENTICATED });
         return;
       }
       res.status(STATUS_CODES.SUCCESS).json({ user: req.user });
@@ -284,14 +286,19 @@ class UserController {
 
   //logout
   async logout(req: Request, res: Response): Promise<void> {
-    res.clearCookie("token", {
+    res.clearCookie('token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict" as "strict",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as 'strict'
+    });
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
     });
     res.status(STATUS_CODES.SUCCESS).json({
       success: true,
-      message: MESSAGES.COMMON.SUCCESS.LOGOUT,
+      message: MESSAGES.COMMON.SUCCESS.LOGOUT
     });
   }
 

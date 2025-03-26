@@ -28,13 +28,6 @@ router.get(
 router.post("/forgot-password", UserController.forgotPassword);
 router.post("/reset-password", UserController.resetPassword);
 
-// New endpoint to fetch the current authenticated user
-router.get(
-  "/me",
-  passport.authenticate("jwt", { session: false }),
-  UserController.getProfile
-);
-
 // Public events endpoint
 router.get("/events", EventController.getAllEvents);
 

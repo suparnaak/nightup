@@ -22,6 +22,7 @@ export const MESSAGES = {
       EMAIL_IN_USE: "Email is already in use.",
       MISSING_FIELDS: "All fields are required.",
       UNAUTHORIZED: "Unauthorized access.",
+      UNAUTHENTICATED: "You are not authenticated.",
       UNKNOWN_ERROR: "An unknown error occurred. Please try again later.",
       ACCOUNT_NOT_VERIFIED: "Account not verified. Please verify your email.",
       NOT_FOUND: "Email not found.",

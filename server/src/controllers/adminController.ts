@@ -93,7 +93,7 @@ class AdminController implements IAdminController {
       });
     }
   }
-  //logout 
+  /* //logout 
   async logout(req: Request, res: Response): Promise<void> {
  
     res.clearCookie('token', {
@@ -110,7 +110,7 @@ class AdminController implements IAdminController {
       success: true,
       message: MESSAGES.COMMON.SUCCESS.LOGOUT
     });
-  }
+  } */
   //get all hosts
   async getHosts(req: Request, res: Response): Promise<void> {
     try {

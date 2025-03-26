@@ -22,6 +22,7 @@ import HostAddEvent from "../pages/host/HostAddEvent";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import HostProfileManagement from "../pages/host/HostProfileManagement";
 import AdminDashboard from "../pages/admin/AdminDashboard";
+import GoogleAuthCallback from "../components/user/GoogleAuthCallback";
 
 const AppRoutes = () => {
   return (
@@ -29,6 +30,7 @@ const AppRoutes = () => {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
+        <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
 
         {/* user specific */}
         <Route path="/login" element={<Login />} />

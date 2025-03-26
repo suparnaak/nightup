@@ -75,11 +75,19 @@ export const authRepository = {
     });
     return response.data;
   },
+  getGoogleAuthUrl: () => {
+    return `${import.meta.env.VITE_API_URL}/api/users/auth/google`;
+  },
   getCurrentUser: async () => {
-    const response = await axiosClient.get("/api/users/me", {
-      withCredentials: true,
-    });
-    return response.data;
+    try {
+      const response = await axiosClient.get("/me", {
+        /* withCredentials: true, */
+      });
+      return response.data;
+    } catch (error) {
+      
+      throw error;
+    }
   },
 
   // Host methods
@@ -103,8 +111,8 @@ export const authRepository = {
     const response = await axiosAdminClient.post("/login", credentials);
     return response.data;
   },
-  adminLogout: async () => {
-    const response = await axiosAdminClient.post("/logout");
+  logout: async () => {
+    const response = await axiosClient.post("/logout");
     return response.data;
   },
 };

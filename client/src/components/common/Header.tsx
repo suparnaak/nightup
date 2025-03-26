@@ -13,7 +13,8 @@ console.log(user)
     logout();
     if (userRole === "host") {
       navigate("/host/login");
-    } else {
+    } 
+    else {
       navigate("/login");
     }
   };
