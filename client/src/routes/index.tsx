@@ -23,6 +23,8 @@ import ForgotPassword from "../pages/auth/ForgotPassword";
 import HostProfileManagement from "../pages/host/HostProfileManagement";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import GoogleAuthCallback from "../components/user/GoogleAuthCallback";
+//user specific
+import Profile from "../pages/user/Profile";
 
 const AppRoutes = () => {
   return (
@@ -49,6 +51,10 @@ const AppRoutes = () => {
         <Route path="/admin/login" element={<AdminLogin />} />
 
         {/* Protected Routes */}
+        {/* user specific */}
+        <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
+          <Route path="/user/profile" element={<Profile />} />
+        </Route>
         {/* host specific */}
         <Route element={<ProtectedRoute allowedRoles={["host"]} />}>
           <Route path="/host/dashboard" element={<HostDashboard />} />

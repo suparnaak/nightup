@@ -12,7 +12,7 @@ router.post("/verify-otp", HostController.verifyOtp);
 router.post("/resend-otp", HostController.resendOtp);
 
 router.get("/profile", authMiddleware(["host"]), HostProfileController.getHostProfile);
-router.post("/profile/update", authMiddleware(["host"]), HostProfileController.updateHostProfile);
+router.patch("/profile/update", authMiddleware(["host"]), HostProfileController.updateHostProfile);
 
 
 //event management routes

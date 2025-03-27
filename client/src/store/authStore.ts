@@ -28,6 +28,7 @@ interface AuthState {
   resetPassword: (email: string, password: string, confirmPassword: string) => Promise<any>;
   googleLogin: (token: string) => void;
   getGoogleAuthUrl: () => string;
+  setUser: (user: User | null) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -221,7 +222,7 @@ export const useAuthStore = create<AuthState>()(
       getGoogleAuthUrl: () => {
         return `${import.meta.env.VITE_API_URL}/api/users/auth/google`;
       },
-      
+      setUser: (user: User | null) => set({ user }),
     }),
     {
       name: "auth-storage", 

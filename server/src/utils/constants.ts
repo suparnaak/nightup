@@ -10,7 +10,9 @@ export const MESSAGES = {
       OTP_RESENT: "A new OTP has been sent to your email.",
       LOGIN:"Login successfull",
       PASSWORD_RESET:"Your password reset successfully, you can Login.",
-      LOGOUT:"Logged out Successfully"
+      LOGOUT:"Logged out Successfully",
+      PROFILE_UPDATED:"Your profile is updated successfully",
+      PASSWORD_CHANGED:"Password changed successfully"
     },
     ERROR: {
       INVALID_NAME: "Invalid name.",

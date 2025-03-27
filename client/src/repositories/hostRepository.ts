@@ -7,7 +7,7 @@ export const hostRepository = {
   },
 
   updateHostProfile: async (profileData: FormData) => {
-    const response = await axiosHostClient.post("/profile/update", profileData);
+    const response = await axiosHostClient.patch("/profile/update", profileData);
     return response.data;
   },
 };

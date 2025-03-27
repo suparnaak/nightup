@@ -11,6 +11,7 @@ interface AuthRequest extends Request {
 }
 
 class HostProfileController implements IHostProfileController {
+  
   async getHostProfile(req: AuthRequest, res: Response): Promise<void> {
     try {
       const hostId = req.user?.userId;

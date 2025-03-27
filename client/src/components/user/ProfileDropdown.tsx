@@ -25,11 +25,11 @@ const ProfileDropdown: React.FC = () => {
       logout();
       navigate('/login');
     } else if (option === 'profile') {
-      navigate('/profile');
+      navigate('/user/profile');
     } else if (option === 'bookings') {
-      navigate('/bookings');
+      navigate('/user/bookings');
     } else if (option === 'wallet') {
-      navigate('/wallet');
+      navigate('/user/wallet');
     }
   };
 

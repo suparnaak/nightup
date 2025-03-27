@@ -15,7 +15,7 @@ import {
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const { signup,  isLoading, error, getGoogleAuthUrl/* googleSignup */ } = useAuthStore();
+  const { signup,  isLoading, error } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: "",
