@@ -62,9 +62,17 @@ export const MESSAGES = {
     SUCCESS:{
       DOCUMENT_VERIFIED: "Document has been verified successfully",
       DOCUMENT_REJECTED: "Document has been rejected",
+      SUBSCRIPTION_CREATED: "Subscription created successfully",
+      SUBSCRIPTION_UPDATED: "Subscription updated successfully",
+      SUBSCRIPTION_DELETED:"Subscription deleted successfully",
+
+
     },
     ERROR:{
-      FAILED_DOC_VERIFY:"Document "
+      FAILED_DOC_VERIFY:"Document verification failed",
+      INVALID_SUBSCRIPTION_NAME:"Subscription plan name is required",
+      INVALID_SUBSCRIPTION_DURATION: "Valid subscription duration is required (Monthly, 6 Months, Yearly).",
+      INVALID_SUBSCRIPTION_PRICE:"A valid subscription price greater than 0 is required.",
     }
   }
 };

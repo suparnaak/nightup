@@ -57,6 +57,33 @@ export const adminRepository = {
     //console.log(response)
     return response.data;
   },
+  //subscription management
+  getSubscriptions: async () => {
+    const response = await axiosAdminClient.get("/subscriptions");
+    return response.data;
+  },
+
+  createSubscription: async (payload: {
+    name: string;
+    duration: string;
+    price: number;
+  }) => {
+    const response = await axiosAdminClient.post("/subscriptions", payload);
+    return response.data;
+  },
+
+  updateSubscription: async (
+    id: string,
+    payload: { name: string; duration: string; price: number }
+  ) => {
+    const response = await axiosAdminClient.put(`/subscriptions/${id}`, payload);
+    return response.data;
+  },
+
+  deleteSubscription: async (id: string) => {
+    const response = await axiosAdminClient.delete(`/subscriptions/${id}`);
+    return response.data;
+  },
 };
 
 export default adminRepository;

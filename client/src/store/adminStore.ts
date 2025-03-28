@@ -23,10 +23,16 @@ export interface Host extends BaseUser {
   documentStatus: "pending" | "approved" | "rejected";
   rejectionReason?: string;
 }
-
+/* export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  duration: string; // e.g., "Monthly", "6 Months", "Yearly"
+  price: number;
+} */
 interface AdminState {
   hosts: Host[];
   users: User[];
+  //subscriptions: SubscriptionPlan[];
   isLoading: boolean;
   error: string | null;
   getHosts: () => Promise<Host[]>;
@@ -38,11 +44,16 @@ interface AdminState {
   hostToggleStatus: (hostId: string, newStatus: boolean) => Promise<any>;
   getUsers: () => Promise<User[]>;
   userToggleStatus: (userId: string, newStatus: boolean) => Promise<any>;
+  /* getSubscriptions: () => Promise<SubscriptionPlan[]>;
+  createSubscription: (payload: { name: string; duration: string; price: number }) => Promise<any>;
+  updateSubscription: (id: string, payload: { name: string; duration: string; price: number }) => Promise<any>;
+  deleteSubscription: (id: string) => Promise<any>; */
 }
 
 export const useAdminStore = create<AdminState>((set, get) => ({
   hosts: [],
   users: [],
+  subscriptions: [],
   isLoading: false,
   error: null,
 
@@ -67,24 +78,24 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 
   clearHosts: () => set({ hosts: [] }),
 
-  verifyDocument: async (payload: {
-    hostId: string;
-    action: "approve" | "reject";
-    rejectionReason?: string;
-  }) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await adminRepository.verifyDocument(payload);
-      set({ isLoading: false });
-      return response;
-    } catch (error: any) {
-      set({
-        error: error.response?.data?.message || "Failed to update document verification",
-        isLoading: false,
-      });
-      throw error;
-    }
-  },
+ verifyDocument: async (payload: {
+  hostId: string;
+  action: "approve" | "reject";
+  rejectionReason?: string;
+}) => {
+  set({ isLoading: true, error: null });
+  try {
+    const response = await adminRepository.verifyDocument(payload);
+    set({ isLoading: false });
+    return response;
+  } catch (error: any) {
+    set({
+      error: error.response?.data?.message || "Failed to update document verification",
+      isLoading: false,
+    });
+    throw error;
+  }
+},
 
   hostToggleStatus: async (hostId: string, newStatus: boolean) => {
     set({ isLoading: true, error: null });
@@ -143,6 +154,76 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       throw error;
     }
   },
+  /* getSubscriptions: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await adminRepository.getSubscriptions();
+      // Transform subscriptions if necessary; assuming data.subscriptions is the array.
+      const subscriptions = data.subscriptions.map((sub: any) => ({
+        id: sub._id.toString(),
+        ...sub,
+      }));
+      set({ subscriptions, isLoading: false });
+      return subscriptions;
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to load subscriptions",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  createSubscription: async (payload: { name: string; duration: string; price: number }) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await adminRepository.createSubscription(payload);
+      await get().getSubscriptions();
+      set({ isLoading: false });
+      return response;
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to create subscription",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  updateSubscription: async (
+    id: string,
+    payload: { name: string; duration: string; price: number }
+  ) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await adminRepository.updateSubscription(id, payload);
+      await get().getSubscriptions();
+      set({ isLoading: false });
+      return response;
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to update subscription",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  deleteSubscription: async (id: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await adminRepository.deleteSubscription(id);
+      await get().getSubscriptions();
+      set({ isLoading: false });
+      return response;
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to delete subscription",
+        isLoading: false,
+      });
+      throw error;
+    }
+  }, */
 }));
 
-export default adminRepository;
+//export default adminRepository;

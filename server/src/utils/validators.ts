@@ -15,3 +15,9 @@ export const isEmail = (email: string): boolean => {
   export const isRequired = (value: string | undefined | null): boolean => {
     return value !== undefined && value !== null && value.toString().trim() !== '';
   };
+
+export const validDurations = ["Monthly", "6 Months", "Yearly"];
+
+export const isValidDuration = (duration: string): boolean => {
+  return validDurations.includes(duration);
+};

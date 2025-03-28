@@ -12,6 +12,7 @@ import ResetPassword from "../pages/auth/ResetPassword";
 import AdminLogin from "../pages/auth/AdminLogin";
 import AdminHostsPage from "../pages/admin/AdminHostsPage";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
+import AdminSubscriptionPage from "../pages/admin/AdminSubscriptionPage";
 
 // ProtectedRoutes
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -70,6 +71,7 @@ const AppRoutes = () => {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/hosts" element={<AdminHostsPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/subscriptions" element={<AdminSubscriptionPage />} />
         </Route>
 
         {/* for all other routes */}
