@@ -1,3 +1,4 @@
+// src/repositories/adminRepository.ts
 import axiosAdminClient from "../api/axiosAdminClient";
 
 export const adminRepository = {
@@ -6,7 +7,7 @@ export const adminRepository = {
     const response = await axiosAdminClient.get("/hosts");
     return response.data;
   },
-  //document verification
+  // document verification
   verifyDocument: async ({
     hostId,
     action,
@@ -23,7 +24,7 @@ export const adminRepository = {
     });
     return response.data;
   },
-  //block or unblock hosts
+  // block or unblock hosts
   hostToggleStatus: async ({
     hostId,
     newStatus,
@@ -37,12 +38,12 @@ export const adminRepository = {
     });
     return response.data;
   },
-  //get all usrs
+  // get all users
   getUsers: async () => {
     const response = await axiosAdminClient.get("/users");
     return response.data;
   },
-  //block or unblock users
+  // block or unblock users
   userToggleStatus: async ({
     userId,
     newStatus,
@@ -54,15 +55,13 @@ export const adminRepository = {
       userId,
       newStatus,
     });
-    //console.log(response)
     return response.data;
   },
-  //subscription management
+  // subscription management
   getSubscriptions: async () => {
     const response = await axiosAdminClient.get("/subscriptions");
     return response.data;
   },
-
   createSubscription: async (payload: {
     name: string;
     duration: string;
@@ -71,7 +70,6 @@ export const adminRepository = {
     const response = await axiosAdminClient.post("/subscriptions", payload);
     return response.data;
   },
-
   updateSubscription: async (
     id: string,
     payload: { name: string; duration: string; price: number }
@@ -79,9 +77,41 @@ export const adminRepository = {
     const response = await axiosAdminClient.put(`/subscriptions/${id}`, payload);
     return response.data;
   },
-
   deleteSubscription: async (id: string) => {
     const response = await axiosAdminClient.delete(`/subscriptions/${id}`);
+    return response.data;
+  },
+  // coupon management
+  getCoupons: async () => {
+    const response = await axiosAdminClient.get("/coupons");
+    return response.data;
+  },
+  createCoupon: async (payload: {
+    couponCode: string;
+    couponAmount: number;
+    minimumAmount: number;
+    startDate: string;
+    endDate: string;
+    couponQuantity: number;
+  }) => {
+    const response = await axiosAdminClient.post("/coupons", payload);
+    return response.data;
+  },
+  updateCoupon: async (
+    id: string,
+    payload: {
+      couponAmount?: number;
+      minimumAmount?: number;
+      startDate?: string;
+      endDate?: string;
+      couponQuantity?: number;
+    }
+  ) => {
+    const response = await axiosAdminClient.put(`/coupons/${id}`, payload);
+    return response.data;
+  },
+  deleteCoupon: async (id: string) => {
+    const response = await axiosAdminClient.delete(`/coupons/${id}`);
     return response.data;
   },
 };

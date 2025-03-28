@@ -13,6 +13,7 @@ import AdminLogin from "../pages/auth/AdminLogin";
 import AdminHostsPage from "../pages/admin/AdminHostsPage";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminSubscriptionPage from "../pages/admin/AdminSubscriptionPage";
+import AdminCouponPage from "../pages/admin/AdminCouponPage";
 
 // ProtectedRoutes
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -72,7 +73,10 @@ const AppRoutes = () => {
           <Route path="/admin/hosts" element={<AdminHostsPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/subscriptions" element={<AdminSubscriptionPage />} />
+          <Route path="/admin/coupons" element={<AdminCouponPage />} />
+
         </Route>
+        
 
         {/* for all other routes */}
         <Route path="*" element={<Navigate to="/" replace />} />

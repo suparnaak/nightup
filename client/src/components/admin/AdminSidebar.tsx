@@ -65,6 +65,16 @@ const AdminSidebar: React.FC = () => {
         >
           Subscriptions
         </NavLink>
+        <NavLink
+          to="/admin/coupons"
+          className={({ isActive }) =>
+            isActive
+              ? "block px-4 py-2 font-semibold text-white bg-purple-600 rounded"
+              : "block px-4 py-2 font-semibold text-gray-700 hover:bg-purple-100 rounded"
+          }
+        >
+          Coupons
+        </NavLink>
       </nav>
     </aside>
   );
