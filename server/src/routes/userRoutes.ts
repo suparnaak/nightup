@@ -18,29 +18,17 @@ router.post("/forgot-password", UserController.forgotPassword);
 router.post("/reset-password", UserController.resetPassword);
 
 // Google authentication endpoints
-router.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
+router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 // Google callback route
-router.get(
-  "/auth/google/callback",
+router.get("/auth/google/callback", 
   passport.authenticate("google", { session: false, failureRedirect: "/login" }),
   UserController.googleCallback
 );
 
 //user profile
-router.patch(
-  "/profile/update",
-  authMiddleware(["user"]),
-  UserProfileController.updateProfile
-);
+router.patch("/profile/update", authMiddleware(["user"]), UserProfileController.updateProfile);
 
-router.post(
-  "/change-password",
-  authMiddleware(["user"]),
-  UserProfileController.changePassword
-);
+router.post("/change-password", authMiddleware(["user"]), UserProfileController.changePassword);
 
 // Public events endpoint
 router.get("/events", EventController.getAllEvents);

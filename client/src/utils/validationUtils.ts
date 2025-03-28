@@ -12,8 +12,12 @@ export const validateEmail = (email: string): string | null => {
   };
   
   export const validateConfirmPassword = (password: string, confirmPassword: string): string | null => {
+    console.log("validateConfirmPassword called with:", password, confirmPassword);
     if (!confirmPassword) return "Please confirm your password";
-    if (password !== confirmPassword) return "Passwords do not match";
+    if (password !== confirmPassword) {
+      console.log("Mismatch detected");
+      return "Passwords do not match";
+    }
     return null;
   };
   

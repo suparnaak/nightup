@@ -24,7 +24,8 @@ import HostProfileManagement from "../pages/host/HostProfileManagement";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import GoogleAuthCallback from "../components/user/GoogleAuthCallback";
 //user specific
-import Profile from "../pages/user/Profile";
+import Profile from "../pages/user/Profile";//user's profile
+import ChangePassword from "../pages/user/ChangePassword";
 
 const AppRoutes = () => {
   return (
@@ -54,6 +55,7 @@ const AppRoutes = () => {
         {/* user specific */}
         <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
           <Route path="/user/profile" element={<Profile />} />
+          <Route path="/user/change-password" element={<ChangePassword />} />
         </Route>
         {/* host specific */}
         <Route element={<ProtectedRoute allowedRoles={["host"]} />}>

@@ -1,4 +1,3 @@
-// interfaces/IUserProfileService.ts
 export interface UserProfile {
   id: string;
   name: string;

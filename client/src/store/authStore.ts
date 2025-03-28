@@ -200,11 +200,10 @@ export const useAuthStore = create<AuthState>()(
       googleLogin: (token: string) => {
         try {
           const decoded: any = jwtDecode(token);
-          // Assuming your token payload includes these fields
           const user = {
             id: decoded.userId,
-            name: decoded.name,      // Ensure your JWT includes the user's name
-            email: decoded.email,    // And the user's email
+            name: decoded.name,      
+            email: decoded.email,    
             phone: decoded.phone || "",
             role: decoded.role || "user",
           };
@@ -217,11 +216,10 @@ export const useAuthStore = create<AuthState>()(
           console.error("Error processing Google login token", error);
         }
       },
-
-      // Utility method to get the Google auth URL
       getGoogleAuthUrl: () => {
         return `${import.meta.env.VITE_API_URL}/api/users/auth/google`;
       },
+      //upating user state after profile edit
       setUser: (user: User | null) => set({ user }),
     }),
     {

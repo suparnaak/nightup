@@ -17,8 +17,6 @@ interface UserProfileState {
   user: UserProfile | null;
   isLoading: boolean;
   error: string | null;
-
-  //getUserProfile: () => Promise<UserProfile>;
   updateProfile: (profileData: { name: string; phone: string }) => Promise<UserProfile>;
   changePassword: (passwordData: { currentPassword: string; newPassword: string }) => Promise<string>;
   clearProfile: () => void;
@@ -29,27 +27,11 @@ export const useUserStore = create<UserProfileState>((set) => ({
   isLoading: false,
   error: null,
 
- /*  getUserProfile: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await userRepository.getUserProfile();
-      set({ user: response.user, isLoading: false });
-      return response.user;
-    } catch (error: any) {
-      set({
-        error: error.response?.data?.message || "Failed to load user profile",
-        isLoading: false,
-      });
-      throw error;
-    }
-  }, */
-
   async updateProfile(profileData: { name: string; phone: string }): Promise<UserProfile> {
     set({ isLoading: true, error: null });
     try {
       const response = await userRepository.updateProfile(profileData);
-      // Unwrap the nested user:
-      const updatedUser = response.user.user || response.user; // in case the response is nested
+      const updatedUser = response.user.user || response.user; 
       set({ user: updatedUser, isLoading: false });
       return updatedUser;
     } catch (error: any) {
