@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Spinner from "../../components/common/Spinner";
+import Swal from "sweetalert2";
 
 const AdminUsersPage: React.FC = () => {
   const { users, getUsers, isLoading, error, userToggleStatus } = useAdminStore();
@@ -26,6 +27,20 @@ const AdminUsersPage: React.FC = () => {
   );
 
   const toggleBlockStatus = async (userId: string, newStatus: boolean) => {
+    const actionLabel = newStatus ? "block" : "unblock";
+    const confirmation = await Swal.fire({
+      title: "Are you sure?",
+      text: `Do you really want to ${actionLabel} this user?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: `Yes, ${actionLabel} it!`,
+      cancelButtonText: "Cancel",
+    });
+  
+    if (!confirmation.isConfirmed) {
+      return; 
+    }
+  
     try {
       setTogglingStatus((prev) => ({ ...prev, [userId]: true }));
       const response = await userToggleStatus(userId, newStatus);

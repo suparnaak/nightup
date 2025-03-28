@@ -6,7 +6,7 @@ export const MESSAGES = {
     SUCCESS: {
       REGISTERED: "Registered successfully. OTP sent to email for verification.",
       PAYMENT_SUCCESSFUL: "Payment successful.",
-      OTP_VERIFIED: "OTP verification successful. You can now log in.",
+      OTP_VERIFIED: "OTP verified",
       OTP_RESENT: "A new OTP has been sent to your email.",
       LOGIN:"Login successfull",
       PASSWORD_RESET:"Your password reset successfully, you can Login.",
@@ -49,7 +49,8 @@ export const MESSAGES = {
 
   HOST: {
     SUCCESS: {
-      
+      EVENT_CREATED:"Event created successfully",
+      EVENT_FETCHED:"Events fetched successfully"
     },
     ERROR: {
       

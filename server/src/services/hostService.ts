@@ -9,7 +9,7 @@ import { MESSAGES } from "../utils/constants";
 
 class HostService implements IHostService {
   
-
+//sign up
   async signup(
     name: string,
     email: string,
@@ -40,7 +40,7 @@ class HostService implements IHostService {
     await sendOtpEmail(email, otp);
     return newHost;
   }
-
+//otp verification
   async verifyOtp(email: string, otp: string): Promise<{
     success: boolean;
     message: string;
@@ -97,7 +97,7 @@ class HostService implements IHostService {
       },
     };
   }
-
+//otp resend
   async resendOtp(email: string): Promise<{
     success: boolean;
     message: string;
@@ -131,7 +131,7 @@ class HostService implements IHostService {
       otpExpiry,
     };
   }
-
+//login
   async login(email: string, password: string): Promise<{
     success: boolean;
     message: string;

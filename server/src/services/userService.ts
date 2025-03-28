@@ -57,7 +57,6 @@ class UserService implements IUserService {
       return { success: false, message: MESSAGES.COMMON.ERROR.INVALID_OTP };
     }
   
-    // Handle different verification flows
     if (verificationType === "emailVerification") {
       if (user.isVerified) {
         return { success: false, message: MESSAGES.COMMON.ERROR.ALREADY_VERIFIED };
@@ -91,7 +90,7 @@ class UserService implements IUserService {
       throw new Error(MESSAGES.COMMON.ERROR.NOT_FOUND);
     }
   
-    // Optional validation, but good to have if called directly
+  
     if (verificationType === 'emailVerification' && user.isVerified) {
       throw new Error(MESSAGES.COMMON.ERROR.ALREADY_VERIFIED);
     }
@@ -119,13 +118,11 @@ class UserService implements IUserService {
   
   //google signup
   async processGoogleAuth(profile: any): Promise<{ user: IUser; token: string; message: string; status: number }> {
-    // Instead of trying to read from an emails array, read the email directly:
     const email = profile.email;
     if (!email) {
       throw new Error("Google profile did not return an email address.");
     }
   
-    // Proceed with finding or creating the user
     let user = await UserRepository.findByEmail(email);
     if (user) {
       if (!user.googleId) {
@@ -136,8 +133,8 @@ class UserService implements IUserService {
       user = await UserRepository.createUser({
         googleId: profile.id,
         name: profile.displayName,
-        email, // use the extracted email
-        password: "", // no password required for Google signups
+        email, 
+        password: "", 
         isVerified: true,
         isBlocked: false,
         isAdmin: false,
@@ -152,15 +149,15 @@ class UserService implements IUserService {
     const token = jwt.sign({ 
     userId: user._id,
     type: "user",
-    name: user.name,    // Include user's name
-    email: user.email,  // Include user's email
+    name: user.name,    
+    email: user.email,  
     role: user.role,
     }, jwtSecret, { expiresIn: "1h" });
   
     return {
       user,
       token,
-      message: "Login successful",
+      message: MESSAGES.COMMON.SUCCESS.LOGIN,
       status: 200,
     };
   }  
@@ -248,7 +245,6 @@ class UserService implements IUserService {
     otpExpiry?: Date; 
   }> {
     try {
-      // 1. Check if user exists
       const user = await UserRepository.findByEmail(email);
       if (!user) {
         return {
@@ -257,33 +253,30 @@ class UserService implements IUserService {
         };
       }
   
-      // 2. Check if user is verified
       if (!user.isVerified) {
         return {
           success: false,
-          message: "Your email is not verified. Please verify before resetting password.",
+          message: MESSAGES.COMMON.ERROR.ACCOUNT_NOT_VERIFIED,
         };
       }
-  
-      // 3. Generate a new OTP
       const otp = generateOTP();
       const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min expiry
   
-      // 4. Update OTP and expiry in the DB
+    
       await UserRepository.updateUser(user._id, {
         otp,
         otpExpiry,
       });
   
-      // 5. Send OTP via email
+     
       await sendOtpEmail(email, otp);
   
-      // 6. Return extra details for frontend use
+    
       return {
         success: true,
-        message: "An OTP has been sent to your email for password reset.",
-        email: user.email,         // This is required on frontend for OTP verification
-        otpExpiry: otpExpiry,      // You can pass timestamp (or milliseconds)
+        message: MESSAGES.COMMON.SUCCESS.OTP_VERIFIED,
+        email: user.email,         
+        otpExpiry: otpExpiry,      
       };
   
     } catch (error) {

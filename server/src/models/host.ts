@@ -6,15 +6,18 @@ export interface IHost extends Document {
   email: string;
   phone: string;
   password: string;
-  hostType: string; 
+  hostType: string;
   isVerified: boolean;
   isBlocked: boolean;
   documentUrl: string;
+  documentStatus: "pending" | "approved" | "rejected";
+  rejectionReason?: string;
+  documentUploadedAt?: Date;
+  documentVerifiedAt?: Date;
   subStatus: "Not Subscribed" | "Active" | "Expired";
-  adminVerified: boolean;
   otp: string;
   otpExpiry?: Date;
-  role?: 'user' | 'host' | 'admin';
+  role?: "user" | "host" | "admin";
 }
 
 const hostSchema: Schema = new Schema(
@@ -27,7 +30,14 @@ const hostSchema: Schema = new Schema(
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     documentUrl: { type: String, default: "" },
-    adminVerified: { type: Boolean, default: false },
+    documentStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    rejectionReason: { type: String, default: "" },
+    documentUploadedAt: { type: Date },
+    documentVerifiedAt: { type: Date },
     subStatus: {
       type: String,
       enum: ["Not Subscribed", "Active", "Expired"],
@@ -35,6 +45,7 @@ const hostSchema: Schema = new Schema(
     },
     otp: { type: String, default: "" },
     otpExpiry: { type: Date },
+    role: { type: String, enum: ["user", "host", "admin"], default: "host" },
   },
   { timestamps: true }
 );

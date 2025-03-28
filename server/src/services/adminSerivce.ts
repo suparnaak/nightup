@@ -83,6 +83,7 @@ class AdminService implements IAdminService {
       },
     };
   }
+
   async refreshToken(
     refreshToken: string
   ): Promise<{ success: boolean; token: string; message: string }> {
@@ -111,33 +112,48 @@ class AdminService implements IAdminService {
       throw new Error("Invalid refresh token");
     }
   }
+
   async getHosts(): Promise<IHost[]> {
     return await HostRepository.getAllHosts();
   }
 
-  //verify document
-  async verifyDocument(
-    hostId: string,
-    action: "approve" | "reject"
-  ): Promise<{ success: boolean; message: string }> {
-    const updateData = { adminVerified: action === "approve" };
-    const updatedHost = await HostRepository.updateHost(hostId, updateData);
-    if (!updatedHost) {
-      return {
-        success: false,
-        message: MESSAGES.ADMIN.ERROR.FAILED_DOC_VERIFY,
-      };
-    }
-    await sendDocumentVerificationEmail(updatedHost.email, action);
+  // verify document
+async verifyDocument(
+  hostId: string,
+  action: "approve" | "reject",
+  rejectionReason?: string
+): Promise<{ success: boolean; message: string }> {
+  const updateData: Partial<IHost> = {
+    documentStatus: action === "approve" ? "approved" : "rejected",
+    ...(action === "approve"
+      ? { rejectionReason: "" } 
+      : { rejectionReason: rejectionReason || "" } 
+    ),
+  };
+
+  const updatedHost = await HostRepository.updateHost(hostId, updateData);
+  if (!updatedHost) {
     return {
-      success: true,
-      message:
-        action === "approve"
-          ? MESSAGES.ADMIN.SUCCESS.DOCUMENT_VERIFIED
-          : MESSAGES.ADMIN.SUCCESS.DOCUMENT_REJECTED,
+      success: false,
+      message: MESSAGES.ADMIN.ERROR.FAILED_DOC_VERIFY,
     };
   }
-  //block or unblock hosts
+  await sendDocumentVerificationEmail(
+    updatedHost.email,
+    action,
+    action === "reject" ? rejectionReason : undefined
+  );
+  return {
+    success: true,
+    message:
+      action === "approve"
+        ? MESSAGES.ADMIN.SUCCESS.DOCUMENT_VERIFIED
+        : MESSAGES.ADMIN.SUCCESS.DOCUMENT_REJECTED,
+  };
+}
+
+
+  // block or unblock hosts
   async hostToggleStatus(
     hostId: string,
     newStatus: boolean
@@ -151,15 +167,15 @@ class AdminService implements IAdminService {
     }
     return {
       success: true,
-      message: `Host has been ${
-        newStatus ? "blocked" : "unblocked"
-      } successfully`,
+      message: `Host has been ${newStatus ? "blocked" : "unblocked"} successfully`,
     };
   }
+
   async getUsers(): Promise<IUser[]> {
     return await UserRepository.getAllUsers();
   }
-  //block or unblock users
+
+  // block or unblock users
   async userToggleStatus(
     userId: string,
     newStatus: boolean
@@ -173,9 +189,7 @@ class AdminService implements IAdminService {
     }
     return {
       success: true,
-      message: `User has been ${
-        newStatus ? "blocked" : "unblocked"
-      } successfully`,
+      message: `User has been ${newStatus ? "blocked" : "unblocked"} successfully`,
     };
   }
 }

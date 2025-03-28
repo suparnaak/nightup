@@ -10,13 +10,16 @@ export const adminRepository = {
   verifyDocument: async ({
     hostId,
     action,
+    rejectionReason,
   }: {
     hostId: string;
     action: "approve" | "reject";
+    rejectionReason?: string;
   }) => {
     const response = await axiosAdminClient.post("/hosts/verify-document", {
       hostId,
       action,
+      rejectionReason,
     });
     return response.data;
   },

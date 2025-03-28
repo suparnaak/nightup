@@ -93,24 +93,7 @@ class AdminController implements IAdminController {
       });
     }
   }
-  /* //logout 
-  async logout(req: Request, res: Response): Promise<void> {
- 
-    res.clearCookie('token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict' as 'strict'
-    });
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
-    });
-    res.status(STATUS_CODES.SUCCESS).json({
-      success: true,
-      message: MESSAGES.COMMON.SUCCESS.LOGOUT
-    });
-  } */
+
   //get all hosts
   async getHosts(req: Request, res: Response): Promise<void> {
     try {
@@ -132,7 +115,7 @@ class AdminController implements IAdminController {
   //document verification
   async verifyDocument(req: Request, res: Response): Promise<void> {
     try {
-      const { hostId, action } = req.body;
+      const { hostId, action, rejectionReason } = req.body;
       if (!hostId || !action) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
@@ -140,7 +123,8 @@ class AdminController implements IAdminController {
         });
         return;
       }
-      const result = await AdminService.verifyDocument(hostId, action);
+      // Pass rejectionReason along (it will be ignored for approvals)
+      const result = await AdminService.verifyDocument(hostId, action, rejectionReason);
       
       if (!result.success) {
         res.status(STATUS_CODES.BAD_REQUEST).json({

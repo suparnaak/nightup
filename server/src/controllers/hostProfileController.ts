@@ -41,7 +41,7 @@ class HostProfileController implements IHostProfileController {
         res.status(STATUS_CODES.UNAUTHORIZED).json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
         return;
       }
-      console.log(req.body)
+      console.log(req.body);
       const result = await HostProfileService.updateHostProfile(hostId, req.body as unknown as FormData);
       res.status(STATUS_CODES.SUCCESS).json(result);
     } catch (error) {

@@ -92,7 +92,7 @@ class EventController implements IEventController {
 
       res.status(STATUS_CODES.CREATED).json({
         success: true,
-        message: "Event created successfully.",
+        message: MESSAGES.HOST.SUCCESS.EVENT_CREATED,
         event,
       });
     } catch (error: any) {
@@ -119,7 +119,7 @@ class EventController implements IEventController {
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: "Events fetched successfully.",
+        message: MESSAGES.HOST.SUCCESS.EVENT_FETCHED,
         events,
       });
     } catch (error: any) {
@@ -137,7 +137,7 @@ class EventController implements IEventController {
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: "Events fetched successfully.",
+        message: MESSAGES.HOST.SUCCESS.EVENT_FETCHED,
         events,
       });
     } catch (error: any) {

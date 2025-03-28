@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 export interface HostProfile {
   id: string;
   name: string;
@@ -7,8 +5,11 @@ export interface HostProfile {
   phone: string;
   hostType: string;
   documentUrl: string; // URL for the license document
+  // Replacing adminVerified with a more descriptive status
+  documentStatus: "pending" | "approved" | "rejected";
+  // Optional field to store a rejection reason if the document is rejected
+  rejectionReason?: string;
   subscriptionPlan: string;
-  adminVerified: boolean;
   // Add other fields as needed
 }
 

@@ -1,6 +1,7 @@
 // src/store/adminStore.ts
 import { create } from "zustand";
 import { adminRepository } from "../repositories/adminRepository";
+
 export interface BaseUser {
   id: string;
   name: string;
@@ -18,7 +19,9 @@ export interface Host extends BaseUser {
   subscriptionPlan: string;
   subStatus: string;
   documentUrl: string;
-  adminVerified: boolean;
+  // Replace adminVerified with documentStatus and optional rejectionReason
+  documentStatus: "pending" | "approved" | "rejected";
+  rejectionReason?: string;
 }
 
 interface AdminState {
@@ -64,17 +67,19 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 
   clearHosts: () => set({ hosts: [] }),
 
-  verifyDocument: async ({ hostId, action }) => {
+  verifyDocument: async (payload: {
+    hostId: string;
+    action: "approve" | "reject";
+    rejectionReason?: string;
+  }) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await adminRepository.verifyDocument({ hostId, action });
+      const response = await adminRepository.verifyDocument(payload);
       set({ isLoading: false });
       return response;
     } catch (error: any) {
       set({
-        error:
-          error.response?.data?.message ||
-          "Failed to update document verification",
+        error: error.response?.data?.message || "Failed to update document verification",
         isLoading: false,
       });
       throw error;
@@ -104,12 +109,10 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await adminRepository.getUsers();
-      //console.log(data)
       const transformedUsers = data.users.map((user: any) => ({
         id: user._id.toString(),
         ...user,
       }));
-
       set({ users: transformedUsers, isLoading: false });
       return transformedUsers;
     } catch (error: any) {
@@ -128,7 +131,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         userId,
         newStatus,
       });
-      //console.log(response)
       await get().getUsers();
       set({ isLoading: false });
       return response;
@@ -142,3 +144,5 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }
   },
 }));
+
+export default adminRepository;

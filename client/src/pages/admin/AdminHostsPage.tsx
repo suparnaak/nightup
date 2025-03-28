@@ -1,9 +1,8 @@
-// src/pages/admin/AdminHostsPage.tsx
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import AdminLayout from "../../layouts/AdminLayout";
 import { useAdminStore } from "../../store/adminStore";
 import {
-  Users,
   Mail,
   Phone,
   Crown,
@@ -18,8 +17,16 @@ import toast from "react-hot-toast";
 import Spinner from "../../components/common/Spinner";
 
 const AdminHostsPage: React.FC = () => {
-  const { hosts, getHosts, isLoading, error, hostToggleStatus, verifyDocument } = useAdminStore();
+  const {
+    hosts,
+    getHosts,
+    isLoading,
+    error,
+    hostToggleStatus,
+    verifyDocument,
+  } = useAdminStore();
   const [togglingStatus, setTogglingStatus] = useState<{ [hostId: string]: boolean }>({});
+  const [verifyingStatus, setVerifyingStatus] = useState<{ [hostId: string]: boolean }>({});
 
   useEffect(() => {
     getHosts().catch(console.error);
@@ -29,10 +36,24 @@ const AdminHostsPage: React.FC = () => {
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  // Handler for toggling block status with per-host loading
   const toggleBlockStatus = async (hostId: string, newStatus: boolean) => {
+    
+    const actionLabel = newStatus ? "block" : "unblock";
+  
+    const confirmation = await Swal.fire({
+      title: `Are you sure?`,
+      text: `Do you really want to ${actionLabel} this host?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: `Yes, ${actionLabel} it!`,
+      cancelButtonText: "Cancel",
+    });
+  
+    if (!confirmation.isConfirmed) {
+      return; 
+    }
+  
     try {
-      // Set loading state for this host
       setTogglingStatus((prev) => ({ ...prev, [hostId]: true }));
       const response = await hostToggleStatus(hostId, newStatus);
       await getHosts();
@@ -41,24 +62,53 @@ const AdminHostsPage: React.FC = () => {
       console.error("Error toggling block status:", err);
       toast.error(err.response?.data?.message || "Failed to update block status");
     } finally {
-      // Clear loading state for this host
       setTogglingStatus((prev) => ({ ...prev, [hostId]: false }));
     }
   };
+  
 
-  // Handler for document verification (approve/reject)
-  const verifyHostDocument = async (hostId: string, action: "approve" | "reject") => {
+  const verifyHostDocument = async (
+    hostId: string,
+    action: "approve" | "reject"
+  ) => {
     try {
-      const response = await verifyDocument({ hostId, action });
+      setVerifyingStatus((prev) => ({ ...prev, [hostId]: true }));
+      let payload: {
+        hostId: string;
+        action: "approve" | "reject";
+        rejectionReason?: string;
+      } = { hostId, action };
+      if (action === "reject") {
+        const { value: reason } = await Swal.fire({
+          title: "Enter Rejection Reason",
+          input: "text",
+          inputLabel: "Rejection Reason",
+          inputPlaceholder: "Type your reason here...",
+          showCancelButton: true,
+          inputValidator: (value) => {
+            if (!value) {
+              return "Rejection reason is required.";
+            }
+            return null;
+          },
+        });
+        if (!reason) {
+          toast.error("Rejection reason is required.");
+          return;
+        }
+        payload.rejectionReason = reason;
+      }
+      const response = await verifyDocument(payload);
       await getHosts();
       toast.success(response.message || "Document updated successfully");
     } catch (err: any) {
       console.error("Error verifying document:", err);
       toast.error(err.response?.data?.message || "Document update failed");
+    } finally {
+      setVerifyingStatus((prev) => ({ ...prev, [hostId]: false }));
     }
   };
 
-  // Helper function for subscription status color based on subStatus
   const getSubscriptionStatusColor = (status: string) => {
     switch (status) {
       case "Active":
@@ -70,9 +120,10 @@ const AdminHostsPage: React.FC = () => {
     }
   };
 
-  // Helper function for block status color based on isBlocked
   const getBlockStatusColor = (isBlocked: boolean) => {
-    return isBlocked ? "text-red-600 bg-red-100" : "text-green-600 bg-green-100";
+    return isBlocked
+      ? "text-red-600 bg-red-100"
+      : "text-green-600 bg-green-100";
   };
 
   return (
@@ -167,30 +218,31 @@ const AdminHostsPage: React.FC = () => {
                 </td>
                 {/* Status */}
                 <td className="px-6 py-4 whitespace-nowrap">
-  <div className="flex items-center">
-    <span
-      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getBlockStatusColor(
-        host.isBlocked
-      )}`}
-    >
-      {host.isBlocked ? "Blocked" : "Active"}
-    </span>
-    <button
-      className="ml-2"
-      title="Toggle block status"
-      onClick={() => toggleBlockStatus(host.id, !host.isBlocked)}
-    >
-      {togglingStatus[host.id] ? (
-        <Spinner />
-      ) : host.isBlocked ? (
-        <ToggleLeft className="w-5 h-5 text-green-600" />
-      ) : (
-        <ToggleRight className="w-5 h-5 text-red-600" />
-      )}
-    </button>
-  </div>
-</td>
-
+                  <div className="flex items-center">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getBlockStatusColor(
+                        host.isBlocked
+                      )}`}
+                    >
+                      {host.isBlocked ? "Blocked" : "Active"}
+                    </span>
+                    <button
+                      className="ml-2"
+                      title="Toggle block status"
+                      onClick={() =>
+                        toggleBlockStatus(host.id, !host.isBlocked)
+                      }
+                    >
+                      {togglingStatus[host.id] ? (
+                        <Spinner />
+                      ) : host.isBlocked ? (
+                        <ToggleLeft className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <ToggleRight className="w-5 h-5 text-red-600" />
+                      )}
+                    </button>
+                  </div>
+                </td>
                 {/* Document */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   {host.documentUrl ? (
@@ -204,29 +256,49 @@ const AdminHostsPage: React.FC = () => {
                       >
                         <FileCheck className="w-5 h-5" />
                       </a>
-                      {!host.adminVerified ? (
-                        <div className="flex space-x-2">
-                          <button
-                            className="text-green-600 hover:text-green-800 text-xs"
-                            title="Approve Document"
-                            onClick={() => verifyHostDocument(host.id, "approve")}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            className="text-red-600 hover:text-red-800 text-xs"
-                            title="Reject Document"
-                            onClick={() => verifyHostDocument(host.id, "reject")}
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      ) : (
+                      {host.documentStatus === "approved" ? (
                         <CheckCircle
                           className="w-5 h-5 text-green-600"
                           aria-label="Document verified"
                         />
-                      )}
+                      ) : host.documentStatus === "pending" ? (
+                        <div className="flex flex-col space-y-1">
+                          <div className="flex space-x-2">
+                            <button
+                              disabled={verifyingStatus[host.id]}
+                              onClick={() =>
+                                verifyHostDocument(host.id, "approve")
+                              }
+                              className="text-green-600 hover:text-green-800 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Approve Document"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              disabled={verifyingStatus[host.id]}
+                              onClick={() =>
+                                verifyHostDocument(host.id, "reject")
+                              }
+                              className="text-red-600 hover:text-red-800 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Reject Document"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                          {verifyingStatus[host.id] && (
+                            <div className="flex items-center">
+                              <Spinner />
+                              <span className="text-xs ml-2">Verifying...</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : host.documentStatus === "rejected" ? (
+                        <span className="text-xs text-red-600">
+                          {`Rejected: ${
+                            host.rejectionReason || "No reason provided"
+                          }`}
+                        </span>
+                      ) : null}
                     </div>
                   ) : (
                     <p className="text-red-600 text-sm">No document uploaded</p>

@@ -8,8 +8,9 @@ export interface HostProfile {
   phone: string;
   hostType: string;
   documentUrl: string;
+  documentStatus: "pending" | "approved" | "rejected";
+  rejectionReason?: string;
   subscriptionPlan: string;
-  adminVerified: boolean;
 }
 
 export interface HostProfileResponse {
