@@ -2,6 +2,7 @@ import { Router } from "express";
 import passport from "passport";
 import AdminController from "../controllers/adminController";
 import SubscriptionController from "../controllers/subscriptionController";
+import CouponController from "../controllers/CouponController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
 
@@ -24,5 +25,15 @@ router
   .route("/subscriptions/:id")
   .put(authMiddleware(["admin"]), SubscriptionController.updateSubscription)
   .delete(authMiddleware(["admin"]), SubscriptionController.deleteSubscription);
+//coupoon management
+router
+  .route("/coupons")
+  .get(authMiddleware(["admin"]), CouponController.getCoupons) 
+  .post(authMiddleware(["admin"]), CouponController.createCoupon); 
+
+router
+  .route("/coupons/:id")
+  .put(authMiddleware(["admin"]), CouponController.updateCoupon) 
+  .delete(authMiddleware(["admin"]), CouponController.deleteCoupon); 
 
 export default router;

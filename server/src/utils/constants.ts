@@ -65,6 +65,10 @@ export const MESSAGES = {
       SUBSCRIPTION_CREATED: "Subscription created successfully",
       SUBSCRIPTION_UPDATED: "Subscription updated successfully",
       SUBSCRIPTION_DELETED:"Subscription deleted successfully",
+      COUPON_CREATED :"Coupon created",
+      COUPON_UPDATED:"Coupon updated",
+      COUPON_DELETED:"Coupon deleted",
+
 
 
     },
@@ -73,6 +77,17 @@ export const MESSAGES = {
       INVALID_SUBSCRIPTION_NAME:"Subscription plan name is required",
       INVALID_SUBSCRIPTION_DURATION: "Valid subscription duration is required (Monthly, 6 Months, Yearly).",
       INVALID_SUBSCRIPTION_PRICE:"A valid subscription price greater than 0 is required.",
+      INVALID_COUPON_CODE: "Invalid coupon code",
+      INVALID_COUPON_DISCOUNT: "Invalid discount",
+      INVALID_COUPON_MIN_AMOUNT:"Invalid minimum amount",
+      INVALID_COUPON_QUANTITY:"Invalid quantity",
+      INVALID_COUPON_START_DATE:"Invalid start date",
+      INVALID_COUPON_END_DATE:"Invalid End date",
+      COUPON_CODE_CANNOT_BE_UPDATED:"Counpon update failed",
+
+
+
+
     }
   }
 };

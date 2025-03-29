@@ -69,6 +69,7 @@ const AdminCouponPage: React.FC = () => {
     setLoading(true);
     try {
       const fetched = await getCoupons();
+      console.log(fetched)
       if (fetched.length === 0) {
         toast("No coupons found", {
           icon: "ℹ️",
