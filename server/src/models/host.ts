@@ -14,7 +14,7 @@ export interface IHost extends Document {
   rejectionReason?: string;
   documentUploadedAt?: Date;
   documentVerifiedAt?: Date;
-  subStatus: "Not Subscribed" | "Active" | "Expired";
+  //subStatus: "Not Subscribed" | "Active" | "Expired";
   otp: string;
   otpExpiry?: Date;
   role?: "user" | "host" | "admin";
@@ -38,11 +38,11 @@ const hostSchema: Schema = new Schema(
     rejectionReason: { type: String, default: "" },
     documentUploadedAt: { type: Date },
     documentVerifiedAt: { type: Date },
-    subStatus: {
+    /* subStatus: {
       type: String,
       enum: ["Not Subscribed", "Active", "Expired"],
       default: "Not Subscribed",
-    },
+    }, */
     otp: { type: String, default: "" },
     otpExpiry: { type: Date },
     role: { type: String, enum: ["user", "host", "admin"], default: "host" },

@@ -9,7 +9,7 @@ export interface HostProfile {
   documentStatus: "pending" | "approved" | "rejected";
   // Optional field to store a rejection reason if the document is rejected
   rejectionReason?: string;
-  subscriptionPlan: string;
+  //subscriptionPlan: string;
   // Add other fields as needed
 }
 

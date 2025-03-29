@@ -17,9 +17,9 @@ class EventService implements IEventService {
     if (host.documentStatus !== "approved") {
       throw new Error("You are not allowed to add an event. Your document is not verified by admin.");
     }
-    if (host.subStatus !== "Active") {
+    /* if (host.subStatus !== "Active") {
       throw new Error("You are not allowed to add an event. You don't have an active Subscription Plan.");
-    }
+    } */
     return await EventRepository.addEvent(eventData);
   }
 

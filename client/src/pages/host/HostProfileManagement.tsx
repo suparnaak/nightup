@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useHostStore } from "../../store/hostStore";
 import HostLayout from "../../layouts/HostLayout";
-import { validateName, validatePhone, validatePassword, validateConfirmPassword } from "../../utils/validationUtils";
+import { 
+  validateName, 
+  validatePhone, 
+  validatePassword, 
+  validateConfirmPassword 
+} from "../../utils/validationUtils";
 import { uploadImageToCloudinary } from "../../utils/cloudinary";
 import toast from "react-hot-toast";
 import { FaFileAlt } from "react-icons/fa";
@@ -31,10 +36,12 @@ const HostProfileManagement: React.FC = () => {
     confirmPassword: null as string | null,
   });
 
+  // Fetch profile data on mount
   useEffect(() => {
     getHostProfile().catch(console.error);
   }, []);
 
+  // Update form data when host data changes
   useEffect(() => {
     if (host) {
       setFormData((prev) => ({
@@ -135,127 +142,109 @@ const HostProfileManagement: React.FC = () => {
             {formData.name || "Host"}, this is your profile!
           </h2>
 
-          <div className="flex justify-between mb-6">
-            <div className="bg-purple-100 p-4 rounded-lg w-1/2 mr-2">
-              <h3 className="text-md font-semibold text-purple-700">Subscription Plan</h3>
-              {host?.subscriptionPlan === "Subscribed" ? (
-                <p className="mt-2 text-green-600 font-medium capitalize">
-                  {host.subscriptionPlan}
-                </p>
-              ) : (
-                <div className="mt-2">
-                  <p className="text-red-600">You have no subscription plan.</p>
-                  <a
-                    href="/host/subscription"
-                    className="text-purple-600 underline text-sm mt-1 inline-block"
-                  >
-                    Click here to subscribe
-                  </a>
-                </div>
-              )}
-            </div>
+          {/* Removed Subscription Plan Section */}
 
-            <div className="bg-purple-100 p-4 rounded-lg w-1/2 ml-2">
-              <h3 className="text-md font-semibold text-purple-700">Document Status</h3>
-              {host?.documentUrl ? (
-                <div className="mt-2">
-                  <a
-                    href={host.documentUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-purple-600 underline text-sm block mb-2"
-                  >
-                    <FaFileAlt className="mr-2 inline" /> View
-                  </a>
-                  {host.documentStatus === "approved" ? (
-                    <p className="text-green-600">Verified by Admin</p>
-                  ) : host.documentStatus === "pending" ? (
-                    <div>
-                      <p className="text-yellow-600">Awaiting Admin Verification</p>
-                      {isEditingDocument ? (
-                        <div>
-                          <input
-                            type="file"
-                            name="document"
-                            onChange={handleFileChange}
-                            accept=".pdf,image/*"
-                            className="block w-full text-sm mt-2"
-                          />
-                          <button
-                            onClick={handleDocumentSubmit}
-                            disabled={uploading}
-                            className="mt-2 px-4 py-2 min-w-[150px] bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                          >
-                            {uploading ? <Spinner /> : "Replace Document"}
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setIsEditingDocument(true)}
-                          className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
-                        >
-                          Replace Document
-                        </button>
-                      )}
-                    </div>
-                  ) : host.documentStatus === "rejected" ? (
-                    <div>
-                      <p className="text-red-600">
-                        Document Rejected
-                        {host.rejectionReason ? `: ${host.rejectionReason}` : ""}
-                      </p>
-                      {isEditingDocument ? (
-                        <div>
-                          <input
-                            type="file"
-                            name="document"
-                            onChange={handleFileChange}
-                            accept=".pdf,image/*"
-                            className="block w-full text-sm mt-2"
-                          />
-                          <button
-                            onClick={handleDocumentSubmit}
-                            disabled={uploading}
-                            className="mt-2 px-4 py-2 min-w-[150px] bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                          >
-                            {uploading ? <Spinner /> : "Replace Document"}
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setIsEditingDocument(true)}
-                          className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
-                        >
-                          Replace Document
-                        </button>
-                      )}
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="mt-2">
-                  <p className="text-red-600 mb-2">No document uploaded.</p>
+          {/* Document Status Section */}
+          <div className="bg-purple-100 p-4 rounded-lg mb-6">
+            <h3 className="text-md font-semibold text-purple-700">Document Status</h3>
+            {host?.documentUrl ? (
+              <div className="mt-2">
+                <a
+                  href={host.documentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-purple-600 underline text-sm block mb-2"
+                >
+                  <FaFileAlt className="mr-2 inline" /> View
+                </a>
+                {host.documentStatus === "approved" ? (
+                  <p className="text-green-600">Verified by Admin</p>
+                ) : host.documentStatus === "pending" ? (
                   <div>
-                    <input
-                      type="file"
-                      name="document"
-                      onChange={handleFileChange}
-                      accept=".pdf,image/*"
-                      className="block w-full text-sm"
-                    />
-                    <button
-                      onClick={handleDocumentSubmit}
-                      disabled={uploading}
-                      className="mt-2 px-4 py-2 min-w-[150px] bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {uploading ? <Spinner /> : "Submit Document"}
-                    </button>
+                    <p className="text-yellow-600">Awaiting Admin Verification</p>
+                    {isEditingDocument ? (
+                      <div>
+                        <input
+                          type="file"
+                          name="document"
+                          onChange={handleFileChange}
+                          accept=".pdf,image/*"
+                          className="block w-full text-sm mt-2"
+                        />
+                        <button
+                          onClick={handleDocumentSubmit}
+                          disabled={uploading}
+                          className="mt-2 px-4 py-2 min-w-[150px] bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {uploading ? <Spinner /> : "Replace Document"}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingDocument(true)}
+                        className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                      >
+                        Replace Document
+                      </button>
+                    )}
                   </div>
+                ) : host.documentStatus === "rejected" ? (
+                  <div>
+                    <p className="text-red-600">
+                      Document Rejected{host.rejectionReason ? `: ${host.rejectionReason}` : ""}
+                    </p>
+                    {isEditingDocument ? (
+                      <div>
+                        <input
+                          type="file"
+                          name="document"
+                          onChange={handleFileChange}
+                          accept=".pdf,image/*"
+                          className="block w-full text-sm mt-2"
+                        />
+                        <button
+                          onClick={handleDocumentSubmit}
+                          disabled={uploading}
+                          className="mt-2 px-4 py-2 min-w-[150px] bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {uploading ? <Spinner /> : "Replace Document"}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingDocument(true)}
+                        className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                      >
+                        Replace Document
+                      </button>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="mt-2">
+                <p className="text-red-600 mb-2">No document uploaded.</p>
+                <div>
+                  <input
+                    type="file"
+                    name="document"
+                    onChange={handleFileChange}
+                    accept=".pdf,image/*"
+                    className="block w-full text-sm"
+                  />
+                  <button
+                    onClick={handleDocumentSubmit}
+                    disabled={uploading}
+                    className="mt-2 px-4 py-2 min-w-[150px] bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {uploading ? <Spinner /> : "Submit Document"}
+                  </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
+          {/* Profile Details Section */}
           {isEditing ? (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

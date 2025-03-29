@@ -20,7 +20,6 @@ class HostRepository implements IHostRepository {
     return await Host.findById(hostId);
   }
 
-  // New: updateHostProfile that accepts hostId and a plain object of update data
   async updateHostProfile(
     hostId: string,
     updateData: Record<string, any>

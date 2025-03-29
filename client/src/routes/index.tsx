@@ -21,6 +21,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import HostDashboard from "../pages/host/HostDashboard";
 import HostEvents from "../pages/host/HostEvents";
 import HostAddEvent from "../pages/host/HostAddEvent";
+import HostSubscriptionPage from "../pages/host/HostSubscriptionPage";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import HostProfileManagement from "../pages/host/HostProfileManagement";
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -64,6 +65,7 @@ const AppRoutes = () => {
           <Route path="/host/dashboard" element={<HostDashboard />} />
           <Route path="/host/events" element={<HostEvents />} />
           <Route path="/host/events/add" element={<HostAddEvent />} />
+          <Route path="/host/subscription" element={<HostSubscriptionPage />} />
           <Route path="/host/profile" element={<HostProfileManagement />} />
         </Route>
 

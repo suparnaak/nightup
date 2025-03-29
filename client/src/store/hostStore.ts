@@ -10,7 +10,7 @@ export interface HostProfile {
   documentUrl: string;
   documentStatus: "pending" | "approved" | "rejected";
   rejectionReason?: string;
-  subscriptionPlan: string;
+  //subscriptionPlan: string;
 }
 
 export interface HostProfileResponse {
