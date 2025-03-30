@@ -10,26 +10,28 @@ import HostOtpVerification from "../pages/auth/HostOtpVerification";
 import HostLogin from "../pages/auth/HostLogin";
 import ResetPassword from "../pages/auth/ResetPassword";
 import AdminLogin from "../pages/auth/AdminLogin";
-import AdminHostsPage from "../pages/admin/AdminHostsPage";
-import AdminUsersPage from "../pages/admin/AdminUsersPage";
-import AdminSubscriptionPage from "../pages/admin/AdminSubscriptionPage";
-import AdminCouponPage from "../pages/admin/AdminCouponPage";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import GoogleAuthCallback from "../components/user/GoogleAuthCallback";
 
 // ProtectedRoutes
 import ProtectedRoute from "../components/ProtectedRoute";
-
+//host specific
 import HostDashboard from "../pages/host/HostDashboard";
 import HostEvents from "../pages/host/HostEvents";
 import HostAddEvent from "../pages/host/HostAddEvent";
 import HostSubscriptionPage from "../pages/host/HostSubscriptionPage";
-import ForgotPassword from "../pages/auth/ForgotPassword";
 import HostProfileManagement from "../pages/host/HostProfileManagement";
-import AdminDashboard from "../pages/admin/AdminDashboard";
-import GoogleAuthCallback from "../components/user/GoogleAuthCallback";
+
 //user specific
-import Profile from "../pages/user/Profile";//user's profile
+import Profile from "../pages/user/Profile";
 import ChangePassword from "../pages/user/ChangePassword";
 
+//admin specific
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminHostsPage from "../pages/admin/AdminHostsPage";
+import AdminUsersPage from "../pages/admin/AdminUsersPage";
+import AdminSubscriptionPage from "../pages/admin/AdminSubscriptionPage";
+import AdminCouponPage from "../pages/admin/AdminCouponPage";
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -42,7 +44,6 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<OtpVerification />} />
-
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 

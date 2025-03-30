@@ -142,8 +142,6 @@ const HostProfileManagement: React.FC = () => {
             {formData.name || "Host"}, this is your profile!
           </h2>
 
-          {/* Removed Subscription Plan Section */}
-
           {/* Document Status Section */}
           <div className="bg-purple-100 p-4 rounded-lg mb-6">
             <h3 className="text-md font-semibold text-purple-700">Document Status</h3>

@@ -1,4 +1,3 @@
-// services/UserProfileService.ts
 import { IUserProfileService, UserProfile, UserProfileResponse } from "./interfaces/IUserProfileService";
 import UserRepository from "../repositories/userRepository";
 import bcrypt from "bcryptjs";

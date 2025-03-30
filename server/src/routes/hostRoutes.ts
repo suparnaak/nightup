@@ -26,6 +26,9 @@ router
   .get(authMiddleware(["host"]), HostSubscriptionController.getHostSubscription);
 
 router.get("/available-subscription", authMiddleware(["host"]), HostSubscriptionController.getAvailableSubscriptions);
+router.post("/subscriptions/create-order", authMiddleware(["host"]), HostSubscriptionController.createOrder);
+router.post("/subscriptions/verify-payment", authMiddleware(["host"]), HostSubscriptionController.verifyPayment);
+
 
 
 export default router;

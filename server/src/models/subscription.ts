@@ -1,15 +1,16 @@
-// src/models/subscription.ts
 import mongoose, { Schema, Document, Types } from "mongoose";
 import Host from "./host";
+import { ISubscriptionPlan } from "./subscriptionPlan";
 
 export interface ISubscription extends Document {
-  host: Types.ObjectId;                 // Reference to the host who subscribed
-  subscriptionPlan: Types.ObjectId;     // Reference to the plan from admin's SubscriptionPlan model
-  startDate: Date;                      // When the subscription starts (after payment)
-  endDate: Date;                        // When the subscription expires
-  status: "Active" | "Expired";         // Subscription status
-  paymentId?: string;                   // Optional: Payment ID from Razorpay
+  host: Types.ObjectId;                
+  subscriptionPlan: Types.ObjectId | ISubscriptionPlan;    
+  startDate: Date;                    
+  endDate: Date;                        
+  status: "Active" | "Expired";        
+  paymentId?: string;                   
 }
+
 
 const subscriptionSchema: Schema = new Schema(
   {
@@ -27,9 +28,6 @@ const subscriptionSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-// Remove the pre-save middleware and add a post-save middleware.
-// This middleware runs after a subscription is saved.
-// It checks the current date and then updates the corresponding host's subStatus.
 subscriptionSchema.post("save", async function (doc: ISubscription) {
   try {
     const now = new Date();

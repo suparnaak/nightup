@@ -1,9 +1,8 @@
-// src/models/subscriptionPlan.ts
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface ISubscriptionPlan extends Document {
   name: string;
-  duration: string; // e.g., "Monthly", "6 Months", "Yearly"
+  duration: string; 
   price: number;
 }
 

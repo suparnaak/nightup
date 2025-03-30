@@ -1,13 +1,11 @@
-// src/store/hostSubscriptionStore.ts
 import { create } from "zustand";
 import { hostRepository } from "../repositories/hostRepository";
 
-// Define an interface for host subscription data
 export interface HostSubscription {
   id: string;
-  subscriptionPlan: string; // Plan name or ID
-  startDate: string;        // ISO date string
-  endDate: string;          // ISO date string
+  subscriptionPlan: SubscriptionPlan; 
+  startDate: string;        
+  endDate: string;          
   status: "Active" | "Expired";
   paymentId?: string;
 }
@@ -15,7 +13,7 @@ export interface HostSubscription {
 export interface SubscriptionPlan {
   id: string;
   name: string;
-  duration: string; // e.g., "Monthly", "6 Months", "Yearly"
+  duration: string; 
   price: number;
 }
 
@@ -26,7 +24,8 @@ interface HostSubscriptionState {
   error: string | null;
   getHostSubscription: () => Promise<HostSubscription | null>;
   getAvailablePlans: () => Promise<SubscriptionPlan[]>;
-  // Additional methods such as renewSubscription could be added here
+  createSubscriptionOrder: (planId: string, amount: number) => Promise<string>;
+  verifySubscriptionPayment: (paymentData: any, planId: string) => Promise<boolean>;
 }
 
 export const useHostSubscriptionStore = create<HostSubscriptionState>((set) => ({
@@ -39,7 +38,6 @@ export const useHostSubscriptionStore = create<HostSubscriptionState>((set) => (
       set({ isLoading: true, error: null });
       try {
         const data = await hostRepository.getHostSubscription();
-        // Assume the response has a "subscription" object
         set({ subscription: data.subscription, isLoading: false });
         return data.subscription;
       } catch (error: any) {
@@ -55,7 +53,6 @@ export const useHostSubscriptionStore = create<HostSubscriptionState>((set) => (
       set({ isLoading: true, error: null });
       try {
         const data = await hostRepository.getSubscriptionPlans();
-        // Transform each plan so it includes a unique 'id'
         const plans = data.plans.map((plan: any) => ({
           id: plan._id.toString(),
           ...plan,
@@ -67,8 +64,45 @@ export const useHostSubscriptionStore = create<HostSubscriptionState>((set) => (
           error: error.response?.data?.message || "Failed to load available plans",
           isLoading: false,
         });
-        // Return an empty array on error
         return [];
       }
     },
+    createSubscriptionOrder: async (planId, amount) => {
+      set({ isLoading: true, error: null });
+      try {
+        const data = await hostRepository.createSubscriptionOrder(planId, amount);
+        set({ isLoading: false });
+        return data.orderId;
+      } catch (error: any) {
+        set({
+          error: error.response?.data?.message || "Failed to create payment order",
+          isLoading: false,
+        });
+        throw error;
+      }
+    },
+    verifySubscriptionPayment: async (paymentData, planId) => {
+      set({ isLoading: true, error: null });
+      try {
+        const data = await hostRepository.verifySubscriptionPayment({
+          ...paymentData,
+          planId
+        });
+        
+        if (data.success) {
+          await hostRepository.getHostSubscription().then(data => {
+            set({ subscription: data.subscription });
+          });
+        }
+        
+        set({ isLoading: false });
+        return data.success;
+      } catch (error: any) {
+        set({
+          error: error.response?.data?.message || "Failed to verify payment",
+          isLoading: false,
+        });
+        return false;
+      }
+    }
 }));
