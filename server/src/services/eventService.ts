@@ -2,6 +2,8 @@ import { Types } from 'mongoose';
 import { IEventService, IEvent } from './interfaces/IEventService';
 import EventRepository from '../repositories/eventRepository';
 import HostRepository from '../repositories/hostRepository';
+import HostSubscriptionRepository from '../repositories/hostSubscriptionRepository';
+import { MESSAGES } from "../utils/constants";
 
 
 class EventService implements IEventService {
@@ -12,14 +14,16 @@ class EventService implements IEventService {
       throw new Error("Host not found.");
     }
     if (!host.isVerified || host.isBlocked) {
-      throw new Error("You are not allowed to add an event. Your account status does not permit this action.");
+      throw new Error(MESSAGES.HOST.ERROR.HOST_NOT_VERIFIED);
     }
     if (host.documentStatus !== "approved") {
-      throw new Error("You are not allowed to add an event. Your document is not verified by admin.");
+      throw new Error(MESSAGES.HOST.ERROR.DOCUMENT_NOT_VERIFIED);
     }
-    /* if (host.subStatus !== "Active") {
-      throw new Error("You are not allowed to add an event. You don't have an active Subscription Plan.");
-    } */
+    const hostSubscription = await HostSubscriptionRepository.getHostSubscription(eventData.hostId.toString());
+
+      if (!hostSubscription || hostSubscription.status !== "Active" || new Date() > hostSubscription.endDate) {
+        throw new Error(MESSAGES.HOST.ERROR.NO_SUBSCRIPTION);
+      }
     return await EventRepository.addEvent(eventData);
   }
 
@@ -29,6 +33,17 @@ class EventService implements IEventService {
 
   async getAllEvents(): Promise<IEvent[]> {
     return await EventRepository.getAllEvents();
+  }
+  async getEventDetails(eventId: Types.ObjectId): Promise<IEvent | null> {
+    return await EventRepository.getEventById(eventId);
+  }
+  async editEvent(eventId: Types.ObjectId, eventData: Partial<IEvent>): Promise<IEvent | null> {
+    return await EventRepository.editEvent(eventId, eventData);
+  }
+
+  // New service method: Delete event
+  async deleteEvent(eventId: Types.ObjectId): Promise<void> {
+    return await EventRepository.deleteEvent(eventId);
   }
 }
 

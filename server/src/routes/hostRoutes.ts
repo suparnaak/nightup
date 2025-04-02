@@ -20,6 +20,9 @@ router.patch("/profile/update", authMiddleware(["host"]), HostProfileController.
 router.post("/events/add", authMiddleware(["host"]), EventController.addEvent);
 router.get("/events", authMiddleware(["host"]), EventController.getEvents); //list all events host specific
 
+router.put("/events/edit/:eventId", authMiddleware(["host"]), EventController.editEvent);
+router.delete("/events/:eventId", authMiddleware(["host"]), EventController.deleteEvent);
+
 //subscription related
 router
   .route("/subscription")

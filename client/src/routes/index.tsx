@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Public Pages for host, user
 import Home from "../pages/Home";
+import DetailedEventPage from "../pages/DetailedEventPage";
 import Login from "../pages/auth/Login";
 import Signup from "../pages/auth/Signup";
 import OtpVerification from "../pages/auth/OtpVerification";
@@ -21,10 +22,13 @@ import HostEvents from "../pages/host/HostEvents";
 import HostAddEvent from "../pages/host/HostAddEvent";
 import HostSubscriptionPage from "../pages/host/HostSubscriptionPage";
 import HostProfileManagement from "../pages/host/HostProfileManagement";
+import HostDetailedEventPage from "../pages/host/HostDetailedEventPage";
+import HostEditEventPage from "../pages/host/HostEditEventPage";
 
 //user specific
 import Profile from "../pages/user/Profile";
 import ChangePassword from "../pages/user/ChangePassword";
+import WalletPage from "../pages/user/WalletPage";
 
 //admin specific
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -38,6 +42,7 @@ const AppRoutes = () => {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
+        <Route path="/event/:id" element={<DetailedEventPage />} />
         <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
 
         {/* user specific */}
@@ -51,6 +56,8 @@ const AppRoutes = () => {
         <Route path="/host/signup" element={<HostSignup />} />
         <Route path="/host/verify-otp" element={<HostOtpVerification />} />
         <Route path="/host/login" element={<HostLogin />} />
+        <Route path="/host/events/:id" element={<HostDetailedEventPage />} />
+        <Route path="/host/events/edit/:id" element={<HostEditEventPage />} />
 
         {/* admin specific */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -60,6 +67,7 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
           <Route path="/user/profile" element={<Profile />} />
           <Route path="/user/change-password" element={<ChangePassword />} />
+          <Route path="/user/wallet" element={<WalletPage />} />
         </Route>
         {/* host specific */}
         <Route element={<ProtectedRoute allowedRoles={["host"]} />}>

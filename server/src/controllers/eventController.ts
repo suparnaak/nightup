@@ -147,6 +147,109 @@ class EventController implements IEventController {
         .json({ message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR });
     }
   }
+  //get event's details
+  async getEventDetails(req: Request, res: Response): Promise<void> {
+    try {
+      const { eventId } = req.params;
+   
+      if (!eventId || !Types.ObjectId.isValid(eventId)) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({ 
+          message: MESSAGES.COMMON.ERROR.INVALID_EVENT_ID 
+        });
+        return;
+      }
+
+      const event = await EventService.getEventDetails(new Types.ObjectId(eventId));
+
+      if (!event) {
+        res.status(STATUS_CODES.NOT_FOUND).json({ 
+          message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND 
+        });
+        return;
+      }
+
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        message: MESSAGES.COMMON.SUCCESS.EVENT_FETCHED,
+        event,
+      });
+    } catch (error: any) {
+      console.error("Error fetching event details:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
+  async editEvent(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const hostIdStr = req.user?.userId;
+      if (!hostIdStr) {
+        res
+          .status(STATUS_CODES.UNAUTHORIZED)
+          .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
+        return;
+      }
+
+      const { eventId } = req.params;
+      if (!eventId || !Types.ObjectId.isValid(eventId)) {
+        res
+          .status(STATUS_CODES.BAD_REQUEST)
+          .json({ message: MESSAGES.COMMON.ERROR.INVALID_EVENT_ID });
+        return;
+      }
+
+      const updatedEvent = await EventService.editEvent(new Types.ObjectId(eventId), req.body);
+      if (!updatedEvent) {
+        res
+          .status(STATUS_CODES.NOT_FOUND)
+          .json({ message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND });
+        return;
+      }
+
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        message: "Event updated successfully",
+        event: updatedEvent,
+      });
+    } catch (error: any) {
+      console.error("Error updating event:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        message: error.message || MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
+
+  // New method: Delete event
+  async deleteEvent(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const hostIdStr = req.user?.userId;
+      if (!hostIdStr) {
+        res
+          .status(STATUS_CODES.UNAUTHORIZED)
+          .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
+        return;
+      }
+
+      const { eventId } = req.params;
+      if (!eventId || !Types.ObjectId.isValid(eventId)) {
+        res
+          .status(STATUS_CODES.BAD_REQUEST)
+          .json({ message: MESSAGES.COMMON.ERROR.INVALID_EVENT_ID });
+        return;
+      }
+
+      await EventService.deleteEvent(new Types.ObjectId(eventId));
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        message: "Event deleted successfully",
+      });
+    } catch (error: any) {
+      console.error("Error deleting event:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        message: error.message || MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
 }
 
 export default new EventController();

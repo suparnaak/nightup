@@ -114,41 +114,33 @@ const HostEvents: React.FC = () => {
                         alt={event.title}
                         className="w-full h-48 object-cover"
                       />
-                      <div className="p-4 flex flex-col justify-between h-[300px]">
-                        <div>
-                          <h2 className="text-xl font-semibold mb-1">
-                            {event.title}
-                          </h2>
-                          <p className="text-gray-600 text-sm mb-1">
-                            <strong>Date:</strong> {formatDate(event.date)}
-                          </p>
-                          <p className="text-gray-600 text-sm mb-1">
-                            <strong>Time:</strong> {formatTime(event.startTime)}{" "}
-                            - {formatTime(event.endTime)}
-                          </p>
-                          <p className="text-gray-600 text-sm mb-1">
-                            <strong>Venue:</strong> {event.venueName},{" "}
-                            {event.venueCity}, {event.venueState}
-                          </p>
-                          <p className="text-gray-600 text-sm mb-1">
-                            <strong>Artist:</strong> {event.artist}
-                          </p>
-                          <p className="text-gray-600 text-sm mb-1">
-                            <strong>Details:</strong> {event.description}
-                          </p>
-                          <p className="text-gray-700 text-sm mt-2 line-clamp-2">
-                            {event.description}
-                          </p>
-                        </div>
-                        <div className="mt-4">
-                          <Link
-                            to={`/host/events/${event._id}`}
-                            className="text-purple-600 hover:underline font-medium"
-                          >
-                            More Details
-                          </Link>
-                        </div>
-                      </div>
+                      <div className="p-4 flex flex-col h-[300px]">
+  <div>
+    <h2 className="text-xl font-semibold mb-1">
+      {event.title}
+    </h2>
+    <p className="text-gray-600 text-sm mb-1">
+      <strong>Date:</strong> {formatDate(event.date)}
+    </p>
+    <p className="text-gray-600 text-sm mb-1">
+      <strong>Time:</strong> {formatTime(event.startTime)} - {formatTime(event.endTime)}
+    </p>
+    <p className="text-gray-600 text-sm mb-1">
+      <strong>Venue:</strong> {event.venueName}, {event.venueCity}, {event.venueState}
+    </p>
+    <p className="text-gray-600 text-sm mb-1">
+      <strong>Artist:</strong> {event.artist}
+    </p>
+  </div>
+  <div className="mt-2">
+    <Link
+      to={`/host/events/${event._id}`}
+      className="text-purple-600 hover:underline font-medium"
+    >
+      More Details
+    </Link>
+  </div>
+</div>
                     </div>
                   )
                 )}

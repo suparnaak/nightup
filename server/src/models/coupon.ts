@@ -37,20 +37,20 @@ const couponSchema: Schema = new Schema(
 );
 
 // Pre-find middleware to update coupon status when retrieving coupons.
-couponSchema.pre("find", function () {
-  this.updateMany({}, [
-    {
-      $set: {
-        status: {
-          $cond: [
-            { $lt: [new Date(), "$startDate"] },
-            "inactive",
-            { $cond: [{ $gt: [new Date(), "$endDate"] }, "expired", "active"] },
-          ],
-        },
-      },
-    },
-  ]);
+// This will update status before returning documents
+couponSchema.pre("find", async function() {
+  const now = new Date();
+  
+  // Actually update the database records
+  await mongoose.model("Coupon").updateMany(
+    { status: "inactive", startDate: { $lte: now } },
+    { status: "active" }
+  );
+  
+  await mongoose.model("Coupon").updateMany(
+    { status: "active", endDate: { $lte: now } },
+    { status: "expired" }
+  );
 });
 
 export default mongoose.model<ICoupon>("Coupon", couponSchema);

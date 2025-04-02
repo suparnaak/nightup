@@ -28,7 +28,7 @@ const subscriptionSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-subscriptionSchema.post("save", async function (doc: ISubscription) {
+/* subscriptionSchema.post("save", async function (doc: ISubscription) {
   try {
     const now = new Date();
     const newStatus: "Active" | "Expired" = now > doc.endDate ? "Expired" : "Active";
@@ -36,6 +36,6 @@ subscriptionSchema.post("save", async function (doc: ISubscription) {
   } catch (error) {
     console.error("Post-save hook error updating host subStatus:", error);
   }
-});
+}); */
 
 export default mongoose.model<ISubscription>("Subscription", subscriptionSchema);

@@ -1,7 +1,8 @@
 import CouponRepository from "../repositories/couponRepository";
 import { ICoupon } from "../models/coupon";
+import { ICouponService } from "./interfaces/ICouponService";
 
-class CouponService {
+class CouponService implements ICouponService {
   async getCoupons(): Promise<ICoupon[]> {
     return await CouponRepository.getCoupons();
   }

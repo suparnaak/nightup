@@ -18,7 +18,7 @@ export const userRepository = {
     },
   
     // Change the user's password
-    changePassword: async (passwordData: { currentPassword: string; newPassword: string }) => {
+    changePassword: async (passwordData: { currentPassword: string; newPassword: string;confirmPassword: string }) => {
       const response = await axiosClient.post("/change-password", passwordData, {
         withCredentials: true,
       });

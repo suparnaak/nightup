@@ -43,6 +43,9 @@ const AdminCouponPage: React.FC = () => {
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   
   const getToday = (): string => {
     const today = new Date();
@@ -69,7 +72,6 @@ const AdminCouponPage: React.FC = () => {
     setLoading(true);
     try {
       const fetched = await getCoupons();
-      console.log(fetched)
       if (fetched.length === 0) {
         toast("No coupons found", {
           icon: "ℹ️",
@@ -77,6 +79,7 @@ const AdminCouponPage: React.FC = () => {
         });
       }
     } catch (err) {
+      console.error("Error loading coupons:", err);
       toast.error("Failed to load coupons");
     } finally {
       setLoading(false);
@@ -103,8 +106,8 @@ const AdminCouponPage: React.FC = () => {
       couponCode: coupon.couponCode,
       couponAmount: coupon.couponAmount.toString(),
       minimumAmount: coupon.minimumAmount.toString(),
-      startDate: coupon.startDate.slice(0, 10), // format YYYY-MM-DD
-      endDate: coupon.endDate.slice(0, 10),
+      startDate: coupon.startDate.substring(0, 10),
+      endDate: coupon.endDate.substring(0, 10),
       couponQuantity: coupon.couponQuantity.toString(),
     });
     setFormErrors({});
@@ -121,9 +124,7 @@ const AdminCouponPage: React.FC = () => {
 
   const validateForm = (): boolean => {
     const errors: FormErrors = {};
-    // Validate required fields
     if (!editingCoupon && !formData.couponCode.trim()) {
-      // Only validate couponCode on create
       errors.couponCode = "Coupon code is required";
     }
     if (!formData.couponAmount || Number(formData.couponAmount) <= 0) {
@@ -135,7 +136,6 @@ const AdminCouponPage: React.FC = () => {
     if (!formData.couponQuantity || Number(formData.couponQuantity) <= 0) {
       errors.couponQuantity = "Coupon quantity must be greater than 0";
     }
-    // Validate dates
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const startDate = new Date(formData.startDate);
@@ -160,18 +160,18 @@ const AdminCouponPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+    
     const payload = {
-      couponCode: formData.couponCode.trim(), // now included in payload
+      couponCode: formData.couponCode.trim(),
       couponAmount: Number(formData.couponAmount),
       minimumAmount: Number(formData.minimumAmount),
       startDate: formData.startDate,
       endDate: formData.endDate,
       couponQuantity: Number(formData.couponQuantity),
     };
-
+    
     try {
       if (editingCoupon) {
-        // Coupon code is not editable; do not update it
         await updateCoupon(editingCoupon.id, {
           couponAmount: payload.couponAmount,
           minimumAmount: payload.minimumAmount,
@@ -181,13 +181,13 @@ const AdminCouponPage: React.FC = () => {
         });
         toast.success("Coupon updated successfully");
       } else {
-        // For create, coupon code is entered manually by admin
         await createCoupon(payload);
         toast.success("Coupon created successfully");
       }
       setModalVisible(false);
       fetchCoupons();
     } catch (err: any) {
+      console.error("Operation failed:", err);
       toast.error(err.response?.data?.message || "Operation failed");
     }
   };
@@ -211,13 +211,21 @@ const AdminCouponPage: React.FC = () => {
     }
   };
 
+  // Pagination Logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCoupons = coupons.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(coupons.length / itemsPerPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   return (
     <AdminLayout>
       <div className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Coupon Management</h2>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800">Coupon Management</h2>
           <button
-            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300"
             onClick={openModalForAdd}
           >
             Add New Coupon
@@ -226,57 +234,45 @@ const AdminCouponPage: React.FC = () => {
         {loading ? (
           <Spinner />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border">
-              <thead className="bg-gray-50">
+          <div className="overflow-x-auto shadow-lg rounded-lg">
+            <table className="min-w-full bg-white divide-y divide-gray-200">
+              <thead className="bg-purple-600">
                 <tr>
-                  <th className="px-4 py-2 border text-center">Coupon Code</th>
-                  <th className="px-4 py-2 border text-center">Amount</th>
-                  <th className="px-4 py-2 border text-center">Min. Amount</th>
-                  <th className="px-4 py-2 border text-center">Start Date</th>
-                  <th className="px-4 py-2 border text-center">End Date</th>
-                  <th className="px-4 py-2 border text-center">Quantity</th>
-                  <th className="px-4 py-2 border text-center">Used</th>
-                  <th className="px-4 py-2 border text-center">Status</th>
-                  <th className="px-4 py-2 border text-center">Actions</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-white">Coupon Code</th>
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-white">Amount</th>
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-white">Min. Amount</th>
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-white">Start Date</th>
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-white">End Date</th>
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-white">Quantity</th>
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-white">Used</th>
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-white">Status</th>
+                  <th className="px-6 py-3 text-center text-sm font-semibold text-white">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {coupons.map((coupon: Coupon) => (
-                  <tr key={coupon.id}>
-                    <td className="px-4 py-2 border text-center">
-                      {coupon.couponCode}
-                    </td>
-                    <td className="px-4 py-2 border text-center">
-                      ${coupon.couponAmount.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-2 border text-center">
-                      ${coupon.minimumAmount.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-2 border text-center">
+              <tbody className="divide-y divide-gray-100">
+                {currentCoupons.map((coupon: Coupon) => (
+                  <tr key={coupon.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{coupon.couponCode}</td>
+                    <td className="px-6 py-4 text-center text-sm text-gray-800">₹{coupon.couponAmount.toFixed(2)}</td>
+                    <td className="px-6 py-4 text-center text-sm text-gray-800">₹{coupon.minimumAmount.toFixed(2)}</td>
+                    <td className="px-6 py-4 text-center text-sm text-gray-800">
                       {new Date(coupon.startDate).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-2 border text-center">
+                    <td className="px-6 py-4 text-center text-sm text-gray-800">
                       {new Date(coupon.endDate).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-2 border text-center">
-                      {coupon.couponQuantity}
-                    </td>
-                    <td className="px-4 py-2 border text-center">
-                      {coupon.usedCount}
-                    </td>
-                    <td className="px-4 py-2 border text-center capitalize">
-                      {coupon.status}
-                    </td>
-                    <td className="px-4 py-2 border text-center">
+                    <td className="px-6 py-4 text-center text-sm text-gray-800">{coupon.couponQuantity}</td>
+                    <td className="px-6 py-4 text-center text-sm text-gray-800">{coupon.usedCount}</td>
+                    <td className="px-6 py-4 text-center text-sm text-gray-800 capitalize">{coupon.status}</td>
+                    <td className="px-6 py-4 text-center">
                       <button
-                        className="mr-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs"
+                        className="mr-2 px-4 py-1 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition-colors text-xs"
                         onClick={() => openModalForEdit(coupon)}
                       >
                         Edit
                       </button>
                       <button
-                        className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
+                        className="px-4 py-1 bg-red-500 text-white rounded-md shadow hover:bg-red-600 transition-colors text-xs"
                         onClick={() => handleDelete(coupon.id)}
                       >
                         Delete
@@ -286,20 +282,44 @@ const AdminCouponPage: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-6 space-x-2">
+                {Array.from({ length: totalPages }, (_, idx) => (
+                  <button
+                    key={idx + 1}
+                    onClick={() => paginate(idx + 1)}
+                    className={`px-4 py-2 border rounded-md transition-colors ${
+                      currentPage === idx + 1
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Modal for Add/Edit Coupon */}
+        {/* Modern Modal for Add/Edit Coupon */}
         {modalVisible && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded w-full max-w-md">
-              <h3 className="text-xl font-semibold mb-4">
-                {editingCoupon ? "Edit Coupon" : "Add New Coupon"}
-              </h3>
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 sm:p-8 transform transition-all duration-300 scale-100 relative">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-2xl font-bold text-purple-600">
+                  {editingCoupon ? "Edit Coupon" : "Add New Coupon"}
+                </h3>
+                <button
+                  onClick={() => setModalVisible(false)}
+                  className="text-gray-600 hover:text-gray-800 transition-colors text-2xl leading-none"
+                >
+                  &times;
+                </button>
+              </div>
               <form onSubmit={handleSubmit}>
-                {/* For edit, show coupon code read-only; for add, allow input */}
                 <div className="mb-4">
-                  <label className="block text-sm font-medium">
+                  <label className="block text-base font-medium text-gray-700 mb-1">
                     Coupon Code
                   </label>
                   <input
@@ -307,22 +327,19 @@ const AdminCouponPage: React.FC = () => {
                     name="couponCode"
                     value={formData.couponCode}
                     onChange={handleFormChange}
-                    readOnly={!!editingCoupon} 
-                    placeholder=""
-                    className={`mt-1 block w-full px-3 py-2 border rounded-md ${
-                      editingCoupon ? "bg-gray-100" : ""
+                    readOnly={!!editingCoupon}
+                    className={`w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ${
+                      editingCoupon ? "cursor-not-allowed" : ""
                     }`}
+                    placeholder="Enter coupon code"
                     required
                   />
-
                   {formErrors.couponCode && (
-                    <p className="text-xs text-red-600 mt-1">
-                      {formErrors.couponCode}
-                    </p>
+                    <p className="text-sm text-red-600 mt-1">{formErrors.couponCode}</p>
                   )}
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium">
+                  <label className="block text-base font-medium text-gray-700 mb-1">
                     Coupon Amount
                   </label>
                   <input
@@ -330,17 +347,16 @@ const AdminCouponPage: React.FC = () => {
                     name="couponAmount"
                     value={formData.couponAmount}
                     onChange={handleFormChange}
-                    className="mt-1 block w-full px-3 py-2 border rounded-md"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
+                    placeholder="Enter coupon amount"
                     required
                   />
                   {formErrors.couponAmount && (
-                    <p className="text-xs text-red-600 mt-1">
-                      {formErrors.couponAmount}
-                    </p>
+                    <p className="text-sm text-red-600 mt-1">{formErrors.couponAmount}</p>
                   )}
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium">
+                  <label className="block text-base font-medium text-gray-700 mb-1">
                     Minimum Amount
                   </label>
                   <input
@@ -348,17 +364,16 @@ const AdminCouponPage: React.FC = () => {
                     name="minimumAmount"
                     value={formData.minimumAmount}
                     onChange={handleFormChange}
-                    className="mt-1 block w-full px-3 py-2 border rounded-md"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
+                    placeholder="Enter minimum order amount"
                     required
                   />
                   {formErrors.minimumAmount && (
-                    <p className="text-xs text-red-600 mt-1">
-                      {formErrors.minimumAmount}
-                    </p>
+                    <p className="text-sm text-red-600 mt-1">{formErrors.minimumAmount}</p>
                   )}
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium">
+                  <label className="block text-base font-medium text-gray-700 mb-1">
                     Start Date
                   </label>
                   <input
@@ -367,34 +382,32 @@ const AdminCouponPage: React.FC = () => {
                     value={formData.startDate}
                     onChange={handleFormChange}
                     min={getToday()}
-                    className="mt-1 block w-full px-3 py-2 border rounded-md"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
                     required
                   />
                   {formErrors.startDate && (
-                    <p className="text-xs text-red-600 mt-1">
-                      {formErrors.startDate}
-                    </p>
+                    <p className="text-sm text-red-600 mt-1">{formErrors.startDate}</p>
                   )}
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium">End Date</label>
+                  <label className="block text-base font-medium text-gray-700 mb-1">
+                    End Date
+                  </label>
                   <input
                     type="date"
                     name="endDate"
                     value={formData.endDate}
                     onChange={handleFormChange}
                     min={getTomorrow()}
-                    className="mt-1 block w-full px-3 py-2 border rounded-md"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
                     required
                   />
                   {formErrors.endDate && (
-                    <p className="text-xs text-red-600 mt-1">
-                      {formErrors.endDate}
-                    </p>
+                    <p className="text-sm text-red-600 mt-1">{formErrors.endDate}</p>
                   )}
                 </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium">
+                <div className="mb-6">
+                  <label className="block text-base font-medium text-gray-700 mb-1">
                     Coupon Quantity
                   </label>
                   <input
@@ -402,26 +415,25 @@ const AdminCouponPage: React.FC = () => {
                     name="couponQuantity"
                     value={formData.couponQuantity}
                     onChange={handleFormChange}
-                    className="mt-1 block w-full px-3 py-2 border rounded-md"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
+                    placeholder="Enter coupon quantity"
                     required
                   />
                   {formErrors.couponQuantity && (
-                    <p className="text-xs text-red-600 mt-1">
-                      {formErrors.couponQuantity}
-                    </p>
+                    <p className="text-sm text-red-600 mt-1">{formErrors.couponQuantity}</p>
                   )}
                 </div>
                 <div className="flex justify-end">
                   <button
                     type="button"
-                    className="mr-4 px-4 py-2 rounded border border-gray-300 hover:bg-gray-100"
+                    className="mr-4 px-6 py-3 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition duration-150"
                     onClick={() => setModalVisible(false)}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition duration-150"
                   >
                     {editingCoupon ? "Update" : "Create"}
                   </button>

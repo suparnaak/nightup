@@ -37,6 +37,7 @@ class UserProfileService implements IUserProfileService {
     }
   
     const isMatch = await bcrypt.compare(currentPassword, user.password);
+    console.log(isMatch)
     if (!isMatch) {
       throw new Error("Current password is incorrect.");
     }

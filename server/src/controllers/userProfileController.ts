@@ -47,7 +47,7 @@ class UserProfileController implements IUserProfileController {
       }
   
       const { currentPassword, newPassword, confirmPassword } = req.body;
-  
+  console.log(currentPassword)
       const updatedUser = await UserProfileService.changePassword(userId, { currentPassword, newPassword, confirmPassword });
   
       res.status(STATUS_CODES.SUCCESS).json({

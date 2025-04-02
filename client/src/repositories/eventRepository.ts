@@ -15,6 +15,21 @@ export const eventRepository = {
     const response = await axiosUserClient.get("/events");
     return response.data.events;
   },
+  fetchEventDetails: async (id: string) => {
+    //console.log(id)
+    const response = await axiosUserClient.get(`/event/${id}`);
+    return response.data.event;
+  },
+  editEvent: async (id: string, eventData: any) => {
+    const response = await axiosHostClient.put(`/events/edit/${id}`, eventData);
+    return response.data;
+  },
+
+  // New method: Delete event
+  deleteEvent: async (id: string) => {
+    const response = await axiosHostClient.delete(`/events/${id}`);
+    return response.data;
+  },
 };
 
 export default eventRepository;

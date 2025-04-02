@@ -39,6 +39,9 @@ interface EventStore {
   addEvent: (eventData: Omit<Event, '_id' | 'createdAt' | 'updatedAt' | '__v'>) => Promise<void>;
   fetchEvents: () => Promise<void>;
   fetchAllEvents: () => Promise<void>;
+  fetchEventDetails: (id: string) => Promise<Event | null>;
+  editEvent: (id: string, eventData: Partial<Event>) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
 }
 
 export const useEventStore = create<EventStore>((set, get) => ({
@@ -88,6 +91,60 @@ export const useEventStore = create<EventStore>((set, get) => ({
         isLoading: false,
         error: error.response?.data?.message || 'Failed to fetch all events',
       });
+    }
+  },
+  fetchEventDetails: async (id: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      //console.log(id)
+      const event = await eventRepository.fetchEventDetails(id);
+      set({ isLoading: false });
+      return event;
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || 'Failed to fetch event details',
+      });
+      return null;
+    }
+  },
+  // New method: Edit event
+  editEvent: async (id: string, eventData: Partial<Event>) => {
+    try {
+      set({ isLoading: true, error: null });
+      const updatedEvent = await eventRepository.editEvent(id, eventData);
+      // Update local state: Replace the edited event in the events array
+      const updatedEvents = get().events.map((ev) =>
+        ev._id === id ? updatedEvent : ev
+      );
+      set({ events: updatedEvents, isLoading: false });
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error:
+          error.response?.data?.message ||
+          "Event update failed. Please try again.",
+      });
+      throw error;
+    }
+  },
+
+  // New method: Delete event
+  deleteEvent: async (id: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      await eventRepository.deleteEvent(id);
+      // Remove the deleted event from the state
+      const updatedEvents = get().events.filter((ev) => ev._id !== id);
+      set({ events: updatedEvents, isLoading: false });
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error:
+          error.response?.data?.message ||
+          "Failed to delete event. Please try again.",
+      });
+      throw error;
     }
   },
 }));

@@ -48,15 +48,18 @@ export const useCouponStore = create<CouponState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await adminRepository.getCoupons();
-      const coupons = data.coupons.map((coupon: any) => ({
-        id: coupon._id.toString(),
-        ...coupon,
-      }));
-      set({ coupons, isLoading: false });
-      return coupons;
+      console.log("Raw API response:", data);
+      
+      if (data.success && Array.isArray(data.coupons)) {
+        set({ coupons: data.coupons, isLoading: false });
+        return data.coupons;
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (error: any) {
+      console.error("getCoupons error details:", error);
       set({
-        error: error.response?.data?.message || "Failed to load coupons",
+        error: error.message || "Failed to load coupons",
         isLoading: false,
       });
       throw error;
@@ -64,22 +67,29 @@ export const useCouponStore = create<CouponState>((set, get) => ({
   },
 
   createCoupon: async (payload: {
+    couponCode: string;
     couponAmount: number;
     minimumAmount: number;
     startDate: string;
     endDate: string;
     couponQuantity: number;
-    couponCode: string;
   }) => {
     set({ isLoading: true, error: null });
     try {
       const response = await adminRepository.createCoupon(payload);
-      await get().getCoupons();
-      set({ isLoading: false });
-      return response;
+      console.log("Create coupon response:", response);
+      
+      if (response.success) {
+        await get().getCoupons(); 
+        set({ isLoading: false });
+        return response;
+      } else {
+        throw new Error(response.message || "Failed to create coupon");
+      }
     } catch (error: any) {
+      console.error("Create coupon error:", error);
       set({
-        error: error.response?.data?.message || "Failed to create coupon",
+        error: error.message || "Failed to create coupon",
         isLoading: false,
       });
       throw error;

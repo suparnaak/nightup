@@ -3,6 +3,7 @@ import passport from "passport";
 import UserController from "../controllers/userController";
 import EventController from "../controllers/eventController";
 import UserProfileController from "../controllers/userProfileController"
+import WalletController from "../controllers/walletController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
 const router: Router = Router();
@@ -27,11 +28,14 @@ router.get("/auth/google/callback",
 
 //user profile
 router.patch("/profile/update", authMiddleware(["user"]), UserProfileController.updateProfile);
-
 router.post("/change-password", authMiddleware(["user"]), UserProfileController.changePassword);
-
+//wallet end points
+router.get("/wallet", authMiddleware(["user"]), WalletController.getWallet);
+router.post("/wallet/create-order", authMiddleware(["user"]), WalletController.createOrder);
+router.post("/wallet/verify-payment", authMiddleware(["user"]), WalletController.verifyPayment);
 // Public events endpoint
 router.get("/events", EventController.getAllEvents);
+router.get("/event/:eventId", EventController.getEventDetails);
 
 
 export default router;

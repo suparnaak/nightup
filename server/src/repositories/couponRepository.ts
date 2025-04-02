@@ -1,6 +1,7 @@
 import Coupon, { ICoupon } from "../models/coupon";
+import { ICouponRepository } from "./interfaces/ICouponRepository";
 
-class CouponRepository {
+class CouponRepository implements ICouponRepository {
   async getCoupons(): Promise<ICoupon[]> {
     return await Coupon.find().sort({ createdAt: -1 });
   }

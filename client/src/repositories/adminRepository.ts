@@ -1,4 +1,3 @@
-// src/repositories/adminRepository.ts
 import axiosAdminClient from "../api/axiosAdminClient";
 
 export const adminRepository = {
@@ -84,7 +83,7 @@ export const adminRepository = {
   // coupon management
   getCoupons: async () => {
     const response = await axiosAdminClient.get("/coupons");
-    return response.data;
+    return response.data; // This should be the { success, coupons } object
   },
   createCoupon: async (payload: {
     couponCode: string;

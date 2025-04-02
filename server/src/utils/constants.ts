@@ -12,7 +12,8 @@ export const MESSAGES = {
       PASSWORD_RESET:"Your password reset successfully, you can Login.",
       LOGOUT:"Logged out Successfully",
       PROFILE_UPDATED:"Your profile is updated successfully",
-      PASSWORD_CHANGED:"Password changed successfully"
+      PASSWORD_CHANGED:"Password changed successfully",
+      EVENT_FETCHED: "Event details fetched successfully"
     },
     ERROR: {
       INVALID_NAME: "Invalid name.",
@@ -33,7 +34,9 @@ export const MESSAGES = {
       ALREADY_VERIFIED: "Account is already verified.",
       NO_OTP_FOUND: "No OTP found. Please request a new one.",
       BLOCKED: "Your account is blocked",
-      JWT_SECRET_MISSING:"JWT token is not configured"
+      JWT_SECRET_MISSING:"JWT token is not configured",
+      NO_EVENT_FOUND: "No Event found",
+      INVALID_EVENT_ID: "No Event Id availabale"
       
     },
   },
@@ -55,6 +58,9 @@ export const MESSAGES = {
     ERROR: {
       
       HOSTTYPE_REQUIRED: "Host type is required.",
+      HOST_NOT_VERIFIED: "You are not allowed to add an event. Your account status does not permit this action.",
+      DOCUMENT_NOT_VERIFIED: "You are not allowed to add an event. Your document is not verified by admin.",
+      NO_SUBSCRIPTION: "You are not allowed to add an event. You don't have an active subscription.",
       
     },
   },

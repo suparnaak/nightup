@@ -18,7 +18,7 @@ interface UserProfileState {
   isLoading: boolean;
   error: string | null;
   updateProfile: (profileData: { name: string; phone: string }) => Promise<UserProfile>;
-  changePassword: (passwordData: { currentPassword: string; newPassword: string }) => Promise<string>;
+  changePassword: (passwordData: { currentPassword: string; newPassword: string;confirmPassword: string }) => Promise<string>;
   clearProfile: () => void;
 }
 

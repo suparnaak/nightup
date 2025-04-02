@@ -35,7 +35,7 @@ const AdminSidebar: React.FC = () => {
         >
           Hosts
         </NavLink>
-        <NavLink
+        {/* <NavLink
           to="/admin/events"
           className={({ isActive }) =>
             isActive
@@ -44,8 +44,8 @@ const AdminSidebar: React.FC = () => {
           }
         >
           Events
-        </NavLink>
-        <NavLink
+        </NavLink> */}
+       {/*  <NavLink
           to="/admin/bookings"
           className={({ isActive }) =>
             isActive
@@ -54,7 +54,7 @@ const AdminSidebar: React.FC = () => {
           }
         >
           Bookings
-        </NavLink>
+        </NavLink> */}
         <NavLink
           to="/admin/subscriptions"
           className={({ isActive }) =>

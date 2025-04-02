@@ -5,7 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useHostSubscriptionStore } from "../../store/hostSubscriptionStore";
 import { useRazorpay } from "../../hooks/useRazorpay";
-
+import { FaCheckCircle, FaTimesCircle, FaClock } from "react-icons/fa"; // Import icons
+import { Crown, Clock, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
 const HostSubscriptionPage: React.FC = () => {
   const { 
     subscription, 
@@ -48,6 +49,9 @@ const HostSubscriptionPage: React.FC = () => {
       showCancelButton: true,
       confirmButtonText: "Yes, Subscribe",
       cancelButtonText: "Cancel",
+      background: '#ffffff',
+      confirmButtonColor: '#6b5b9a', // Darker purple for confirmation
+      cancelButtonColor: '#d1d5db', // Gray for cancel
     });
     
     if (!result.isConfirmed) return;
@@ -93,7 +97,7 @@ const HostSubscriptionPage: React.FC = () => {
           planName: plan.name,
         },
         theme: {
-          color: "#3399cc",
+          color: "#6b5b9a", // Main purple color for Razorpay
         },
         modal: {
           ondismiss: function () {
@@ -109,105 +113,153 @@ const HostSubscriptionPage: React.FC = () => {
     }
   };
 
+  const PlanCard = ({ plan }: { plan: any }) => (
+    <div className="bg-white rounded-xl shadow-lg p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl border border-purple-200">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-bold text-purple-900">{plan.name}</h3>
+        <Crown className="w-6 h-6 text-purple-600" />
+      </div>
+      <div className="space-y-3">
+        <div className="flex items-center text-gray-600">
+          <Clock className="w-5 h-5 mr-2" />
+          <span>Duration: {plan.duration}</span>
+        </div>
+        <div className="flex items-center text-gray-600">
+          <span className="text-2xl font-bold text-purple-700">₹{plan.price.toFixed(2)}</span>
+        </div>
+      </div>
+      <button
+        onClick={() => handleSubscribe(plan)}
+        className="mt-4 w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+      >
+        Subscribe Now
+      </button>
+    </div>
+  );
+
   const renderSubscriptionInfo = () => {
-    if (subLoading) return <p>Loading your subscription details...</p>;
-    if (subError) return <p className="text-red-600">{subError}</p>;
-
-    // No active subscription: show available plans to subscribe
-    if (!subscription) {
+    if (subLoading) {
       return (
-        <div className="p-4 bg-fuchsia-100 text-yellow-800 rounded">
-          <p>You currently have no subscription plan. Please select one below to subscribe.</p>
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
+        </div>
+      );
+    }
+    
+    if (subError) {
+      return (
+        <div className="p-6 bg-red-50 rounded-xl border border-red-200">
+          <div className="flex items-center text-red-700">
+            <AlertCircle className="w-6 h-6 mr-2" />
+            <p>{subError}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!subscription || subscription.status === "Expired") {
+      const message = !subscription 
+        ? "You currently have no subscription plan. Choose from our premium options below:"
+        : "Your subscription has expired. Renew now to continue enjoying our services:";
+
+      return (
+        <div className="space-y-6">
+          <div className="p-6 bg-gradient-to-r from-purple-50 to-fuchsia-50 rounded-xl border border-purple-200">
+            <p className="text-purple-900">{message}</p>
+          </div>
+          
           {loadingPlans ? (
-            <p>Loading available plans...</p>
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
+            </div>
           ) : availablePlans.length > 0 ? (
-            <div className="mt-4 space-y-4">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {availablePlans.map((plan) => (
-                <div key={plan.id} className="p-3 border rounded">
-                  <p className="font-semibold">{plan.name}</p>
-                  <p>
-                    Duration: {plan.duration} | Price: ₹{plan.price.toFixed(2)}
-                  </p>
-                  <button
-                    onClick={() => handleSubscribe(plan)}
-                    className="mt-2 inline-block px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-                  >
-                    Subscribe
-                  </button>
-                </div>
+                <PlanCard key={plan.id} plan={plan} />
               ))}
             </div>
           ) : (
-            <p>No subscription plans available at the moment.</p>
+            <div className="text-center p-8 text-gray-500">
+              No subscription plans available at the moment.
+            </div>
           )}
         </div>
       );
     }
 
-    // If subscription exists but expired, show options to subscribe to available plans again
-    if (subscription.status === "Expired") {
-      return (
-        <div className="p-4 bg-red-100 text-red-800 rounded">
-          <p>Your subscription has expired. Please select a new plan below to subscribe.</p>
-          {loadingPlans ? (
-            <p>Loading available plans...</p>
-          ) : availablePlans.length > 0 ? (
-            <div className="mt-4 space-y-4">
-              {availablePlans.map((plan) => (
-                <div key={plan.id} className="p-3 border rounded">
-                  <p className="font-semibold">{plan.name}</p>
-                  <p>
-                    Duration: {plan.duration} | Price: ₹{plan.price.toFixed(2)}
-                  </p>
-                  <button
-                    onClick={() => handleSubscribe(plan)}
-                    className="mt-2 inline-block px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-                  >
-                    Subscribe
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p>No subscription plans available at the moment.</p>
-          )}
-        </div>
-      );
-    }
-
-    // Active subscription: display details
     if (subscription.status === "Active") {
       return (
-        <div className="p-4 bg-green-100 text-green-800 rounded">
-          <h3 className="font-semibold text-lg">Your Subscription is Active</h3>
-          <p>
-            <strong>Plan:</strong> {subscription.subscriptionPlan.name}
-          </p>
-          <p>
-            <strong>Duration:</strong> {subscription.subscriptionPlan.duration}
-          </p>
-          <p>
-            <strong>Price:</strong> ₹{subscription.subscriptionPlan.price.toFixed(2)}
-          </p>
-          <p>
-            <strong>Valid From:</strong>{" "}
-            {new Date(subscription.startDate).toLocaleDateString()}
-          </p>
-          <p>
-            <strong>Expires On:</strong>{" "}
-            {new Date(subscription.endDate).toLocaleDateString()}
-          </p>
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-8 border border-purple-200">
+          <div className="flex items-center mb-6">
+            <CheckCircle className="w-8 h-8 text-purple-600 mr-3" />
+            <h3 className="text-2xl font-bold text-purple-900">Active Subscription</h3>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <Crown className="w-5 h-5 text-purple-600 mr-2" />
+                <div>
+                  <p className="text-sm text-gray-600">Current Plan</p>
+                  <p className="font-semibold text-gray-900">{subscription.subscriptionPlan.name}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <Clock className="w-5 h-5 text-purple-600 mr-2" />
+                <div>
+                  <p className="text-sm text-gray-600">Duration</p>
+                  <p className="font-semibold text-gray-900">{subscription.subscriptionPlan.duration}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <Calendar className="w-5 h-5 text-purple-600 mr-2" />
+                <div>
+                  <p className="text-sm text-gray-600">Valid From</p>
+                  <p className="font-semibold text-gray-900">
+                    {new Date(subscription.startDate).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <Calendar className="w-5 h-5 text-purple-600 mr-2" />
+                <div>
+                  <p className="text-sm text-gray-600">Expires On</p>
+                  <p className="font-semibold text-gray-900">
+                    {new Date(subscription.endDate).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-6 p-4 bg-white bg-opacity-50 rounded-lg">
+            <p className="text-purple-900 font-medium">
+              Amount Paid: ₹{subscription.subscriptionPlan.price.toFixed(2)}
+            </p>
+          </div>
         </div>
       );
     }
 
-    return <p>Unable to determine your subscription status.</p>;
+    return (
+      <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
+        <p className="text-gray-600">Unable to determine your subscription status.</p>
+      </div>
+    );
   };
 
   return (
     <HostLayout>
-      <div className="p-6 max-w-3xl mx-auto">
-        <h2 className="text-2xl font-bold mb-4">My Subscription</h2>
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-purple-900 mb-2">My Subscription</h2>
+          <p className="text-gray-600">Manage your subscription and billing details</p>
+        </div>
         {renderSubscriptionInfo()}
       </div>
     </HostLayout>
