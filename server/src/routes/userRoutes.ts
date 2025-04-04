@@ -4,6 +4,7 @@ import UserController from "../controllers/userController";
 import EventController from "../controllers/eventController";
 import UserProfileController from "../controllers/userProfileController"
 import WalletController from "../controllers/walletController";
+import SavedEventController from "../controllers/savedEventController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
 const router: Router = Router();
@@ -36,6 +37,13 @@ router.post("/wallet/verify-payment", authMiddleware(["user"]), WalletController
 // Public events endpoint
 router.get("/events", EventController.getAllEvents);
 router.get("/event/:eventId", EventController.getEventDetails);
+
+//saved events
+router.get('/saved-events', authMiddleware(["user"]), SavedEventController.getSavedEvents);
+router.post('/saved-events', authMiddleware(["user"]), SavedEventController.saveEvent);
+router.delete('/saved-events/:eventId', authMiddleware(["user"]), SavedEventController.removeSavedEvent);
+
+
 
 
 export default router;
