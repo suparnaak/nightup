@@ -4,7 +4,13 @@ import { IEventController } from "./interfaces/IEventController";
 import EventService from "../services/eventService";
 import { IEvent } from "../services/interfaces/IEventService";
 import { MESSAGES, STATUS_CODES } from "../utils/constants";
+import NodeGeocoder, { Options as GeocoderOptions } from "node-geocoder";
 
+const geocoderOptions: GeocoderOptions = {
+  provider: "openstreetmap", // Type-safe now
+};
+
+const geocoder = NodeGeocoder(geocoderOptions);
 
 interface AuthRequest extends Request {
   user?: {
@@ -87,7 +93,18 @@ class EventController implements IEventController {
         additionalDetails,
         isBlocked: isBlocked || false,
       };
-
+      const fullAddress = `${venueZip}, ${venueCity}, ${venueState}`;
+      const geoRes = await geocoder.geocode(fullAddress);
+      if (geoRes && geoRes.length > 0) {
+        const { latitude, longitude } = geoRes[0];
+        eventData.location = {
+          type: "Point",
+          coordinates: [Number(longitude), Number(latitude)],
+        };
+      } else {
+        console.error("Geocoding failed for address:", fullAddress);
+        // Optionally, handle the failure case (e.g., send an error response or set default coordinates)
+      }
       const event = await EventService.addEvent(eventData);
 
       res.status(STATUS_CODES.CREATED).json({

@@ -24,6 +24,10 @@ export interface IEvent {
   eventImage: string;
   additionalDetails?: string;
   isBlocked: boolean;
+  location?: {
+    type: "Point";
+    coordinates: [number, number]; // [longitude, latitude]
+  };
 }
 
 export interface IEventService {

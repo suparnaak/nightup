@@ -3,18 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import ProfileDropdown from "../user/ProfileDropdown";
 import HostProfileDropdown from "../host/HostProfileDropdown";
+import { MapPin } from "lucide-react";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuthStore();
   const userRole = user?.role;
-console.log(user)
+  console.log(user);
   const handleLogout = () => {
     logout();
     if (userRole === "host") {
       navigate("/host/login");
-    } 
-    else {
+    } else {
       navigate("/login");
     }
   };
@@ -40,12 +40,15 @@ console.log(user)
         <div className="flex items-center space-x-4">
           {/* Show city selector ONLY if not host */}
           {!isHost && (
-            <select className="bg-gray-300 text-black border border-purple-500 rounded px-3 py-1 text-sm">
-              <option>Select City</option>
-              <option>Bangalore</option>
-              <option>Mumbai</option>
-              <option>Delhi</option>
-            </select>
+            <div className="relative inline-block">
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white" />
+              <select className="bg-gray-900 text-white pl-10 pr-3 py-1 border border-gray-500 rounded text-sm focus:border-gray-500 focus:ring-0">
+                <option>Select City</option>
+                <option>Bangalore</option>
+                <option>Mumbai</option>
+                <option>Delhi</option>
+              </select>
+            </div>
           )}
 
           {!isAuthenticated && (

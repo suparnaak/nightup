@@ -27,6 +27,10 @@ interface Event {
   eventImage: string;
   additionalDetails: string;
   isBlocked: boolean;
+  location?: {
+    type: "Point";
+    coordinates: [number, number]; // [longitude, latitude]
+  };
   createdAt: string;
   updatedAt: string;
   __v: number;

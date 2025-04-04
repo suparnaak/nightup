@@ -4,6 +4,7 @@ import UserLayout from "../layouts/UserLayout";
 import Button from "../components/common/Button";
 import Spinner from "../components/common/Spinner";
 import toast from "react-hot-toast";
+import MapView from "../components/common/MapView";
 import { useEventStore } from "../store/eventStore";
 import { useAuthStore } from "../store/authStore"; 
 import { useUserStore } from "../store/userStore";
@@ -444,6 +445,20 @@ const DetailedEventPage: React.FC = () => {
                 </div>
                 <div className="p-6">{renderTabContent()}</div>
               </div>
+              {/* Display the Map */}
+{event.location && (
+                <div className="mt-6">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-purple-600" />
+                    Event Location
+                  </h2>
+                  <MapView 
+                    lat={event.location.coordinates[1]} 
+                    lng={event.location.coordinates[0]} 
+                    locationName={event.venueName}  // or another descriptor if needed
+                  />
+                </div>
+              )}
             </div>
 
             {/* Right Side: Booking Form */}
