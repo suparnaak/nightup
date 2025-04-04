@@ -24,27 +24,40 @@ class EventRepository implements IEventRepository {
   //list events - not host specific
   async getAllEvents(): Promise<IEvent[]> {
     try {
-      // Get current date with time set to beginning of day
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
-      // Find events that are not blocked and whose date is today or in the future
       const events = await Event.find({ 
         isBlocked: false,
         $or: [
-          { date: { $gt: today } }, // Future dates
+          { date: { $gt: today } }, 
           { 
-            date: today, // Today's date
-            endTime: { $gte: now } // End time hasn't passed yet
+            date: today, 
+            endTime: { $gte: now } 
           }
         ]
       })
-        .sort({ date: 1, startTime: 1 }) // Sort by date then by start time
+        .sort({ date: 1, startTime: 1 }) 
         .lean();
   
       return events as IEvent[];
     } catch (error) {
       console.error('Error fetching all events:', error);
+      throw error;
+    }
+  }
+  async getEventsByCity(city: string): Promise<IEvent[]> {
+    try {
+      // Filter events where venueCity matches the provided city (case-insensitive)
+      const events = await Event.find({
+        isBlocked: false,
+        venueCity: { $regex: new RegExp(city, "i") }
+      })
+      .sort({ date: 1, startTime: 1 })
+      .lean();
+      return events as IEvent[];
+    } catch (error) {
+      console.error("Error fetching events by city:", error);
       throw error;
     }
   }
@@ -59,7 +72,6 @@ class EventRepository implements IEventRepository {
       throw error;
     }
   }
-   // New method: Edit event
    async editEvent(eventId: Types.ObjectId, eventData: Partial<IEvent>): Promise<IEvent | null> {
     try {
       const updatedEvent = await Event.findByIdAndUpdate(eventId, eventData, { new: true });
@@ -70,7 +82,7 @@ class EventRepository implements IEventRepository {
     }
   }
 
-  // New method: Delete event
+  // Delete event
   async deleteEvent(eventId: Types.ObjectId): Promise<void> {
     try {
       await Event.findByIdAndDelete(eventId);

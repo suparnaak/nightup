@@ -7,7 +7,7 @@ import { MESSAGES, STATUS_CODES } from "../utils/constants";
 import NodeGeocoder, { Options as GeocoderOptions } from "node-geocoder";
 
 const geocoderOptions: GeocoderOptions = {
-  provider: "openstreetmap", // Type-safe now
+  provider: "openstreetmap", 
 };
 
 const geocoder = NodeGeocoder(geocoderOptions);
@@ -103,7 +103,7 @@ class EventController implements IEventController {
         };
       } else {
         console.error("Geocoding failed for address:", fullAddress);
-        // Optionally, handle the failure case (e.g., send an error response or set default coordinates)
+        
       }
       const event = await EventService.addEvent(eventData);
 
@@ -150,7 +150,15 @@ class EventController implements IEventController {
   // get all events not host specific
   async getAllEvents(req: Request, res: Response): Promise<void> {
     try {
-      const events = await EventService.getAllEvents();
+      const { city } = req.query;
+      let events: IEvent[];
+      if (city && typeof city === "string" && city.trim() !== "") {
+        events = await EventService.getEventsByCity(city);
+        console.log(events)
+      } else {
+        events = await EventService.getAllEvents();
+        
+      }
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -159,9 +167,9 @@ class EventController implements IEventController {
       });
     } catch (error: any) {
       console.error("Error fetching events:", error);
-      res
-        .status(STATUS_CODES.SERVER_ERROR)
-        .json({ message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR });
+      res.status(STATUS_CODES.SERVER_ERROR).json({ 
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR 
+      });
     }
   }
   //get event's details

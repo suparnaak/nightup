@@ -34,6 +34,9 @@ class EventService implements IEventService {
   async getAllEvents(): Promise<IEvent[]> {
     return await EventRepository.getAllEvents();
   }
+  async getEventsByCity(city: string): Promise<IEvent[]> {
+    return await EventRepository.getEventsByCity(city);
+  }
   async getEventDetails(eventId: Types.ObjectId): Promise<IEvent | null> {
     return await EventRepository.getEventById(eventId);
   }
@@ -41,7 +44,6 @@ class EventService implements IEventService {
     return await EventRepository.editEvent(eventId, eventData);
   }
 
-  // New service method: Delete event
   async deleteEvent(eventId: Types.ObjectId): Promise<void> {
     return await EventRepository.deleteEvent(eventId);
   }

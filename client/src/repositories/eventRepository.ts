@@ -20,6 +20,11 @@ export const eventRepository = {
     const response = await axiosUserClient.get(`/event/${id}`);
     return response.data.event;
   },
+  fetchEventsByCity: async (city: string) => {
+    const response = await axiosUserClient.get(`/events?city=${encodeURIComponent(city)}`);
+    return response.data.events;
+  },
+  
   editEvent: async (id: string, eventData: any) => {
     const response = await axiosHostClient.put(`/events/edit/${id}`, eventData);
     return response.data;

@@ -4,10 +4,13 @@ import { useAuthStore } from "../../store/authStore";
 import ProfileDropdown from "../user/ProfileDropdown";
 import HostProfileDropdown from "../host/HostProfileDropdown";
 import { MapPin } from "lucide-react";
+import CityAutocomplete from "./CityAutocomplete";
+import { useEventStore } from "../../store/eventStore"
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuthStore();
+  const { fetchEventsByCity } = useEventStore();
   const userRole = user?.role;
   console.log(user);
   const handleLogout = () => {
@@ -20,6 +23,20 @@ const Header: React.FC = () => {
   };
 
   const isHost = userRole === "host";
+
+  const handleCitySelect = (city: { id: string; name: string }) => {
+    console.log("Selected city:", city);
+    const cityName = city.name.split(",")[0].trim();
+    console.log(cityName)
+    fetchEventsByCity(cityName);
+    navigate("/")
+    // You might want to store the selected city in a store or context
+    // For example:
+    // cityStore.setSelectedCity(city);
+    
+    // Optional: Fetch events for the selected city
+    // fetchEventsByCity(city.id);
+  };
 
   return (
     <header className="bg-black text-white py-4 px-6">
@@ -40,15 +57,7 @@ const Header: React.FC = () => {
         <div className="flex items-center space-x-4">
           {/* Show city selector ONLY if not host */}
           {!isHost && (
-            <div className="relative inline-block">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white" />
-              <select className="bg-gray-900 text-white pl-10 pr-3 py-1 border border-gray-500 rounded text-sm focus:border-gray-500 focus:ring-0">
-                <option>Select City</option>
-                <option>Bangalore</option>
-                <option>Mumbai</option>
-                <option>Delhi</option>
-              </select>
-            </div>
+            <CityAutocomplete onSelect={handleCitySelect} />
           )}
 
           {!isAuthenticated && (

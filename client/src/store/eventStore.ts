@@ -46,6 +46,7 @@ interface EventStore {
   fetchEventDetails: (id: string) => Promise<Event | null>;
   editEvent: (id: string, eventData: Partial<Event>) => Promise<void>;
   deleteEvent: (id: string) => Promise<void>;
+  fetchEventsByCity: (city: string) => Promise<void>;
 }
 
 export const useEventStore = create<EventStore>((set, get) => ({
@@ -94,6 +95,18 @@ export const useEventStore = create<EventStore>((set, get) => ({
       set({
         isLoading: false,
         error: error.response?.data?.message || 'Failed to fetch all events',
+      });
+    }
+  },
+  fetchEventsByCity: async (city: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const events = await eventRepository.fetchEventsByCity(city);
+      set({ events, isLoading: false });
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || 'Failed to fetch events by city',
       });
     }
   },
