@@ -178,6 +178,34 @@ const DetailedEventPage: React.FC = () => {
       toast.error("Failed to update your wishlist");
     }
   };
+  //share event 
+  const handleShareEvent = async () => {
+    if (!event) return;
+  
+    const shareData = {
+      title: event.title,
+      text: event.description,
+      url: window.location.href,
+    };
+  
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        //toast.success("Event shared successfully!");
+      } catch (error) {
+        console.error("Error sharing event:", error);
+        toast.error("Error sharing the event.");
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("Link copied to clipboard!");
+      } catch (error) {
+        console.error("Error copying link:", error);
+        toast.error("Failed to copy the link.");
+      }
+    }
+  };
   
   
   if (loading)
@@ -303,7 +331,7 @@ const DetailedEventPage: React.FC = () => {
                             }`}
                           />
                         </button>
-                        <button className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-all">
+                        <button onClick={handleShareEvent} className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-all">
                           <Share2 className="h-5 w-5 text-white" />
                         </button>
                       </div>
