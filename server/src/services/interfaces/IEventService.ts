@@ -26,7 +26,7 @@ export interface IEvent {
   isBlocked: boolean;
   location?: {
     type: "Point";
-    coordinates: [number, number]; // [longitude, latitude]
+    coordinates: [number, number]; 
   };
 }
 
@@ -34,5 +34,9 @@ export interface IEventService {
   addEvent(eventData: IEvent): Promise<IEvent>;
   getEventsByHostId(hostId: Types.ObjectId): Promise<IEvent[]>;
   getAllEvents(): Promise<IEvent[]>;
+  getEventsByCity(city: string): Promise<IEvent[]>
+  getEventDetails(eventId: Types.ObjectId): Promise<IEvent | null>
+  editEvent(eventId: Types.ObjectId, eventData: Partial<IEvent>): Promise<IEvent | null>
+  deleteEvent(eventId: Types.ObjectId): Promise<void>
 
 }

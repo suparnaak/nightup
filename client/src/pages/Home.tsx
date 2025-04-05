@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import UserLayout from "../layouts/UserLayout";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
@@ -10,37 +10,51 @@ const Home: React.FC = () => {
   const events = useEventStore((state) => state.events);
   const isLoading = useEventStore((state) => state.isLoading);
   const error = useEventStore((state) => state.error);
+  const selectedCity = useEventStore((state) => state.selectedCity);
+  const fetchEventsByCity = useEventStore((state) => state.fetchEventsByCity);
 
   const navigate = useNavigate();
 
-  // State to toggle between showing few events and all events
   const [showAll, setShowAll] = useState<boolean>(false);
-  // State to control the sidebar visibility
-  const [showSidebar, setShowSidebar] = useState<boolean>(false);
   
-  // New states for search and filters
+  const [showSidebar, setShowSidebar] = useState<boolean>(false);
+
+  
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All Categories");
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [filteredEvents, setFilteredEvents] = useState(events);
+  
+  
+  const [initialFetchDone, setInitialFetchDone] = useState<boolean>(false);
 
+  // based on city
   useEffect(() => {
-    // Prevent going back if needed
-    window.history.pushState(null, "", window.location.href);
-    window.onpopstate = function () {
-      window.history.pushState(null, "", window.location.href);
-    };
-  }, []);
+    if (!initialFetchDone) {
+      if (selectedCity) {
+        fetchEventsByCity(selectedCity);
+      } else {
+        fetchEvents();
+      }
+      setInitialFetchDone(true);
+    }
+  }, [fetchEvents, fetchEventsByCity, selectedCity, initialFetchDone]);
 
+  //when city changes
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    if (initialFetchDone) {
+      if (selectedCity) {
+        fetchEventsByCity(selectedCity);
+      } else {
+        fetchEvents();
+      }
+    }
+  }, [selectedCity, initialFetchDone, fetchEventsByCity, fetchEvents]);
 
-  // Apply filters and search whenever dependencies change
-  useEffect(() => {
+  // useMemo for state updates
+  const filteredEvents = useMemo(() => {
     let result = [...events];
 
-    // Apply search filter
+   
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -52,14 +66,14 @@ const Home: React.FC = () => {
       );
     }
 
-    // Apply category filter
+    
     if (selectedCategory && selectedCategory !== "All Categories") {
       result = result.filter(
         event => event.category && event.category === selectedCategory
       );
     }
 
-    // Apply date filter
+    
     if (selectedDate) {
       const filterDate = new Date(selectedDate).toLocaleDateString();
       result = result.filter(event => {
@@ -68,34 +82,34 @@ const Home: React.FC = () => {
       });
     }
 
-    setFilteredEvents(result);
+    return result;
   }, [events, searchQuery, selectedCategory, selectedDate]);
 
-  // Reset all filters
+  
   const resetFilters = () => {
     setSearchQuery("");
     setSelectedCategory("All Categories");
     setSelectedDate("");
   };
 
-  // Helper function to check if an event is scheduled for today.
+ 
   const isEventToday = (eventDate: string): boolean => {
     const eventDay = new Date(eventDate).toLocaleDateString();
     const today = new Date().toLocaleDateString();
     return eventDay === today;
   };
 
-  // Get unique categories from events
+  
   const categories = ["All Categories", ...new Set(events.map(event => event.category).filter(Boolean))];
 
-  // Determine events to display based on showAll state and filters
+  
   const displayedEvents = showAll ? filteredEvents : filteredEvents.slice(0, 6);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // The actual filtering is handled in the useEffect
+   
   };
-
+  
   return (
     <UserLayout>
       {/* ===== BANNER SECTION ===== */}
@@ -114,7 +128,7 @@ const Home: React.FC = () => {
           }}
         >
           <h1 className="text-4xl md:text-5xl font-bold text-purple-100 mb-8 text-center">
-            Discover Amazing Events Near You
+            {selectedCity ? `Discover Events in ${selectedCity}` : "Discover Amazing Events Near You"}
           </h1>
           <form onSubmit={handleSearch} className="flex w-full max-w-xl bg-white rounded-full overflow-hidden shadow-lg focus-within:ring-2 focus-within:ring-purple-500 transition">
             <input
@@ -193,6 +207,15 @@ const Home: React.FC = () => {
           </div>
         </div>
 
+        {/* Location indicator */}
+        {selectedCity && (
+          <div className="mb-6">
+            <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm inline-flex items-center">
+              Location: {selectedCity}
+            </div>
+          </div>
+        )}
+
         {/* Filter chips / active filters display */}
         {(selectedCategory !== "All Categories" || selectedDate || searchQuery) && (
           <div className="flex flex-wrap gap-2 mb-6">
@@ -234,7 +257,7 @@ const Home: React.FC = () => {
         {/* ===== EVENTS SECTION ===== */}
         <section className="pb-12">
           <h2 className="text-2xl font-bold text-purple-700 mb-6">
-            {showAll ? "All Events" : "Latest Events"} 
+            {selectedCity ? `Events in ${selectedCity}` : (showAll ? "All Events" : "Latest Events")}
             {filteredEvents.length > 0 && (
               <span className="text-gray-500 text-base font-normal ml-2">
                 ({filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'} found)

@@ -40,6 +40,7 @@ interface EventStore {
   events: Event[];
   isLoading: boolean;
   error: string | null;
+  selectedCity: string | null;
   addEvent: (eventData: Omit<Event, '_id' | 'createdAt' | 'updatedAt' | '__v'>) => Promise<void>;
   fetchEvents: () => Promise<void>;
   fetchAllEvents: () => Promise<void>;
@@ -47,12 +48,14 @@ interface EventStore {
   editEvent: (id: string, eventData: Partial<Event>) => Promise<void>;
   deleteEvent: (id: string) => Promise<void>;
   fetchEventsByCity: (city: string) => Promise<void>;
+  setSelectedCity: (city: string) => void;
 }
 
 export const useEventStore = create<EventStore>((set, get) => ({
   events: [],
   isLoading: false,
   error: null,
+  selectedCity:null,
 
 //add events
   addEvent: async (eventData) => {
@@ -125,12 +128,11 @@ export const useEventStore = create<EventStore>((set, get) => ({
       return null;
     }
   },
-  // New method: Edit event
+  // Edit event
   editEvent: async (id: string, eventData: Partial<Event>) => {
     try {
       set({ isLoading: true, error: null });
       const updatedEvent = await eventRepository.editEvent(id, eventData);
-      // Update local state: Replace the edited event in the events array
       const updatedEvents = get().events.map((ev) =>
         ev._id === id ? updatedEvent : ev
       );
@@ -146,12 +148,11 @@ export const useEventStore = create<EventStore>((set, get) => ({
     }
   },
 
-  // New method: Delete event
+  // Delete event
   deleteEvent: async (id: string) => {
     try {
       set({ isLoading: true, error: null });
       await eventRepository.deleteEvent(id);
-      // Remove the deleted event from the state
       const updatedEvents = get().events.filter((ev) => ev._id !== id);
       set({ events: updatedEvents, isLoading: false });
     } catch (error: any) {
@@ -163,5 +164,8 @@ export const useEventStore = create<EventStore>((set, get) => ({
       });
       throw error;
     }
+  },
+  setSelectedCity: (city: string) => {
+    set({ selectedCity: city });
   },
 }));

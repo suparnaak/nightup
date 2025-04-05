@@ -48,7 +48,7 @@ class EventRepository implements IEventRepository {
   }
   async getEventsByCity(city: string): Promise<IEvent[]> {
     try {
-      // Filter events where venueCity matches the provided city (case-insensitive)
+      
       const events = await Event.find({
         isBlocked: false,
         venueCity: { $regex: new RegExp(city, "i") }

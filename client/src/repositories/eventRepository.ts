@@ -30,7 +30,7 @@ export const eventRepository = {
     return response.data;
   },
 
-  // New method: Delete event
+  // Delete event
   deleteEvent: async (id: string) => {
     const response = await axiosHostClient.delete(`/events/${id}`);
     return response.data;

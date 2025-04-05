@@ -10,7 +10,7 @@ import { useEventStore } from "../../store/eventStore"
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuthStore();
-  const { fetchEventsByCity } = useEventStore();
+  const { fetchEventsByCity, setSelectedCity } = useEventStore();
   const userRole = user?.role;
   console.log(user);
   const handleLogout = () => {
@@ -27,6 +27,7 @@ const Header: React.FC = () => {
   const handleCitySelect = (city: { id: string; name: string }) => {
     console.log("Selected city:", city);
     const cityName = city.name.split(",")[0].trim();
+    setSelectedCity(cityName);
     console.log(cityName)
     fetchEventsByCity(cityName);
     navigate("/")
