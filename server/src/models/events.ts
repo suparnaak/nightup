@@ -22,7 +22,6 @@ export interface IEventDocument extends Document {
   eventImage: string; 
   additionalDetails?: string;
   isBlocked: boolean;
-  // New field for geolocation
   location?: {
     type: "Point";
     coordinates: [number, number]; // [longitude, latitude]

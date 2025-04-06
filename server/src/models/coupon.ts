@@ -4,13 +4,14 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 export interface ICoupon extends Document {
   _id: Types.ObjectId;
   couponCode: string;
-  couponAmount: number;      // Previously 'discount'
-  minimumAmount: number;     // Previously 'minAmount'
+  couponAmount: number;
+  minimumAmount: number;
   startDate: Date;
   endDate: Date;
-  couponQuantity: number;    // Previously 'quantity'
+  couponQuantity: number;
   usedCount: number;
   status: "inactive" | "active" | "expired";
+  isBlocked: boolean;    // new field
 }
 
 const couponSchema: Schema = new Schema(
@@ -32,6 +33,7 @@ const couponSchema: Schema = new Schema(
         return "active";
       },
     },
+    isBlocked: { type: Boolean, default: false },  // added here
   },
   { timestamps: true }
 );
@@ -41,12 +43,13 @@ const couponSchema: Schema = new Schema(
 couponSchema.pre("find", async function() {
   const now = new Date();
   
-  // Actually update the database records
+  // Activate coupons whose startDate has arrived
   await mongoose.model("Coupon").updateMany(
     { status: "inactive", startDate: { $lte: now } },
     { status: "active" }
   );
   
+  // Expire coupons whose endDate has passed
   await mongoose.model("Coupon").updateMany(
     { status: "active", endDate: { $lte: now } },
     { status: "expired" }

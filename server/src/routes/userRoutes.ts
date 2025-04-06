@@ -5,6 +5,7 @@ import EventController from "../controllers/eventController";
 import UserProfileController from "../controllers/userProfileController"
 import WalletController from "../controllers/walletController";
 import SavedEventController from "../controllers/savedEventController";
+//import BookingController from "../controllers/bookingController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
 const router: Router = Router();
@@ -44,6 +45,7 @@ router.post('/saved-events', authMiddleware(["user"]), SavedEventController.save
 router.delete('/saved-events/:eventId', authMiddleware(["user"]), SavedEventController.removeSavedEvent);
 
 
-
+//router.post("/bookings", authMiddleware(["user"]), BookingController.create);
+//router.get("/coupons", BookingController.getCoupons);
 
 export default router;

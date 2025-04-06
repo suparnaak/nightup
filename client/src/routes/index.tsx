@@ -36,6 +36,7 @@ import AdminHostsPage from "../pages/admin/AdminHostsPage";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminSubscriptionPage from "../pages/admin/AdminSubscriptionPage";
 import AdminCouponPage from "../pages/admin/AdminCouponPage";
+import BookingConfirmationPage from "../pages/user/BookingConfirmationPage";
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -51,6 +52,7 @@ const AppRoutes = () => {
         <Route path="/verify-otp" element={<OtpVerification />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/event/:id/booking-confirmation" element={<BookingConfirmationPage />} />
 
         {/* host specific */}
         <Route path="/host/signup" element={<HostSignup />} />
