@@ -7,6 +7,7 @@ import WalletController from "../controllers/walletController";
 import SavedEventController from "../controllers/savedEventController";
 //import BookingController from "../controllers/bookingController";
 import { authMiddleware } from "../middlewares/authMiddleware";
+import CouponController from "../controllers/CouponController";
 
 const router: Router = Router();
 
@@ -43,6 +44,8 @@ router.get("/event/:eventId", EventController.getEventDetails);
 router.get('/saved-events', authMiddleware(["user"]), SavedEventController.getSavedEvents);
 router.post('/saved-events', authMiddleware(["user"]), SavedEventController.saveEvent);
 router.delete('/saved-events/:eventId', authMiddleware(["user"]), SavedEventController.removeSavedEvent);
+
+router.get('/coupons', authMiddleware(["user"]), CouponController.getAvailableCoupons);
 
 
 //router.post("/bookings", authMiddleware(["user"]), BookingController.create);

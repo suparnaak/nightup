@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { adminRepository } from "../repositories/adminRepository";
+import { userRepository } from "../repositories/userRepository";
 
 export interface Coupon {
   id: string;
@@ -18,6 +19,7 @@ interface CouponState {
   isLoading: boolean;
   error: string | null;
   getCoupons: () => Promise<Coupon[]>;
+  getAvailableCoupons: (totalAmount?: number) => Promise<Coupon[]>; // for users while booking
   createCoupon: (payload: {
     couponAmount: number;
     minimumAmount: number;
@@ -136,5 +138,41 @@ export const useCouponStore = create<CouponState>((set, get) => ({
       throw error;
     }
   },
+  //for users while booking
+ /*  getAvailableCoupons: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await userRepository.getAvailableCoupons();
+      console.log("Public coupons:", data);
+  
+      set({ coupons: data, isLoading: false }); 
+      return data;
+    } catch (error: any) {
+      console.error("getAvailableCoupons error:", error);
+      set({
+        error: error.message || "Failed to fetch available coupons",
+        isLoading: false,
+      });
+      throw error;
+    }
+  } */
+    getAvailableCoupons: async (totalAmount?: number) => {
+      console.log("amount",totalAmount)
+      set({ isLoading: true, error: null });
+      try {
+        const data = await userRepository.getAvailableCoupons(totalAmount);
+        console.log("Public coupons:", data);
+    
+        set({ coupons: data, isLoading: false }); 
+        return data;
+      } catch (error: any) {
+        console.error("getAvailableCoupons error:", error);
+        set({
+          error: error.message || "Failed to fetch available coupons",
+          isLoading: false,
+        });
+        throw error;
+      }
+    }
 }));
 

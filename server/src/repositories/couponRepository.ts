@@ -34,6 +34,22 @@ class CouponRepository implements ICouponRepository {
   async deleteCoupon(id: string): Promise<void> {
     await Coupon.findByIdAndDelete(id);
   }
+  async getAvailableCoupons(minimumAmount?: number): Promise<ICoupon[]> {
+    const now = new Date();
+    const filter: any = {
+      status: "active",
+      isBlocked: false,
+      startDate: { $lte: now },
+      endDate:   { $gte: now },
+      $expr:     { $gt: ["$couponQuantity", "$usedCount"] },
+    };
+
+    if (minimumAmount !== undefined) {
+      filter.minimumAmount = { $lte: minimumAmount };
+    }
+
+    return await Coupon.find(filter).sort({ createdAt: -1 });
+  }
 }
 
 export default new CouponRepository();

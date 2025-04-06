@@ -197,6 +197,39 @@ class CouponController implements ICouponController {
       });
     }
   }
+  async getAvailableCoupons(req: Request, res: Response): Promise<void> {
+    try {
+      
+      const minAmtRaw = req.query.minimumAmount as string | undefined;
+      console.log(req.query.minimumAmount)
+      const minimumAmount = minAmtRaw !== undefined
+        ? parseFloat(minAmtRaw)
+        : undefined;
+
+      const coupons = await CouponService.getAvailableCoupons(minimumAmount);
+
+      const transformed = coupons.map(coupon => ({
+        id: coupon._id.toString(),
+        couponCode: coupon.couponCode,
+        couponAmount: coupon.couponAmount,
+        minimumAmount: coupon.minimumAmount,
+        startDate: coupon.startDate,
+        endDate: coupon.endDate,
+        status: coupon.status,
+      }));
+console.log(transformed)
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        coupons: transformed,
+      });
+    } catch (err: any) {
+      console.error("Get Available Coupons Error:", err);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
 }
 
 export default new CouponController();

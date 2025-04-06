@@ -6,6 +6,8 @@ import Spinner from "../../components/common/Spinner";
 import toast from "react-hot-toast";
 import { useEventStore } from "../../store/eventStore";
 import { useAuthStore } from "../../store/authStore";
+import { useCouponStore } from "../../store/couponStore";
+
 import {
   Calendar,
   Clock,
@@ -25,6 +27,7 @@ const BookingConfirmationPage: React.FC = () => {
   const navigate = useNavigate();
   const { fetchEventDetails } = useEventStore();
   const { isAuthenticated, user } = useAuthStore();
+  const { getAvailableCoupons } = useCouponStore();
   
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -34,26 +37,38 @@ const BookingConfirmationPage: React.FC = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("razorpay");
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   
-  // Example coupons for testing - in a real app, these would come from an API
-  const availableCoupons = [
-    { code: "FEST10", value: 10, type: "percentage", description: "10% off" },
-    { code: "WELCOME", value: 100, type: "fixed", description: "Flat ₹100 off" },
-    { code: "FIRSTTIME", value: 15, type: "percentage", description: "15% off for first bookings" }
-  ];
-
-  // Example wallet balance - in a real app, this would come from an API
   const walletBalance = 500;
   
   useEffect(() => {
-    // Redirect to login if not authenticated
+    const fetchCoupons = async () => {
+      try {
+        const totalAmount = calculateSubtotal(); 
+        console.log("Total Amount for Coupons:", totalAmount);
+        const coupons = await getAvailableCoupons(totalAmount);
+        console.log("Coupons available to apply:", coupons);
+        setAvailableCoupons(coupons); 
+      } catch (err) {
+        console.error("Error fetching coupons:", err);
+      }
+    };
+  
+    
+    if (event && bookingDetails) {
+      fetchCoupons();
+    }
+  }, [event, bookingDetails, getAvailableCoupons]); 
+
+  useEffect(() => {
+    
     if (!isAuthenticated) {
       toast.error("Please login to continue with booking");
       navigate("/login");
       return;
     }
     
-    // Get booking details from session storage
+    
     const getBookingDetailsFromStorage = () => {
       const storedDetails = sessionStorage.getItem("currentBooking");
       if (storedDetails) {
@@ -65,7 +80,7 @@ const BookingConfirmationPage: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch event details
+       
         const fetchedEvent = await fetchEventDetails(id!);
         if (!fetchedEvent) {
           setError("Event not found.");
@@ -74,7 +89,7 @@ const BookingConfirmationPage: React.FC = () => {
         }
         setEvent(fetchedEvent);
         
-        // Get booking details
+       
         const details = getBookingDetailsFromStorage();
         if (!details || details.eventId !== id) {
           setError("Booking details not found. Please select tickets again.");
@@ -99,7 +114,7 @@ const BookingConfirmationPage: React.FC = () => {
   };
   
   const handleProceedToPayment = () => {
-    // Store the confirmed booking in session storage if needed
+    
     const bookingWithDetails = {
       ...bookingDetails, 
       coupon: appliedCoupon || null,
@@ -113,7 +128,7 @@ const BookingConfirmationPage: React.FC = () => {
   };
 
   const handleCancelBooking = () => {
-    // Clear booking from session storage
+    
     sessionStorage.removeItem("currentBooking");
     toast.success("Booking canceled");
     navigate(`/event/${id}`);
@@ -127,7 +142,7 @@ const BookingConfirmationPage: React.FC = () => {
     );
     
     if (!selectedTicket) return 0;
-    
+    console.log(selectedTicket.ticketPrice * bookingDetails.tickets[0].quantity)
     return selectedTicket.ticketPrice * bookingDetails.tickets[0].quantity;
   };
 
@@ -150,10 +165,15 @@ const BookingConfirmationPage: React.FC = () => {
   const handleApplyCoupon = (coupon: any) => {
     setIsApplyingCoupon(true);
     
-    // Simulate server delay
+  
     setTimeout(() => {
-      setAppliedCoupon(coupon);
-      toast.success(`Coupon '${coupon.code}' applied successfully!`);
+      setAppliedCoupon({
+        code: coupon.couponCode, 
+        value: coupon.couponAmount, 
+        type: 'fixed', 
+        description: `Flat ₹${coupon.couponAmount} off`, 
+      });
+      toast.success(`Coupon '${coupon.couponCode}' applied successfully!`);
       setIsDropdownOpen(false);
       setIsApplyingCoupon(false);
     }, 800); 
@@ -403,23 +423,24 @@ const BookingConfirmationPage: React.FC = () => {
                         </button>
                         
                         {/* Dropdown menu */}
-                        {isDropdownOpen && (
-                          <div className="absolute mt-1 w-full rounded-md bg-white shadow-lg z-10 border border-gray-200">
-                            <ul className="py-1 max-h-60 overflow-auto">
-                              {availableCoupons.map((coupon) => (
-                                <li key={coupon.code}>
-                                  <button
-                                    onClick={() => handleApplyCoupon(coupon)}
-                                    className="w-full text-left px-4 py-2 hover:bg-purple-50 flex justify-between items-center"
-                                  >
-                                    <span className="font-medium">{coupon.code}</span>
-                                    <span className="text-gray-600 text-sm">{coupon.description}</span>
-                                  </button>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                        
+{isDropdownOpen && (
+  <div className="absolute mt-1 w-full rounded-md bg-white shadow-lg z-10 border border-gray-200">
+    <ul className="py-1 max-h-60 overflow-auto">
+      {availableCoupons.map((coupon) => (
+        <li key={coupon.id}> {/* Use coupon.id as the key */}
+          <button
+            onClick={() => handleApplyCoupon(coupon)}
+            className="w-full text-left px-4 py-2 hover:bg-purple-50 flex justify-between items-center"
+          >
+            <span className="font-medium">{coupon.couponCode}</span> {/* Use coupon.couponCode */}
+            <span className="text-gray-600 text-sm">Flat ₹{coupon.couponAmount} off</span> {/* Update description */}
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
                       </div>
                     ) : (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex justify-between items-center">
