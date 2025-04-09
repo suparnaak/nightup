@@ -3,6 +3,12 @@ import { ICouponController } from "./interfaces/ICouponController";
 import CouponService from "../services/couponService";
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { isRequired, isPositiveNumber, isFutureDate, isEndDateValid } from "../utils/validators";
+interface AuthRequest extends Request {
+  user?: {
+    userId?: string;
+    type?: string;
+  };
+}
 
 class CouponController implements ICouponController {
   async getCoupons(req: Request, res: Response): Promise<void> {
@@ -197,16 +203,26 @@ class CouponController implements ICouponController {
       });
     }
   }
-  async getAvailableCoupons(req: Request, res: Response): Promise<void> {
+  async getAvailableCoupons(req: AuthRequest, res: Response): Promise<void> {
     try {
       
+      if (!req.user?.userId) {
+        res.status(STATUS_CODES.UNAUTHORIZED).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
+        });
+        return;
+      }
+  
+      // Now userId is guaranteed to be a string
+      const userId = req.user.userId;
       const minAmtRaw = req.query.minimumAmount as string | undefined;
       console.log(req.query.minimumAmount)
       const minimumAmount = minAmtRaw !== undefined
         ? parseFloat(minAmtRaw)
         : undefined;
 
-      const coupons = await CouponService.getAvailableCoupons(minimumAmount);
+      const coupons = await CouponService.getAvailableCoupons(req.user!.userId,minimumAmount);
 
       const transformed = coupons.map(coupon => ({
         id: coupon._id.toString(),

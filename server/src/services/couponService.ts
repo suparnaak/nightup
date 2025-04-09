@@ -39,8 +39,11 @@ class CouponService implements ICouponService {
     await CouponRepository.deleteCoupon(id);
   }
 
-  async getAvailableCoupons(minimumAmount?: number): Promise<ICoupon[]> {
-    return await CouponRepository.getAvailableCoupons(minimumAmount);
+  async getAvailableCoupons(
+    userId: string,
+    minimumAmount?: number
+  ): Promise<ICoupon[]> {
+    return await CouponRepository.getAvailableCoupons(userId, minimumAmount);
   }
 }
 

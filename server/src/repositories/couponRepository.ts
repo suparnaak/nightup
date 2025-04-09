@@ -1,5 +1,7 @@
+import { Types } from "mongoose";
 import Coupon, { ICoupon } from "../models/coupon";
 import { ICouponRepository } from "./interfaces/ICouponRepository";
+import Booking from "../models/booking";
 
 class CouponRepository implements ICouponRepository {
   async getCoupons(): Promise<ICoupon[]> {
@@ -34,21 +36,38 @@ class CouponRepository implements ICouponRepository {
   async deleteCoupon(id: string): Promise<void> {
     await Coupon.findByIdAndDelete(id);
   }
-  async getAvailableCoupons(minimumAmount?: number): Promise<ICoupon[]> {
+  async getAvailableCoupons(
+    userId: string,
+    minimumAmount?: number
+  ): Promise<ICoupon[]> {
     const now = new Date();
     const filter: any = {
       status: "active",
       isBlocked: false,
       startDate: { $lte: now },
-      endDate:   { $gte: now },
-      $expr:     { $gt: ["$couponQuantity", "$usedCount"] },
+      endDate: { $gte: now },
+      $expr: { $gt: ["$couponQuantity", "$usedCount"] },
     };
-
     if (minimumAmount !== undefined) {
       filter.minimumAmount = { $lte: minimumAmount };
     }
-
-    return await Coupon.find(filter).sort({ createdAt: -1 });
+  
+    // First, find all coupons matching base criteria
+    const coupons = await Coupon.find(filter).sort({ createdAt: -1 });
+  
+    // Then filter out those already used by this user
+    const available = [];
+    for (const coupon of coupons) {
+      const used = await Booking.exists({
+        userId: new Types.ObjectId(userId),
+        couponId: coupon._id,
+        status: { $in: ["pending", "confirmed"] } // or whatever statuses count
+      });
+      if (!used) {
+        available.push(coupon);
+      }
+    }
+    return available;
   }
 }
 

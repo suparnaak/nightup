@@ -24,7 +24,7 @@ export interface IEventDocument extends Document {
   isBlocked: boolean;
   location?: {
     type: "Point";
-    coordinates: [number, number]; // [longitude, latitude]
+    coordinates: [number, number]; 
   };
 }
 
@@ -53,7 +53,7 @@ const eventSchema: Schema = new Schema(
     eventImage: { type: String },
     additionalDetails: { type: String },
     isBlocked: { type: Boolean, default: false },
-    // Geolocation field
+    
     location: {
       type: { type: String, enum: ["Point"], default: "Point" },
       coordinates: { type: [Number] },
@@ -62,7 +62,7 @@ const eventSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-// Create geospatial index on the location field
+
 eventSchema.index({ location: "2dsphere" });
 
 export default mongoose.model<IEventDocument>("Event", eventSchema);

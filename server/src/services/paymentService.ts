@@ -29,6 +29,7 @@ export interface PaymentData {
 }
 
 export const verifyPayment = (paymentData: PaymentData): boolean => {
+  console.log("payment service verify")
   const generatedSignature = crypto
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
     .update(paymentData.razorpay_order_id + "|" + paymentData.razorpay_payment_id)

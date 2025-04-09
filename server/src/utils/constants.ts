@@ -43,7 +43,7 @@ export const MESSAGES = {
 
   USER: {
     SUCCESS: {
-      
+      BOOKING_CREATED:"Booking confirmed successfully"
     },
     ERROR: {
       

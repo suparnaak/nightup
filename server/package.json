@@ -20,6 +20,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.12.1",
+    "nanoid": "^5.1.5",
     "node-geocoder": "^4.4.1",
     "nodemailer": "^6.10.0",
     "passport": "^0.7.0",

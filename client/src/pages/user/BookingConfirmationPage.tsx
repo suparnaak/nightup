@@ -7,6 +7,9 @@ import toast from "react-hot-toast";
 import { useEventStore } from "../../store/eventStore";
 import { useAuthStore } from "../../store/authStore";
 import { useCouponStore } from "../../store/couponStore";
+import { useBookingStore } from "../../store/bookingStore";
+import { useWalletStore } from "../../store/walletStore";
+import { useRazorpay } from "../../hooks/useRazorpay";
 
 import {
   Calendar,
@@ -28,7 +31,17 @@ const BookingConfirmationPage: React.FC = () => {
   const { fetchEventDetails } = useEventStore();
   const { isAuthenticated, user } = useAuthStore();
   const { getAvailableCoupons } = useCouponStore();
-  
+
+  const { getWallet, wallet } = useWalletStore();
+
+  const {
+    createBooking, 
+    createOrder, 
+    verifyPayment, 
+    isLoading,
+  } = useBookingStore();
+  const { openRazorpay } = useRazorpay();
+
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
@@ -36,39 +49,48 @@ const BookingConfirmationPage: React.FC = () => {
   const [isApplyingCoupon, setIsApplyingCoupon] = useState<boolean>(false);
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("razorpay");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<string>("razorpay");
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
-  
-  const walletBalance = 500;
-  
+
+  useEffect(() => {
+    const fetchWalletData = async () => {
+      if (isAuthenticated) {
+        await getWallet();
+      }
+    };
+
+    fetchWalletData();
+  }, [isAuthenticated, getWallet]);
+
+ 
+  const walletBalance = wallet?.balance || 0;
+
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-        const totalAmount = calculateSubtotal(); 
+        const totalAmount = calculateSubtotal();
         console.log("Total Amount for Coupons:", totalAmount);
         const coupons = await getAvailableCoupons(totalAmount);
         console.log("Coupons available to apply:", coupons);
-        setAvailableCoupons(coupons); 
+        setAvailableCoupons(coupons);
       } catch (err) {
         console.error("Error fetching coupons:", err);
       }
     };
-  
-    
+
     if (event && bookingDetails) {
       fetchCoupons();
     }
-  }, [event, bookingDetails, getAvailableCoupons]); 
+  }, [event, bookingDetails, getAvailableCoupons]);
 
   useEffect(() => {
-    
     if (!isAuthenticated) {
       toast.error("Please login to continue with booking");
       navigate("/login");
       return;
     }
-    
-    
+
     const getBookingDetailsFromStorage = () => {
       const storedDetails = sessionStorage.getItem("currentBooking");
       if (storedDetails) {
@@ -76,11 +98,10 @@ const BookingConfirmationPage: React.FC = () => {
       }
       return null;
     };
-    
+
     const fetchData = async () => {
       setLoading(true);
       try {
-       
         const fetchedEvent = await fetchEventDetails(id!);
         if (!fetchedEvent) {
           setError("Event not found.");
@@ -88,12 +109,13 @@ const BookingConfirmationPage: React.FC = () => {
           return;
         }
         setEvent(fetchedEvent);
-        
-       
+
         const details = getBookingDetailsFromStorage();
         if (!details || details.eventId !== id) {
           setError("Booking details not found. Please select tickets again.");
-          toast.error("Booking details not found. Please select tickets again.");
+          toast.error(
+            "Booking details not found. Please select tickets again."
+          );
           setTimeout(() => navigate(`/event/${id}`), 2000);
           return;
         }
@@ -105,85 +127,191 @@ const BookingConfirmationPage: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [id, fetchEventDetails, isAuthenticated, navigate]);
-  
+
   const handleBackToEvent = () => {
     navigate(`/event/${id}`);
   };
-  
-  const handleProceedToPayment = () => {
-    
-    const bookingWithDetails = {
-      ...bookingDetails, 
-      coupon: appliedCoupon || null,
-      paymentMethod: selectedPaymentMethod
-    };
-    
-    sessionStorage.setItem("currentBooking", JSON.stringify(bookingWithDetails));
-    
-    toast.success(`Proceeding to payment via ${selectedPaymentMethod === "wallet" ? "Wallet" : "Razorpay"}!`);
-    navigate(`/event/${id}/payment`);
+
+  const handleProceedToPayment = async () => {
+    try {
+      const subtotal = calculateSubtotal();
+      const discount = calculateDiscount();
+      const total = calculateTotal();
+
+      
+      const selectedTicket = event.tickets.find(
+        (t: any) => t.ticketType === bookingDetails.tickets[0].ticketType
+      );
+
+      
+      const couponId = appliedCoupon?.id ?? null;
+
+      
+      const commonBookingData = {
+        ...bookingDetails,
+        couponId,
+        discountedAmount: discount,
+        totalAmount: total,
+        tickets: bookingDetails.tickets.map((ticket: any) => ({
+          ...ticket,
+          price: selectedTicket.ticketPrice,
+        })),
+      };
+      console.log("common proceed:", commonBookingData);
+      
+      if (selectedPaymentMethod === "wallet") {
+       
+        if (!isWalletSufficient) {
+          toast.error("Insufficient wallet balance for this booking");
+          return;
+        }
+
+        
+        const walletBookingData = {
+          ...commonBookingData,
+          paymentMethod: "wallet",
+          paymentId: `wallet-${Date.now()}`,
+          paymentStatus: "paid", 
+        };
+        console.log("wallet:", walletBookingData);
+        await toast.promise(createBooking(walletBookingData), {
+          loading: "Processing wallet payment...",
+          success: "Booking successful!",
+          error: "Wallet payment failed.",
+        });
+
+       
+        await getWallet();
+
+        sessionStorage.removeItem("currentBooking");
+        navigate("/bookings");
+      } else if (selectedPaymentMethod === "razorpay") {
+        const orderId = await createOrder(total);
+        console.log("orderid razor:", typeof orderId);
+        
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: total * 100, 
+          currency: "INR",
+          name: "NightUp",
+          description: `Booking for ${event.title}`,
+          order_id: orderId,
+          prefill: {
+            name: "", 
+            email: "",
+            contact: "",
+          },
+          
+          theme: { color: "#8b5cf6" },
+          modal: {
+            ondismiss: () => toast.error("Payment cancelled."),
+          },
+          handler: async (response: any) => {
+            try {
+              console.log("entering handler");
+              await verifyPayment(
+                {
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                },
+                {
+                  eventId: commonBookingData.eventId,
+                  tickets: bookingDetails.tickets.map((t: any) => ({
+                    ...t,
+                    price: event.tickets.find(
+                      (et: any) => et.ticketType === t.ticketType
+                    ).ticketPrice,
+                  })),
+                  coupon: appliedCoupon?.id || null,
+                  totalAmount: subtotal,
+                  discountedAmount: discount,
+                  paymentMethod: "razorpay",
+                  paymentStatus: "paid",
+                  paymentId: response.razorpay_payment_id,
+                  status: "confirmed",
+                }
+              );
+
+              toast.success("Booking confirmed!");
+              navigate("/bookings");
+            } catch (err: any) {
+              console.error("Verification error:", err);
+              toast.error("Payment verification failed. Please try again.");
+            }
+          },
+        };
+
+        openRazorpay(options);
+      }
+    } catch (err: any) {
+      console.error("Booking error:", err);
+      toast.error(err.message || "Booking failed.");
+    }
   };
 
   const handleCancelBooking = () => {
-    
     sessionStorage.removeItem("currentBooking");
     toast.success("Booking canceled");
     navigate(`/event/${id}`);
   };
-  
+
   const calculateSubtotal = () => {
     if (!event || !bookingDetails) return 0;
-    
+
     const selectedTicket = event.tickets.find(
       (t: any) => t.ticketType === bookingDetails.tickets[0].ticketType
     );
-    
+
     if (!selectedTicket) return 0;
-    console.log(selectedTicket.ticketPrice * bookingDetails.tickets[0].quantity)
+    console.log(
+      selectedTicket.ticketPrice * bookingDetails.tickets[0].quantity
+    );
     return selectedTicket.ticketPrice * bookingDetails.tickets[0].quantity;
   };
 
   const calculateDiscount = () => {
     if (!appliedCoupon) return 0;
-    
+
     const subtotal = calculateSubtotal();
-    return appliedCoupon.type === 'percentage' 
-      ? Math.round(subtotal * (appliedCoupon.value / 100)) 
+    return appliedCoupon.type === "percentage"
+      ? Math.round(subtotal * (appliedCoupon.value / 100))
       : Math.min(appliedCoupon.value, subtotal);
   };
-  
+
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const discount = calculateDiscount();
-    
+
     return subtotal - discount;
   };
 
   const handleApplyCoupon = (coupon: any) => {
     setIsApplyingCoupon(true);
-    
-  
+
     setTimeout(() => {
       setAppliedCoupon({
-        code: coupon.couponCode, 
-        value: coupon.couponAmount, 
-        type: 'fixed', 
-        description: `Flat ₹${coupon.couponAmount} off`, 
+        id: coupon.id,
+        code: coupon.couponCode,
+        value: coupon.couponAmount,
+        type: "fixed",
+        description: `Flat ₹${coupon.couponAmount} off`,
       });
+
       toast.success(`Coupon '${coupon.couponCode}' applied successfully!`);
       setIsDropdownOpen(false);
       setIsApplyingCoupon(false);
-    }, 800); 
+    }, 800);
   };
 
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     toast.success("Coupon removed");
   };
-  
+
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
@@ -193,7 +321,7 @@ const BookingConfirmationPage: React.FC = () => {
   };
 
   const isWalletSufficient = walletBalance >= calculateTotal();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50">
@@ -201,7 +329,7 @@ const BookingConfirmationPage: React.FC = () => {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50">
@@ -211,7 +339,7 @@ const BookingConfirmationPage: React.FC = () => {
       </div>
     );
   }
-  
+
   if (!event || !bookingDetails) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-slate-50">
@@ -221,7 +349,7 @@ const BookingConfirmationPage: React.FC = () => {
       </div>
     );
   }
-  
+
   return (
     <UserLayout>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50">
@@ -233,26 +361,33 @@ const BookingConfirmationPage: React.FC = () => {
             <ArrowLeft className="h-4 w-4" />
             Back to event
           </button>
-          
+
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div className="bg-purple-600 text-white p-6">
               <h1 className="text-2xl font-bold">Booking Confirmation</h1>
-              <p className="text-purple-100">Please review your booking details before proceeding to payment</p>
+              <p className="text-purple-100">
+                Please review your booking details before proceeding to payment
+              </p>
             </div>
-            
+
             <div className="p-6 space-y-6">
               {/* Event Summary */}
               <div className="flex flex-col md:flex-row gap-4 items-start">
                 <div className="md:w-1/3">
                   <img
-                    src={event.eventImage || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80"}
+                    src={
+                      event.eventImage ||
+                      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80"
+                    }
                     alt={event.title}
                     className="w-full h-32 object-cover rounded-lg"
                   />
                 </div>
                 <div className="md:w-2/3">
-                  <h2 className="text-xl font-bold text-gray-900">{event.title}</h2>
-                  
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {event.title}
+                  </h2>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-purple-600" />
@@ -265,7 +400,7 @@ const BookingConfirmationPage: React.FC = () => {
                         })}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-purple-600" />
                       <span className="text-sm text-gray-700">
@@ -280,14 +415,14 @@ const BookingConfirmationPage: React.FC = () => {
                           : "Time not specified"}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-purple-600" />
                       <span className="text-sm text-gray-700">
                         {event.venueName}, {event.venueCity}, {event.venueState}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Ticket className="h-4 w-4 text-purple-600" />
                       <span className="text-sm text-gray-700">
@@ -297,63 +432,86 @@ const BookingConfirmationPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Divider */}
               <hr className="border-gray-200" />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Booking Details Column */}
                 <div className="md:col-span-2 space-y-6">
                   {/* Booking Details */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Details</h3>
-                    
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Booking Details
+                    </h3>
+
                     <div className="bg-purple-50 rounded-lg p-4">
                       <div className="flex flex-col md:flex-row justify-between md:items-center mb-3">
                         <div className="mb-2 md:mb-0">
-                          <p className="text-gray-700 font-medium">{bookingDetails.tickets[0].ticketType}</p>
-                          <p className="text-sm text-gray-500">Price per ticket: ₹{
-                            event.tickets.find((t: any) => t.ticketType === bookingDetails.tickets[0].ticketType)?.ticketPrice || 0
-                          }</p>
+                          <p className="text-gray-700 font-medium">
+                            {bookingDetails.tickets[0].ticketType}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Price per ticket: ₹
+                            {event.tickets.find(
+                              (t: any) =>
+                                t.ticketType ===
+                                bookingDetails.tickets[0].ticketType
+                            )?.ticketPrice || 0}
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-gray-700">Quantity: {bookingDetails.tickets[0].quantity}</p>
+                          <p className="text-gray-700">
+                            Quantity: {bookingDetails.tickets[0].quantity}
+                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Customer Information */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Information</h3>
-                    
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Customer Information
+                    </h3>
+
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-700"><span className="font-medium">Name:</span> {user?.name || "Not available"}</p>
-                      <p className="text-gray-700"><span className="font-medium">Email:</span> {user?.email || "Not available"}</p>
+                      <p className="text-gray-700">
+                        <span className="font-medium">Name:</span>{" "}
+                        {user?.name || "Not available"}
+                      </p>
+                      <p className="text-gray-700">
+                        <span className="font-medium">Email:</span>{" "}
+                        {user?.email || "Not available"}
+                      </p>
                     </div>
                   </div>
 
                   {/* Payment Method Selection */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h3>
-                    
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Payment Method
+                    </h3>
+
                     <div className="space-y-3">
                       {/* Wallet Option */}
-                      <div 
+                      <div
                         className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                          selectedPaymentMethod === "wallet" 
-                            ? "border-purple-500 bg-purple-50" 
+                          selectedPaymentMethod === "wallet"
+                            ? "border-purple-500 bg-purple-50"
                             : "border-gray-200 hover:border-purple-300"
                         }`}
                         onClick={() => handlePaymentMethodChange("wallet")}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 rounded-full border ${
-                              selectedPaymentMethod === "wallet" 
-                                ? "border-purple-500" 
-                                : "border-gray-300"
-                            } flex items-center justify-center`}>
+                            <div
+                              className={`w-5 h-5 rounded-full border ${
+                                selectedPaymentMethod === "wallet"
+                                  ? "border-purple-500"
+                                  : "border-gray-300"
+                              } flex items-center justify-center`}
+                            >
                               {selectedPaymentMethod === "wallet" && (
                                 <div className="w-3 h-3 rounded-full bg-purple-500"></div>
                               )}
@@ -364,29 +522,36 @@ const BookingConfirmationPage: React.FC = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-semibold">Balance: ₹{walletBalance}</p>
-                            {!isWalletSufficient && selectedPaymentMethod === "wallet" && (
-                              <p className="text-red-500 text-xs mt-1">Insufficient balance</p>
-                            )}
+                            <p className="text-sm font-semibold">
+                              Balance: ₹{walletBalance}
+                            </p>
+                            {!isWalletSufficient &&
+                              selectedPaymentMethod === "wallet" && (
+                                <p className="text-red-500 text-xs mt-1">
+                                  Insufficient balance
+                                </p>
+                              )}
                           </div>
                         </div>
                       </div>
 
                       {/* Razorpay Option */}
-                      <div 
+                      <div
                         className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                          selectedPaymentMethod === "razorpay" 
-                            ? "border-purple-500 bg-purple-50" 
+                          selectedPaymentMethod === "razorpay"
+                            ? "border-purple-500 bg-purple-50"
                             : "border-gray-200 hover:border-purple-300"
                         }`}
                         onClick={() => handlePaymentMethodChange("razorpay")}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-5 h-5 rounded-full border ${
-                            selectedPaymentMethod === "razorpay" 
-                              ? "border-purple-500" 
-                              : "border-gray-300"
-                          } flex items-center justify-center`}>
+                          <div
+                            className={`w-5 h-5 rounded-full border ${
+                              selectedPaymentMethod === "razorpay"
+                                ? "border-purple-500"
+                                : "border-gray-300"
+                            } flex items-center justify-center`}
+                          >
                             {selectedPaymentMethod === "razorpay" && (
                               <div className="w-3 h-3 rounded-full bg-purple-500"></div>
                             )}
@@ -400,13 +565,15 @@ const BookingConfirmationPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Coupon and Price Column */}
                 <div className="space-y-6">
                   {/* Coupon Code Section */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Apply Coupon</h3>
-                    
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Apply Coupon
+                    </h3>
+
                     {!appliedCoupon ? (
                       <div className="relative">
                         {/* Dropdown button */}
@@ -417,38 +584,56 @@ const BookingConfirmationPage: React.FC = () => {
                         >
                           <span className="flex items-center gap-2">
                             <Tag className="h-4 w-4 text-gray-400" />
-                            <span>{isApplyingCoupon ? "Applying..." : "Select a coupon"}</span>
+                            <span>
+                              {isApplyingCoupon
+                                ? "Applying..."
+                                : "Select a coupon"}
+                            </span>
                           </span>
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         </button>
-                        
+
                         {/* Dropdown menu */}
-                        
-{isDropdownOpen && (
-  <div className="absolute mt-1 w-full rounded-md bg-white shadow-lg z-10 border border-gray-200">
-    <ul className="py-1 max-h-60 overflow-auto">
-      {availableCoupons.map((coupon) => (
-        <li key={coupon.id}> {/* Use coupon.id as the key */}
-          <button
-            onClick={() => handleApplyCoupon(coupon)}
-            className="w-full text-left px-4 py-2 hover:bg-purple-50 flex justify-between items-center"
-          >
-            <span className="font-medium">{coupon.couponCode}</span> {/* Use coupon.couponCode */}
-            <span className="text-gray-600 text-sm">Flat ₹{coupon.couponAmount} off</span> {/* Update description */}
-          </button>
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
+
+                        {isDropdownOpen && (
+                          <div className="absolute mt-1 w-full rounded-md bg-white shadow-lg z-10 border border-gray-200">
+                            {availableCoupons.length > 0 ? (
+                              <ul className="py-1 max-h-60 overflow-auto">
+                                {availableCoupons.map((coupon) => (
+                                  <li key={coupon.id}>
+                                    <button
+                                      onClick={() => handleApplyCoupon(coupon)}
+                                      className="w-full text-left px-4 py-2 hover:bg-purple-50 flex justify-between items-center"
+                                    >
+                                      <span className="font-medium">
+                                        {coupon.couponCode}
+                                      </span>
+                                      <span className="text-gray-600 text-sm">
+                                        Flat ₹{coupon.couponAmount} off
+                                      </span>
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <div className="px-4 py-2 text-center text-gray-500">
+                                No coupons available
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex justify-between items-center">
                         <div className="flex items-center space-x-2">
                           <CheckCircle className="h-5 w-5 text-green-500" />
                           <div>
-                            <p className="font-medium text-green-800">{appliedCoupon.code}</p>
-                            <p className="text-sm text-green-600">{appliedCoupon.description}</p>
+                            <p className="font-medium text-green-800">
+                              {appliedCoupon.code}
+                            </p>
+                            <p className="text-sm text-green-600">
+                              {appliedCoupon.description}
+                            </p>
                           </div>
                         </div>
                         <button
@@ -461,49 +646,61 @@ const BookingConfirmationPage: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Order Summary */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
-                    
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Order Summary
+                    </h3>
+
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Subtotal</span>
-                        <span className="text-gray-900">₹{calculateSubtotal()}</span>
+                        <span className="text-gray-900">
+                          ₹{calculateSubtotal()}
+                        </span>
                       </div>
-                      
+
                       {appliedCoupon && (
                         <div className="flex justify-between text-green-600">
                           <span>Discount ({appliedCoupon.description})</span>
                           <span>-₹{calculateDiscount()}</span>
                         </div>
                       )}
-                      
+
                       <div className="border-t border-gray-300 my-2 pt-2 flex justify-between items-center">
-                        <span className="font-semibold text-gray-900">Total Amount</span>
-                        <span className="font-bold text-xl text-purple-700">₹{calculateTotal()}</span>
+                        <span className="font-semibold text-gray-900">
+                          Total Amount
+                        </span>
+                        <span className="font-bold text-xl text-purple-700">
+                          ₹{calculateTotal()}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-between gap-3 pt-4">
                 {/* Proceed with Payment button first */}
                 <Button
                   label="Proceed with Payment"
                   onClick={handleProceedToPayment}
                   className={`${
-                    selectedPaymentMethod === "wallet" && !isWalletSufficient 
-                      ? "bg-gray-400 cursor-not-allowed" 
+                    selectedPaymentMethod === "wallet" && !isWalletSufficient
+                      ? "bg-gray-400 cursor-not-allowed"
                       : "bg-purple-600 hover:bg-purple-700"
                   } text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition-colors duration-200`}
                   icon={
-                    selectedPaymentMethod === "wallet" 
-                      ? <Wallet className="h-4 w-4" /> 
-                      : <CreditCard className="h-4 w-4" />
+                    selectedPaymentMethod === "wallet" ? (
+                      <Wallet className="h-4 w-4" />
+                    ) : (
+                      <CreditCard className="h-4 w-4" />
+                    )
                   }
-                  disabled={selectedPaymentMethod === "wallet" && !isWalletSufficient}
+                  disabled={
+                    selectedPaymentMethod === "wallet" && !isWalletSufficient
+                  }
                 />
 
                 {/* Cancel Booking button */}
@@ -516,12 +713,12 @@ const BookingConfirmationPage: React.FC = () => {
                 </button>
               </div>
 
-
               {selectedPaymentMethod === "wallet" && !isWalletSufficient && (
                 <div className="text-center mt-2">
                   <p className="text-red-500 text-sm">
-                    Your wallet balance (₹{walletBalance}) is insufficient for this transaction (₹{calculateTotal()}).
-                    Please select another payment method or add money to your wallet.
+                    Your wallet balance (₹{walletBalance}) is insufficient for
+                    this transaction (₹{calculateTotal()}). Please select
+                    another payment method or add money to your wallet.
                   </p>
                 </div>
               )}
