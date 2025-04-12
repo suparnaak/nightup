@@ -29,6 +29,8 @@ import HostEditEventPage from "../pages/host/HostEditEventPage";
 import Profile from "../pages/user/Profile";
 import ChangePassword from "../pages/user/ChangePassword";
 import WalletPage from "../pages/user/WalletPage";
+import MyBookingsPage from "../pages/user/MyBookingsPage"
+import SavedEventsPage from "../pages/user/SavedEventsPage";
 
 //admin specific
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -37,6 +39,7 @@ import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminSubscriptionPage from "../pages/admin/AdminSubscriptionPage";
 import AdminCouponPage from "../pages/admin/AdminCouponPage";
 import BookingConfirmationPage from "../pages/user/BookingConfirmationPage";
+import HostEventBookingsPage from "../pages/host/HostEventBookingsPage";
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -60,6 +63,7 @@ const AppRoutes = () => {
         <Route path="/host/login" element={<HostLogin />} />
         <Route path="/host/events/:id" element={<HostDetailedEventPage />} />
         <Route path="/host/events/edit/:id" element={<HostEditEventPage />} />
+        <Route path="/host/events/:eventId/bookings" element={<HostEventBookingsPage />} />
 
         {/* admin specific */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -70,6 +74,8 @@ const AppRoutes = () => {
           <Route path="/user/profile" element={<Profile />} />
           <Route path="/user/change-password" element={<ChangePassword />} />
           <Route path="/user/wallet" element={<WalletPage />} />
+          <Route path="/user/bookings" element={<MyBookingsPage />} />
+          <Route path="/user/saved-events" element={<SavedEventsPage />} />
         </Route>
         {/* host specific */}
         <Route element={<ProtectedRoute allowedRoles={["host"]} />}>

@@ -23,6 +23,7 @@ interface Booking {
   status: "confirmed" | "cancelled";
   createdAt: string;
   updatedAt: string;
+  ticketNumber: string
 }
 
 interface BookingStore {
@@ -40,6 +41,9 @@ interface BookingStore {
     bookingData: Partial<Booking>
   ) => Promise<boolean>;
 
+  fetchMyBookings: () => Promise<void>;
+  cancelBooking: (bookingId: string, reason: string) => Promise<boolean>;
+  fetchBookingsByEvent: (eventId: string) => Promise<void>;//bookings per event for host
 }
 
 export const useBookingStore = create<BookingStore>((set, get) => ({
@@ -96,6 +100,53 @@ verifyPayment: async (paymentData, bookingData) => {
     throw err;
   }
 },
-
-  
+fetchMyBookings: async () => {
+  set({ isLoading: true, error: null });
+  try {
+    const bookings = await bookingRepository.getMyBookings();
+    set({ bookings, isLoading: false });
+  } catch (err: any) {
+    set({
+      isLoading: false,
+      error: err.response?.data?.message || "Failed to fetch bookings",
+    });
+    throw err;
+  }
+},
+cancelBooking: async (bookingId: string, reason: string) => {
+  set({ isLoading: true, error: null });
+  try {
+    const success = await bookingRepository.cancelBooking(bookingId, reason);
+    if (success) {
+      // Update local state to reflect the cancellation
+      const updatedBookings = get().bookings.map(booking => 
+        booking._id === bookingId 
+          ? { ...booking, status: "cancelled" as "cancelled" } 
+          : booking
+      );
+      set({ bookings: updatedBookings, isLoading: false });
+    }
+    return success;
+  } catch (err: any) {
+    set({
+      isLoading: false,
+      error: err.response?.data?.message || "Failed to cancel booking",
+    });
+    throw err;
+  }
+},
+fetchBookingsByEvent: async (eventId) => {
+  set({ isLoading: true, error: null });
+  try {
+    const bookings = await bookingRepository.getBookingsByEvent(eventId);
+    console.log("bookings:",bookings)
+    set({ bookings, isLoading: false });
+  } catch (err: any) {
+    set({
+      isLoading: false,
+      error: err.response?.data?.message || "Failed to fetch bookings for event",
+    });
+    throw err;
+  }
+},
 }));

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import SavedEventService from "../services/savedEventService";
+import EventRepository from "../repositories/eventRepository";
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { ISavedEventController } from "./interfaces/ISavedEventController";
 
@@ -12,27 +13,29 @@ interface AuthRequest extends Request {
 
 class SavedEventController implements ISavedEventController {
   async getSavedEvents(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        res.status(STATUS_CODES.UNAUTHORIZED).json({
-          success: false,
-          message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
+   
+      try {
+        const userId = req.user?.userId;
+        if (!userId) {
+          res.status(STATUS_CODES.UNAUTHORIZED).json({
+            success: false,
+            message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
+          });
+          return;
+        }
+        const savedEvents = await SavedEventService.getSavedEvents(userId);
+        console.log("saved events:-",savedEvents)
+        res.status(STATUS_CODES.SUCCESS).json({
+          success: true,
+          savedEvents,
         });
-        return;
+      } catch (error) {
+        console.error("Get Saved Events Error:", error);
+        res.status(STATUS_CODES.SERVER_ERROR).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+        });
       }
-      const savedEvents = await SavedEventService.getSavedEvents(userId);
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        savedEvents,
-      });
-    } catch (error) {
-      console.error("Get Saved Events Error:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({
-        success: false,
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-      });
-    }
   }
 
   async saveEvent(req: AuthRequest, res: Response): Promise<void> {
@@ -50,7 +53,7 @@ class SavedEventController implements ISavedEventController {
       if (!eventId) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: "Event ID is required",
+          message: MESSAGES.USER.ERROR.EVENT_ID_MISSING,
         });
         return;
       }
@@ -58,13 +61,13 @@ class SavedEventController implements ISavedEventController {
       if (!isSaved) {
         res.status(STATUS_CODES.CONFLICT).json({
           success: false,
-          message: "Event is already saved",
+          message: MESSAGES.USER.ERROR.EVENT_IS_SAVED,
         });
         return;
       }
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: "Event saved successfully",
+        message: MESSAGES.USER.SUCCESS.EVENT_SAVED,
       });
     } catch (error) {
       console.error("Save Event Error:", error);
@@ -89,7 +92,7 @@ class SavedEventController implements ISavedEventController {
       if (!eventId) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: "Event ID is required",
+          message: MESSAGES.USER.ERROR.EVENT_ID_MISSING,
         });
         return;
       }
@@ -98,13 +101,13 @@ class SavedEventController implements ISavedEventController {
       if (!isRemoved) {
         res.status(STATUS_CODES.NOT_FOUND).json({
           success: false,
-          message: "Event not found in saved events",
+          message: MESSAGES.USER.ERROR.EVENT_ID_MISSING,
         });
         return;
       }
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: "Event removed successfully",
+        message: MESSAGES.USER.SUCCESS.EVENT_REMOVED,
       });
     } catch (error) {
       console.error("Remove Saved Event Error:", error);

@@ -4,7 +4,6 @@ import { IBookingController } from "./interfaces/IBookingController";
 import { MESSAGES, STATUS_CODES } from "../utils/constants";
 import crypto from "crypto";
 
-
 const ticketNumber = crypto.randomBytes(6).toString("hex").toUpperCase();
 
 interface AuthRequest extends Request {
@@ -16,7 +15,7 @@ interface AuthRequest extends Request {
 class BookingController implements IBookingController {
   async createOrder(req: AuthRequest, res: Response): Promise<void> {
     try {
-      console.log("controller reached")
+      console.log("controller reached");
       const { totalAmount } = req.body;
       if (!req.user?.userId) {
         res.status(STATUS_CODES.UNAUTHORIZED).json({
@@ -44,7 +43,7 @@ class BookingController implements IBookingController {
 
   async verifyPayment(req: AuthRequest, res: Response): Promise<void> {
     try {
-      console.log("entering verify controller")
+      console.log("entering verify controller");
       if (!req.user?.userId) {
         res.status(STATUS_CODES.UNAUTHORIZED).json({
           success: false,
@@ -52,31 +51,31 @@ class BookingController implements IBookingController {
         });
         return;
       }
-      
-      
-      const { 
-        razorpay_payment_id, 
-        razorpay_order_id, 
+
+      const {
+        razorpay_payment_id,
+        razorpay_order_id,
         razorpay_signature,
         ...bookingDetails
       } = req.body;
-      
-      
+
       const result = await BookingService.verifyPayment(
         req.user.userId,
         {
           razorpay_payment_id,
           razorpay_order_id,
-          razorpay_signature
+          razorpay_signature,
         },
         bookingDetails
       );
-      
+
       if (result.success) {
         res.status(STATUS_CODES.SUCCESS).json({
           success: true,
-          message: MESSAGES.USER.SUCCESS.BOOKING_CREATED || "Booking confirmed successfully",
-          booking: result.booking
+          message:
+            MESSAGES.USER.SUCCESS.BOOKING_CREATED ||
+            "Booking confirmed successfully",
+          booking: result.booking,
         });
       } else {
         res.status(STATUS_CODES.BAD_REQUEST).json({
@@ -91,7 +90,7 @@ class BookingController implements IBookingController {
         message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
       });
     }
-    }
+  }
 
   async createBooking(req: AuthRequest, res: Response): Promise<void> {
     try {
@@ -103,12 +102,12 @@ class BookingController implements IBookingController {
         });
         return;
       }
-  
+
       const bookingData = {
         ...req.body,
         userId,
         ticketNumber,
-        status:"confirmed"
+        status: "confirmed",
       };
 
       //const newBooking = await BookingService.createBooking(bookingData);
@@ -120,6 +119,95 @@ class BookingController implements IBookingController {
       });
     } catch (error) {
       console.error("Create Booking Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
+  async getMyBookings(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(STATUS_CODES.UNAUTHORIZED).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
+        });
+        return;
+      }
+
+      const bookings = await BookingService.getUserBookings(userId);
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        bookings,
+      });
+    } catch (error) {
+      console.error("Get My Bookings Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
+  //cancellation
+  async cancelBooking(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(STATUS_CODES.UNAUTHORIZED).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
+        });
+        return;
+      }
+
+      const { bookingId } = req.params;
+      const { reason } = req.body;
+
+      const result = await BookingService.cancelBooking(
+        userId,
+        bookingId,
+        reason
+      );
+
+      if (result.success) {
+        res.status(STATUS_CODES.SUCCESS).json({
+          success: true,
+          message: result.message,
+          booking: result.booking,
+        });
+      } else {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: result.message,
+        });
+      }
+    } catch (error) {
+      console.error("Cancel Booking Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
+  async getBookingsByEvent(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { eventId } = req.params;
+      const hostId = req.user?.userId;
+      if (!hostId) {
+        res
+          .status(STATUS_CODES.UNAUTHORIZED)
+          .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
+        return;
+      }
+      const bookings = await BookingService.getBookingsByEvent(eventId);
+      console.log(bookings);
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        bookings,
+      });
+    } catch (error) {
+      console.error("Get Bookings By Event Error:", error);
       res.status(STATUS_CODES.SERVER_ERROR).json({
         success: false,
         message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,

@@ -31,4 +31,10 @@ export interface IBookingService {
           }): Promise<{ success: boolean; message?: string; booking?: IBooking }>
 
         createBooking(data: Partial<IBooking>): Promise<IBooking>
+        cancelBooking(
+          userId: string,
+          bookingId: string,
+          reason?: string
+        ): Promise<{ success: boolean; message: string; booking?: IBooking }>
+        getBookingsByEvent(eventId: string): Promise<IBooking[]>
 }

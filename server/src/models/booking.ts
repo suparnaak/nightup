@@ -83,20 +83,6 @@ const bookingSchema = new Schema<IBooking>(
   { timestamps: true }
 );
 
-//ticket number genertion
-/* bookingSchema.pre("validate", function (next) {
-  if (this.isNew) {
-    this.ticketNumber = nanoid();
-  }
-  next();
-}); */
-/* bookingSchema.pre("validate", async function (next) {
-  if (this.isNew) {
-    const { customAlphabet } = await import("nanoid");
-    const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 10);
-    this.ticketNumber = nanoid();
-  }
-  next();
-}); */
+
 
 export default mongoose.model<IBooking>("Booking", bookingSchema);

@@ -9,9 +9,9 @@ class WalletService implements IWalletService {
   }
 
   async createOrder(userId: string, amount: number): Promise<{ id: string }> {
-    // Create a receipt using userId and current timestamp (you can customize this)
+    
     const receipt = `wallet_${userId.slice(0,6)}_${Date.now()}`;
-    // Call PaymentService.createOrder – note: amount should be in paise here.
+    
     const order = await PaymentService.createOrder({
       amount: amount * 100,
       currency: "INR",

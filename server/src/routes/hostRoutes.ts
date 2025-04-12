@@ -3,6 +3,7 @@ import HostController from "../controllers/hostController";
 import HostProfileController from "../controllers/hostProfileController";
 import HostSubscriptionController from "../controllers/hostSubscriptionController";
 import EventController from "../controllers/eventController";
+import BookingController from "../controllers/bookingController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
 const router: Router = Router();
@@ -31,6 +32,11 @@ router
 router.get("/available-subscription", authMiddleware(["host"]), HostSubscriptionController.getAvailableSubscriptions);
 router.post("/subscriptions/create-order", authMiddleware(["host"]), HostSubscriptionController.createOrder);
 router.post("/subscriptions/verify-payment", authMiddleware(["host"]), HostSubscriptionController.verifyPayment);
+
+router.post("/subscriptions/create-upgrade-order", authMiddleware(["host"]), HostSubscriptionController.createUpgradeOrder);
+router.post("/subscriptions/verify-upgrade", authMiddleware(["host"]), HostSubscriptionController.verifyUpgradePayment);
+
+router.get("/events/:eventId/bookings", authMiddleware(["host"]), BookingController.getBookingsByEvent);
 
 
 

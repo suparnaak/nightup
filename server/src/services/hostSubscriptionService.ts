@@ -67,6 +67,132 @@ class HostSubscriptionService implements IHostSubscriptionService {
       return false;
     }
   }
+
+  //upgrade plan
+  async createUpgradeOrder(
+    hostId: string,
+    planId: string,
+    amount: number,
+    currentSubscriptionId: string
+  ): Promise<{ id: string }> {
+    
+    const subscription = await HostSubscriptionRepository.getSubscriptionById(currentSubscriptionId);
+    
+    if (!subscription) {
+      throw new Error("Subscription not found");
+    }
+    
+    if (subscription.host.toString() !== hostId) {
+      throw new Error("Unauthorized: This subscription does not belong to you");
+    }
+    
+    
+    const newPlan = await HostSubscriptionRepository.getSubscriptionPlanById(planId);
+    if (!newPlan) {
+      throw new Error("Invalid subscription plan");
+    }
+    
+    const shortHostId = hostId.slice(0, 6);
+    const shortPlanId = planId.slice(0, 6);
+    const timestamp = Date.now().toString().slice(-4);
+    
+    const receipt = `upgrade_${shortHostId}_${shortPlanId}_${timestamp}`;
+    const options = {
+      amount: amount * 100, 
+      currency: "INR",
+      receipt,
+      notes: {
+        type: "upgrade",
+        currentSubscriptionId
+      }
+    };
+    
+    const order = await PaymentService.createOrder(options);
+    return order;
+  }
+  async verifyUpgradePayment(
+    hostId: string,
+    paymentData: {
+      razorpay_payment_id: string;
+      razorpay_order_id: string;
+      razorpay_signature: string;
+      planId: string;
+      currentSubscriptionId: string;
+    }
+  ): Promise<{ 
+    success: boolean;
+    subscription?: ISubscription;
+  }> {
+    
+    const signatureData = {
+      razorpay_payment_id: paymentData.razorpay_payment_id,
+      razorpay_order_id: paymentData.razorpay_order_id,
+      razorpay_signature: paymentData.razorpay_signature
+    };
+    
+    const verified = await PaymentService.verifyPayment(signatureData);
+    
+    if (!verified) {
+      return { success: false };
+    }
+    
+    
+    const currentSubscription = await HostSubscriptionRepository.getSubscriptionById(
+      paymentData.currentSubscriptionId
+    );
+    
+    if (!currentSubscription) {
+      throw new Error("Subscription not found");
+    }
+    
+    if (currentSubscription.host.toString() !== hostId) {
+      throw new Error("Unauthorized: This subscription does not belong to you");
+    }
+    
+    
+    const newPlan = await HostSubscriptionRepository.getSubscriptionPlanById(paymentData.planId);
+    if (!newPlan) {
+      throw new Error("Invalid subscription plan");
+    }
+    
+    
+    let months = 1;
+    if (newPlan.duration === "6 Months") months = 6;
+    if (newPlan.duration === "Yearly") months = 12;
+    
+    const startDate = new Date(); 
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + months);
+    
+    
+    const updatedSubscription = await HostSubscriptionRepository.updateSubscription(
+      paymentData.currentSubscriptionId,
+      {
+        subscriptionPlan: paymentData.planId,
+        startDate,
+        endDate,
+        status: "Active",
+        paymentId: paymentData.razorpay_payment_id
+      }
+    );
+    
+    if (!updatedSubscription) {
+      throw new Error("Failed to update subscription");
+    }
+    
+    // Update host's subscription status
+    /* try {
+      await Host.findByIdAndUpdate(hostId, { subStatus: "Active" });
+    } catch (error) {
+      console.error("Error updating host subStatus:", error);
+      // Continue even if this fails
+    } */
+    
+    return {
+      success: true,
+      subscription: updatedSubscription
+    };
+  }
 }
 
 export default new HostSubscriptionService();

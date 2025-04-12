@@ -35,6 +35,33 @@ class HostSubscriptionRepository implements IHostSubscriptionRepository {
     });
     return await newSubscription.save();
   }
+  async getSubscriptionById(subscriptionId: string): Promise<ISubscription | null> {
+    return await Subscription.findById(subscriptionId)
+      .populate("subscriptionPlan")
+      .lean();
+  }
+  async updateSubscription(
+    subscriptionId: string,
+    updateData: {
+      subscriptionPlan: string;
+      startDate: Date;
+      endDate: Date;
+      status: "Active" | "Expired";
+      paymentId?: string;
+    }
+  ): Promise<ISubscription | null> {
+    return await Subscription.findByIdAndUpdate(
+      subscriptionId,
+      {
+        subscriptionPlan: updateData.subscriptionPlan,
+        startDate: updateData.startDate,
+        endDate: updateData.endDate,
+        status: updateData.status,
+        paymentId: updateData.paymentId
+      },
+      { new: true }
+    ).populate("subscriptionPlan");
+  }
 }
 
 export default new HostSubscriptionRepository();

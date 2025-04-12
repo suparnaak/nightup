@@ -1,3 +1,4 @@
+import axiosHostClient from "../api/axiosHostClient";
 import axiosUserClient from "../api/axiosUserClient";
 
 export const bookingRepository = {
@@ -18,7 +19,22 @@ export const bookingRepository = {
     return response.data;
   },
 
-  
+  getMyBookings: async () => {
+    const response = await axiosUserClient.get("/bookings");
+    console.log(response.data)
+    // Expect { success: true, bookings: Booking[] }
+    return response.data.bookings as any[];
+  },
+  cancelBooking: async (bookingId: string, reason: string) => {
+    const response = await axiosUserClient.post(`/bookings/${bookingId}/cancel`, { reason });
+    return response.data.success as boolean;
+  },
+
+  getBookingsByEvent: async (eventId: string) => {
+    const response = await axiosHostClient.get(`/events/${eventId}/bookings`);
+    return response.data.bookings as any[];
+  },
 };
+
 
 export default bookingRepository;

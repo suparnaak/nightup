@@ -1,4 +1,3 @@
-// src/models/coupon.ts
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface ICoupon extends Document {
@@ -11,7 +10,7 @@ export interface ICoupon extends Document {
   couponQuantity: number;
   usedCount: number;
   status: "inactive" | "active" | "expired";
-  isBlocked: boolean;    // new field
+  isBlocked: boolean;    
 }
 
 const couponSchema: Schema = new Schema(
@@ -33,23 +32,22 @@ const couponSchema: Schema = new Schema(
         return "active";
       },
     },
-    isBlocked: { type: Boolean, default: false },  // added here
+    isBlocked: { type: Boolean, default: false },  
   },
   { timestamps: true }
 );
 
-// Pre-find middleware to update coupon status when retrieving coupons.
-// This will update status before returning documents
+
 couponSchema.pre("find", async function() {
   const now = new Date();
   
-  // Activate coupons whose startDate has arrived
+ 
   await mongoose.model("Coupon").updateMany(
     { status: "inactive", startDate: { $lte: now } },
     { status: "active" }
   );
   
-  // Expire coupons whose endDate has passed
+  
   await mongoose.model("Coupon").updateMany(
     { status: "active", endDate: { $lte: now } },
     { status: "expired" }

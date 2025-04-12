@@ -21,4 +21,8 @@ export interface ICouponRepository {
         }>
       ): Promise<ICoupon | null>
       deleteCoupon(id: string): Promise<void>
+      getAvailableCoupons(
+          userId: string,
+          minimumAmount?: number
+        ): Promise<ICoupon[]>
 }

@@ -43,19 +43,7 @@ export const userRepository = {
       console.log(response)
       return response.data;
     },
-    //to get all the available coupons
-   /*  getAvailableCoupons: async (): Promise<Coupon[]> => {
-      const res = await axiosClient.get<{
-        success: boolean;
-        coupons: Coupon[];
-      }>("/coupons");
     
-      if (!res.data.success) {
-        throw new Error("Failed to fetch coupons");
-      }
-    
-      return res.data.coupons;
-    } */
       getAvailableCoupons: async (totalAmount?: number): Promise<Coupon[]> => {
         const url = totalAmount !== undefined 
           ? `/coupons?minimumAmount=${totalAmount}` 

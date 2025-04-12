@@ -5,7 +5,7 @@ export interface IAdmin extends Document {
   name: string;
   email: string;
   password: string;
-  refreshToken?: string; // New field for storing refresh token
+  refreshToken?: string;
   role?: 'user' | 'host' | 'admin';
 }
 

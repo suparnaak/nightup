@@ -36,24 +36,35 @@ export const MESSAGES = {
       BLOCKED: "Your account is blocked",
       JWT_SECRET_MISSING:"JWT token is not configured",
       NO_EVENT_FOUND: "No Event found",
-      INVALID_EVENT_ID: "No Event Id availabale"
+      INVALID_EVENT_ID: "No Event Id availabale",
+      REFRESH_TOKEN_MISSING: "No refresh token provided",
+      REFRESH_TOKEN_INVALID: "refresh token is invalid",
+      PAYMENT_FAILED: "Payment Failed Please try again",
       
     },
   },
 
   USER: {
     SUCCESS: {
-      BOOKING_CREATED:"Booking confirmed successfully"
+      BOOKING_CREATED:"Booking confirmed successfully",
+      EVENT_SAVED : "Event saved successfully",
+      EVENT_REMOVED: "Event removed successfully",
+      WALLET_UPDATED: "Wallet updated successfully",
     },
     ERROR: {
-      
+      EVENT_ID_MISSING: "Event is missing",
+      EVENT_IS_SAVED: "Event is already saved",
+      AMOUNT_INVALID: "Invalid Amount",
     },
   },
 
   HOST: {
     SUCCESS: {
       EVENT_CREATED:"Event created successfully",
-      EVENT_FETCHED:"Events fetched successfully"
+      EVENT_FETCHED:"Events fetched successfully",
+      EVENT_UPDATE:"Event updated successfully",
+      EVENT_DELETED:"Event deleted successfully",
+      FETCH_PROFILE: "Profile retrieved successfully",
     },
     ERROR: {
       
@@ -66,6 +77,8 @@ export const MESSAGES = {
   },
   ADMIN:{
     SUCCESS:{
+      HOSTS_FETCHED: "Hosts retrieved successfully",
+      USERS_FETCHED: "Users retrieved successfully",
       DOCUMENT_VERIFIED: "Document has been verified successfully",
       DOCUMENT_REJECTED: "Document has been rejected",
       SUBSCRIPTION_CREATED: "Subscription created successfully",
@@ -98,8 +111,7 @@ export const MESSAGES = {
   }
 };
 
-
-export const STATUS_CODES = {
+/* export const STATUS_CODES = {
   SUCCESS: 200,
   CREATED: 201,
   BAD_REQUEST: 400,
@@ -108,6 +120,16 @@ export const STATUS_CODES = {
   SERVER_ERROR: 500,
   FORBIDDEN:403,
   CONFLICT:409
-};
+}; */
 
+export enum STATUS_CODES {
+  SUCCESS = 200,
+  CREATED = 201,
+  BAD_REQUEST = 400,
+  UNAUTHORIZED = 401,
+  FORBIDDEN = 403,
+  NOT_FOUND = 404,
+  CONFLICT = 409,
+  SERVER_ERROR = 500
+}
 

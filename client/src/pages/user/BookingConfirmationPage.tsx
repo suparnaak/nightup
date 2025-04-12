@@ -187,7 +187,7 @@ const BookingConfirmationPage: React.FC = () => {
         await getWallet();
 
         sessionStorage.removeItem("currentBooking");
-        navigate("/bookings");
+        navigate("/user/bookings");
       } else if (selectedPaymentMethod === "razorpay") {
         const orderId = await createOrder(total);
         console.log("orderid razor:", typeof orderId);
@@ -227,7 +227,7 @@ const BookingConfirmationPage: React.FC = () => {
                     ).ticketPrice,
                   })),
                   coupon: appliedCoupon?.id || null,
-                  totalAmount: subtotal,
+                  totalAmount: total,
                   discountedAmount: discount,
                   paymentMethod: "razorpay",
                   paymentStatus: "paid",
@@ -237,7 +237,7 @@ const BookingConfirmationPage: React.FC = () => {
               );
 
               toast.success("Booking confirmed!");
-              navigate("/bookings");
+              navigate("/user/bookings");
             } catch (err: any) {
               console.error("Verification error:", err);
               toast.error("Payment verification failed. Please try again.");

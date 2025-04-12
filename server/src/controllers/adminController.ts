@@ -65,7 +65,7 @@ class AdminController implements IAdminController {
     try {
       const refreshToken = req.cookies.refreshToken;
       if (!refreshToken) {
-        res.status(STATUS_CODES.UNAUTHORIZED).json({ success: false, message: "Refresh token not provided" });
+        res.status(STATUS_CODES.UNAUTHORIZED).json({ success: false, message: MESSAGES.COMMON.ERROR.REFRESH_TOKEN_MISSING });
         return;
       }
       const result = await AdminService.refreshToken(refreshToken);
@@ -89,7 +89,7 @@ class AdminController implements IAdminController {
       console.error("Refresh Token Error:", error);
       res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
-        message: "Failed to refresh token",
+        message: MESSAGES.COMMON.ERROR.REFRESH_TOKEN_INVALID,
       });
     }
   }
@@ -101,7 +101,7 @@ class AdminController implements IAdminController {
       //console.log(hosts)
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: "Hosts retrieved successfully",
+        message: MESSAGES.ADMIN.SUCCESS.HOSTS_FETCHED,
         hosts,
       });
     } catch (error) {
@@ -179,7 +179,7 @@ class AdminController implements IAdminController {
       //console.log(hosts)
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: "Users retrieved successfully",
+        message: MESSAGES.ADMIN.SUCCESS.USERS_FETCHED,
         users,
       });
     } catch (error) {

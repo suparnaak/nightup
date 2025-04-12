@@ -48,13 +48,23 @@ class EventRepository implements IEventRepository {
   }
   async getEventsByCity(city: string): Promise<IEvent[]> {
     try {
-      
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
       const events = await Event.find({
         isBlocked: false,
-        venueCity: { $regex: new RegExp(city, "i") }
+        venueCity: { $regex: new RegExp(city, "i") },
+        $or: [
+          { date: { $gt: today } }, // Events in the future
+          { 
+            date: today, 
+            endTime: { $gte: now } // Events that are ongoing today
+          }
+        ]
       })
       .sort({ date: 1, startTime: 1 })
       .lean();
+  
       return events as IEvent[];
     } catch (error) {
       console.error("Error fetching events by city:", error);

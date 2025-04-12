@@ -2,7 +2,8 @@ import { create } from "zustand";
 import { hostRepository } from "../repositories/hostRepository";
 
 export interface HostSubscription {
-  id: string;
+  id?: string;      // For backward compatibility
+  _id: string;      // Match actual MongoDB document structure
   subscriptionPlan: SubscriptionPlan; 
   startDate: string;        
   endDate: string;          
@@ -26,6 +27,12 @@ interface HostSubscriptionState {
   getAvailablePlans: () => Promise<SubscriptionPlan[]>;
   createSubscriptionOrder: (planId: string, amount: number) => Promise<string>;
   verifySubscriptionPayment: (paymentData: any, planId: string) => Promise<boolean>;
+  createUpgradeOrder: (planId: string, amount: number, currentSubscriptionId: string) => Promise<string>;
+  verifyUpgradePayment: (
+    paymentData: any,
+    planId: string,
+    currentSubscriptionId: string
+  ) => Promise<boolean>;
 }
 
 export const useHostSubscriptionStore = create<HostSubscriptionState>((set) => ({
@@ -104,5 +111,50 @@ export const useHostSubscriptionStore = create<HostSubscriptionState>((set) => (
         });
         return false;
       }
+    },
+    createUpgradeOrder: async (planId, amount, currentSubscriptionId) => {
+      set({ isLoading: true, error: null });
+      try {
+        const data = await hostRepository.createUpgradeOrder(planId, amount, currentSubscriptionId);
+        set({ isLoading: false });
+        return data.orderId;
+      } catch (error: any) {
+        set({
+          error: error.response?.data?.message || "Failed to create upgrade order",
+          isLoading: false,
+        });
+        throw error;
+      }
+    },
+    verifyUpgradePayment: async (paymentData, planId, currentSubscriptionId) => {
+      set({ isLoading: true, error: null });
+      try {
+        console.log("Verifying upgrade payment with:", {
+          ...paymentData,
+          planId,
+          currentSubscriptionId
+        });
+        
+        const data = await hostRepository.verifyUpgradePayment({
+          ...paymentData,
+          planId,
+          currentSubscriptionId
+        });
+        
+        if (data.success) {
+          await hostRepository.getHostSubscription().then(data => {
+            set({ subscription: data.subscription });
+          });
+        }
+        
+        set({ isLoading: false });
+        return data.success;
+      } catch (error: any) {
+        set({
+          error: error.response?.data?.message || "Failed to verify upgrade payment",
+          isLoading: false,
+        });
+        return false;
+      }
     }
-}));
+  }));

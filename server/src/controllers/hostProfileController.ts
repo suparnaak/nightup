@@ -22,7 +22,7 @@ class HostProfileController implements IHostProfileController {
       const profile = await HostProfileService.getHostProfile(hostId);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: "Host profile retrieved successfully",
+        message: MESSAGES.HOST.SUCCESS.FETCH_PROFILE,
         hostProfile: profile,
       });
     } catch (error) {

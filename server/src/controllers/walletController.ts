@@ -48,7 +48,7 @@ class WalletController implements IWalletController {
       if (!amount || amount <= 0) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: "Invalid amount",
+          message: MESSAGES.USER.ERROR.AMOUNT_INVALID,
         });
         return;
       }
@@ -82,12 +82,12 @@ class WalletController implements IWalletController {
       if (success) {
         res.status(STATUS_CODES.SUCCESS).json({
           success: true,
-          message: "Payment verified and wallet updated successfully.",
+          message: MESSAGES.USER.SUCCESS.WALLET_UPDATED,
         });
       } else {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: "Payment verification failed.",
+          message: MESSAGES.COMMON.ERROR.PAYMENT_FAILED,
         });
       }
     } catch (error) {

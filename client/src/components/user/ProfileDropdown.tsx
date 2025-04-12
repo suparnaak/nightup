@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Wallet, Book } from 'lucide-react';
+import { LogOut, User, Wallet, Book, Bookmark } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 const ProfileDropdown: React.FC = () => {
@@ -21,15 +21,23 @@ const ProfileDropdown: React.FC = () => {
 
   const handleOptionClick = (option: string) => {
     setIsOpen(false);
-    if (option === 'logout') {
-      logout();
-      navigate('/login');
-    } else if (option === 'profile') {
-      navigate('/user/profile');
-    } else if (option === 'bookings') {
-      navigate('/user/bookings');
-    } else if (option === 'wallet') {
-      navigate('/user/wallet');
+    switch (option) {
+      case 'bookings':
+        navigate('/user/bookings');
+        break;
+      case 'savedEvents':
+        navigate('/user/saved-events');
+        break;
+      case 'profile':
+        navigate('/user/profile');
+        break;
+      case 'wallet':
+        navigate('/user/wallet');
+        break;
+      case 'logout':
+        logout();
+        navigate('/login');
+        break;
     }
   };
 
@@ -44,19 +52,38 @@ const ProfileDropdown: React.FC = () => {
       </button>
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
-          <button onClick={() => handleOptionClick('bookings')} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          <button
+            onClick={() => handleOptionClick('bookings')}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
             <Book className="mr-2 h-4 w-4" />
             Bookings
           </button>
-          <button onClick={() => handleOptionClick('profile')} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          <button
+            onClick={() => handleOptionClick('savedEvents')}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            <Bookmark className="mr-2 h-4 w-4" />
+            Saved Events
+          </button>
+          <button
+            onClick={() => handleOptionClick('profile')}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
             <User className="mr-2 h-4 w-4" />
             Profile
           </button>
-          <button onClick={() => handleOptionClick('wallet')} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          <button
+            onClick={() => handleOptionClick('wallet')}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
             <Wallet className="mr-2 h-4 w-4" />
             Wallet
           </button>
-          <button onClick={() => handleOptionClick('logout')} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          <button
+            onClick={() => handleOptionClick('logout')}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </button>

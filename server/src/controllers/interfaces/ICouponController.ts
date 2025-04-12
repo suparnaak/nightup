@@ -5,4 +5,5 @@ export interface ICouponController {
     createCoupon(req: Request, res: Response): Promise<void>;
     updateCoupon(req: Request, res: Response): Promise<void>;
     deleteCoupon(req: Request, res: Response): Promise<void>;
+    getAvailableCoupons(req: Request, res: Response): Promise<void>
 }

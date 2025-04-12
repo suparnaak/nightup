@@ -342,7 +342,7 @@ class UserController {
       if (password !== confirmPassword) {
         res
           .status(STATUS_CODES.BAD_REQUEST)
-          .json({ message: "Passwords do not match" });
+          .json({ message: MESSAGES.COMMON.ERROR.PASSWORD_MISMATCH });
         return;
       }
       const result = await UserService.resetPassword(email, password);

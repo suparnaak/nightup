@@ -13,13 +13,27 @@ export interface UserProfileResponse {
   message: string;
 }
 
-export interface SavedEvent {
+/* export interface SavedEvent {
   id: string;       
   eventId: string;  
   title: string;
   eventImage?: string;
   date?: Date;
-}
+} */
+  export interface SavedEvent {
+    _id: string;
+    user: string;
+    event: {
+      _id: string;
+      title: string;
+      eventImage?: string;
+      date?: string;
+      startTime?: string;
+      endTime?: string;
+      venueName?: string;
+      venueCity?: string;
+    };
+  }
 
 interface UserProfileState {
   user: UserProfile | null;
@@ -75,6 +89,7 @@ export const useUserStore = create<UserProfileState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const savedEvents = await userRepository.getSavedEvents();
+      console.log("saved events:-",savedEvents)
       set({ savedEvents, isLoading: false });
       return savedEvents;
     } catch (error: any) {
@@ -89,12 +104,12 @@ export const useUserStore = create<UserProfileState>((set, get) => ({
   saveEvent: async (eventId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const savedEvent = await userRepository.saveEvent(eventId);
-      set(state => ({ 
-        savedEvents: [...state.savedEvents, savedEvent],
-        isLoading: false 
-      }));
-      return savedEvent;
+      await userRepository.saveEvent(eventId);
+      
+      const freshList = await get().fetchSavedEvents();
+      set({ isLoading: false });
+      
+      return freshList.find(e => e.event._id === eventId)!;
     } catch (error: any) {
       set({
         error: error.response?.data?.message || "Failed to save event",
@@ -109,7 +124,7 @@ export const useUserStore = create<UserProfileState>((set, get) => ({
     console.log(typeof(eventId))
     set({ isLoading: true, error: null });
     try {
-     /*  const response =  */await userRepository.removeSavedEvent(eventId);
+     await userRepository.removeSavedEvent(eventId);
       await get().fetchSavedEvents();
       //console.log("Response from remove saved event:", response);
       console.log("Current saved events:", get().savedEvents);
@@ -118,7 +133,7 @@ export const useUserStore = create<UserProfileState>((set, get) => ({
       set(state => {
         const filtered = state.savedEvents.filter(event => {
           console.log("Comparing:", event, "with eventId:", eventId);
-          return event.eventId !== eventId;
+          return event._id !== eventId;
         });
         console.log("Filtered events:", filtered);
         return { 

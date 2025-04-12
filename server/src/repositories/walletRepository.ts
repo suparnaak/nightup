@@ -6,7 +6,7 @@
       return await Wallet.findOne({ user: userId });
     }
 
-    async updateWalletBalance(userId: string, amount: number, paymentId?: string): Promise<IWallet> {
+    async updateWalletBalance(userId: string, amount: number, paymentId?: string,description: string = "Wallet recharge"): Promise<IWallet> {
 
       const rechargeAmount = Number(amount);
       let wallet = await Wallet.findOne({ user: userId });
@@ -19,7 +19,7 @@
         amount: rechargeAmount,
         type: "credit",
         date: new Date(),
-        description: "Wallet recharge",
+        description,
         paymentId, 
       });
       return await wallet.save();
@@ -28,6 +28,7 @@
     async deductWalletBalance(
       userId: string,
       amount: number,
+      paymentId: string,
       description: string
     ): Promise<IWallet> {
       const wallet = await Wallet.findOne({ user: userId });
@@ -41,6 +42,7 @@
         type: "debit",
         date: new Date(),
         description,
+        paymentId
       });
     
       return await wallet.save();

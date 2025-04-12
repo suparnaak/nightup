@@ -75,7 +75,7 @@ export const useWalletStore = create<WalletState>((set) => ({
     try {
       const data = await walletRepository.verifyWalletPayment(paymentData);
       if (data.success) {
-        // Refresh wallet info if payment is verified
+        
         await useWalletStore.getState().getWallet();
       }
       set({ isLoading: false });

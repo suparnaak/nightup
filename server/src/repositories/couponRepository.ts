@@ -52,16 +52,14 @@ class CouponRepository implements ICouponRepository {
       filter.minimumAmount = { $lte: minimumAmount };
     }
   
-    // First, find all coupons matching base criteria
     const coupons = await Coupon.find(filter).sort({ createdAt: -1 });
   
-    // Then filter out those already used by this user
     const available = [];
     for (const coupon of coupons) {
       const used = await Booking.exists({
         userId: new Types.ObjectId(userId),
         couponId: coupon._id,
-        status: { $in: ["pending", "confirmed"] } // or whatever statuses count
+        status: { $in: ["pending", "confirmed"] } 
       });
       if (!used) {
         available.push(coupon);

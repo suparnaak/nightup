@@ -37,7 +37,25 @@ export const hostRepository = {
     const response = await axiosHostClient.post('/subscriptions/verify-payment', paymentData);
     return response.data;
   },
-
+  createUpgradeOrder: async (planId: string, amount: number, currentSubscriptionId: string) => {
+    const response = await axiosHostClient.post('/subscriptions/create-upgrade-order', {
+      planId,
+      amount,
+      currentSubscriptionId
+    });
+    return response.data;
+  },
+  verifyUpgradePayment: async (paymentData: {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+    planId: string;
+    currentSubscriptionId: string;
+  }) => {
+    console.log("Sending verification request to server:", paymentData);
+    const response = await axiosHostClient.post('/subscriptions/verify-upgrade', paymentData);
+    return response.data;
+  }
 };
 
 export default hostRepository;

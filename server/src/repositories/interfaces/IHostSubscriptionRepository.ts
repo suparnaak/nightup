@@ -13,5 +13,16 @@ export interface IHostSubscriptionRepository {
         status: "Active" | "Expired";
         paymentId?: string;
       }): Promise<ISubscription>
+      getSubscriptionById(subscriptionId: string): Promise<ISubscription | null>
+      updateSubscription(
+          subscriptionId: string,
+          updateData: {
+            subscriptionPlan: string;
+            startDate: Date;
+            endDate: Date;
+            status: "Active" | "Expired";
+            paymentId?: string;
+          }
+        ): Promise<ISubscription | null>
 
 }

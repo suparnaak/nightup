@@ -1,185 +1,104 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useEventStore } from "../../store/eventStore";
 
-// Define a type for breadcrumb mappings
+interface Breadcrumb {
+  path: string;
+  label: string;
+}
+
 interface RouteMapping {
   pattern: RegExp;
-  getBreadcrumb: (match: string[], state?: any) => Promise<{ path: string; label: string }[]> | { path: string; label: string }[];
+  getBreadcrumb: (match: string[], state?: any) => Promise<Breadcrumb[]> | Breadcrumb[];
 }
 
 const Breadcrumbs: React.FC = () => {
   const location = useLocation();
-  const [breadcrumbs, setBreadcrumbs] = useState<{ path: string; label: string }[]>([]);
-  
-  // This function will fetch entity names when needed
-  const fetchEntityName = async (entityType: string, id: string): Promise<string> => {
-    // In a real application, you would make an API call here
-    // For example:
-    // const response = await fetch(`/api/${entityType}/${id}`);
-    // const data = await response.json();
-    // return data.name;
-    
-    // For demonstration, we'll just return a placeholder
-    return `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} ${id}`;
-  };
+  const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
+  const { fetchEventDetails } = useEventStore();
 
-  // Define route mappings based on your application routes
+  
+  const getHome = () => [{ path: "/", label: "Home" }];
+  const getHostDashboard = () => [{ path: "/host/dashboard", label: "Dashboard" }];
+  const getHostEvents = () => [...getHostDashboard(), { path: "/host/events", label: "Events" }];
+  const getHostEvent = (eventId: string, eventName: string) =>
+    [...getHostEvents(), { path: `/host/events/${eventId}`, label: eventName }];
+  const getHostEventEdit = (eventId: string, eventName: string) =>
+    [...getHostEvent(eventId, eventName), { path: `/host/events/edit/${eventId}`, label: "Edit" }];
+  const getHostBookings = (eventId: string, eventName: string) =>
+    [...getHostEvent(eventId, eventName), { path: `/host/events/${eventId}/bookings`, label: "Bookings" }];
+  const getHostProfile = () => [...getHostDashboard(), { path: "/host/profile", label: "Profile" }];
+  const getHostSubscription = () => [...getHostDashboard(), { path: "/host/subscription", label: "Subscription" }];
+
+  const getUserProfile = () => [...getHome(), { path: "/user/profile", label: "Profile" }];
+  const getUserChangePassword = () => [...getUserProfile(), { path: "/user/change-password", label: "Change Password" }];
+  const getUserWallet = () => [...getHome(), { path: "/user/wallet", label: "Wallet" }];
+
+  const getAdminDashboard = () => [{ path: "/admin/dashboard", label: "Admin Dashboard" }];
+  const getAdminHosts = () => [...getAdminDashboard(), { path: "/admin/hosts", label: "Hosts" }];
+  const getAdminUsers = () => [...getAdminDashboard(), { path: "/admin/users", label: "Users" }];
+  const getAdminSubscriptions = () => [...getAdminDashboard(), { path: "/admin/subscriptions", label: "Subscriptions" }];
+  const getAdminCoupons = () => [...getAdminDashboard(), { path: "/admin/coupons", label: "Coupons" }];
+
   const routeMappings: RouteMapping[] = [
-    // Public Routes
-    {
-      pattern: /^\/$/,
-      getBreadcrumb: () => [{ path: "/", label: "Home" }]
-    },
+    { pattern: /^\/$/, getBreadcrumb: () => getHome() },
+
     {
       pattern: /^\/event\/([^\/]+)\/?$/,
       getBreadcrumb: async (match) => {
         const eventId = match[1];
-        const eventName = await fetchEntityName("event", eventId);
-        return [
-          { path: "/", label: "Home" },
-          { path: `/event/${eventId}`, label: eventName }
-        ];
-      }
+        const event = await fetchEventDetails(eventId);
+        return [...getHome(), { path: `/event/${eventId}`, label: event?.title || "Event" }];
+      },
     },
-    
-    // Host Routes
-    {
-      pattern: /^\/host\/dashboard\/?$/,
-      getBreadcrumb: () => [
-        //{ path: "/", label: "Home" },
-        { path: "/host/dashboard", label: "Dashboard" }
-      ]
-    },
-    {
-      pattern: /^\/host\/events\/?$/,
-      getBreadcrumb: () => [
-        //{ path: "/", label: "Home" },
-        { path: "/host/dashboard", label: "Dashboard" },
-        { path: "/host/events", label: "Events" }
-      ]
-    },
-    {
-      pattern: /^\/host\/events\/add\/?$/,
-      getBreadcrumb: () => [
-        //{ path: "/", label: "Home" },
-        { path: "/host/dashboard", label: "Dashboard" },
-        { path: "/host/events", label: "Events" },
-        { path: "/host/events/add", label: "Add Event" }
-      ]
-    },
+
+    { pattern: /^\/host\/dashboard\/?$/, getBreadcrumb: () => getHostDashboard() },
+    { pattern: /^\/host\/events\/?$/, getBreadcrumb: () => getHostEvents() },
+    { pattern: /^\/host\/events\/add\/?$/, getBreadcrumb: () => [...getHostEvents(), { path: "/host/events/add", label: "Add Event" }] },
+
     {
       pattern: /^\/host\/events\/([^\/]+)\/?$/,
       getBreadcrumb: async (match) => {
         const eventId = match[1];
-        const eventName = await fetchEntityName("event", eventId);
-        return [
-          //{ path: "/", label: "Home" },
-          { path: "/host/dashboard", label: "Dashboard" },
-          { path: "/host/events", label: "Events" },
-          { path: `/host/events/${eventId}`, label: eventName }
-        ];
-      }
+        const event = await fetchEventDetails(eventId);
+        return getHostEvent(eventId, event?.title || "Event");
+      },
     },
+
     {
       pattern: /^\/host\/events\/edit\/([^\/]+)\/?$/,
       getBreadcrumb: async (match) => {
         const eventId = match[1];
-        const eventName = await fetchEntityName("event", eventId);
-        return [
-          //{ path: "/", label: "Home" },
-          { path: "/host/dashboard", label: "Dashboard" },
-          { path: "/host/events", label: "Events" },
-          { path: `/host/events/${eventId}`, label: eventName },
-          { path: `/host/events/edit/${eventId}`, label: "Edit" }
-        ];
-      }
+        const event = await fetchEventDetails(eventId);
+        return getHostEventEdit(eventId, event?.title || "Event");
+      },
     },
+
     {
-      pattern: /^\/host\/subscription\/?$/,
-      getBreadcrumb: () => [
-        //{ path: "/", label: "Home" },
-        { path: "/host/dashboard", label: "Dashboard" },
-        { path: "/host/subscription", label: "Subscription" }
-      ]
+      pattern: /^\/host\/events\/([^\/]+)\/bookings\/?$/,
+      getBreadcrumb: async (match) => {
+        const eventId = match[1];
+        const event = await fetchEventDetails(eventId);
+        return getHostBookings(eventId, event?.title || "Event");
+      },
     },
-    {
-      pattern: /^\/host\/profile\/?$/,
-      getBreadcrumb: () => [
-        //{ path: "/", label: "Home" },
-        { path: "/host/dashboard", label: "Dashboard" },
-        { path: "/host/profile", label: "Profile" }
-      ]
-    },
-    
-    // User Routes
-    {
-      pattern: /^\/user\/profile\/?$/,
-      getBreadcrumb: () => [
-        { path: "/", label: "Home" },
-        { path: "/user/profile", label: "Profile" }
-      ]
-    },
-    {
-      pattern: /^\/user\/change-password\/?$/,
-      getBreadcrumb: () => [
-        { path: "/", label: "Home" },
-        { path: "/user/profile", label: "Profile" },
-        { path: "/user/change-password", label: "Change Password" }
-      ]
-    },
-    {
-      pattern: /^\/user\/wallet\/?$/,
-      getBreadcrumb: () => [
-        { path: "/", label: "Home" },
-        { path: "/user/wallet", label: "Wallet" }
-      ]
-    },
-    
-    
-    {
-      pattern: /^\/admin\/dashboard\/?$/,
-      getBreadcrumb: () => [
-        //{ path: "/", label: "Home" },
-        { path: "/admin/dashboard", label: "Admin Dashboard" }
-      ]
-    },
-    {
-      pattern: /^\/admin\/hosts\/?$/,
-      getBreadcrumb: () => [
-        //{ path: "/", label: "Home" },
-        { path: "/admin/dashboard", label: "Admin Dashboard" },
-        { path: "/admin/hosts", label: "Hosts" }
-      ]
-    },
-    {
-      pattern: /^\/admin\/users\/?$/,
-      getBreadcrumb: () => [
-        //{ path: "/", label: "Home" },
-        { path: "/admin/dashboard", label: "Admin Dashboard" },
-        { path: "/admin/users", label: "Users" }
-      ]
-    },
-    {
-      pattern: /^\/admin\/subscriptions\/?$/,
-      getBreadcrumb: () => [
-        //{ path: "/", label: "Home" },
-        { path: "/admin/dashboard", label: "Admin Dashboard" },
-        { path: "/admin/subscriptions", label: "Subscriptions" }
-      ]
-    },
-    {
-      pattern: /^\/admin\/coupons\/?$/,
-      getBreadcrumb: () => [
-        //{ path: "/", label: "Home" },
-        { path: "/admin/dashboard", label: "Admin Dashboard" },
-        { path: "/admin/coupons", label: "Coupons" }
-      ]
-    }
+
+    { pattern: /^\/host\/subscription\/?$/, getBreadcrumb: () => getHostSubscription() },
+    { pattern: /^\/host\/profile\/?$/, getBreadcrumb: () => getHostProfile() },
+
+    { pattern: /^\/user\/profile\/?$/, getBreadcrumb: () => getUserProfile() },
+    { pattern: /^\/user\/change-password\/?$/, getBreadcrumb: () => getUserChangePassword() },
+    { pattern: /^\/user\/wallet\/?$/, getBreadcrumb: () => getUserWallet() },
+
+    { pattern: /^\/admin\/dashboard\/?$/, getBreadcrumb: () => getAdminDashboard() },
+    { pattern: /^\/admin\/hosts\/?$/, getBreadcrumb: () => getAdminHosts() },
+    { pattern: /^\/admin\/users\/?$/, getBreadcrumb: () => getAdminUsers() },
+    { pattern: /^\/admin\/subscriptions\/?$/, getBreadcrumb: () => getAdminSubscriptions() },
+    { pattern: /^\/admin\/coupons\/?$/, getBreadcrumb: () => getAdminCoupons() },
   ];
 
   useEffect(() => {
     const generateBreadcrumbs = async () => {
-      // Find matching route pattern
       for (const mapping of routeMappings) {
         const match = location.pathname.match(mapping.pattern);
         if (match) {
@@ -189,26 +108,22 @@ const Breadcrumbs: React.FC = () => {
         }
       }
 
-      // Fallback to the original path-based breadcrumbs
-      const pathnames = location.pathname.split("/").filter((x) => x);
-      const defaultBreadcrumbs = [{ path: "/", label: "Home" }];
       
+      const pathnames = location.pathname.split("/").filter(Boolean);
+      const defaultBreadcrumbs: Breadcrumb[] = [{ path: "/", label: "Home" }];
       pathnames.forEach((value, index) => {
         const path = `/${pathnames.slice(0, index + 1).join("/")}`;
         const label = value.charAt(0).toUpperCase() + value.slice(1);
         defaultBreadcrumbs.push({ path, label });
       });
-      
+
       setBreadcrumbs(defaultBreadcrumbs);
     };
 
     generateBreadcrumbs();
   }, [location]);
 
-  // Don't show breadcrumbs on the home page
-  if (location.pathname === '/') {
-    return null;
-  }
+  if (location.pathname === "/") return null;
 
   return (
     <nav className="bg-gray-100 text-gray-600 px-6 py-2">

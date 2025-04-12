@@ -47,9 +47,11 @@ router.delete('/saved-events/:eventId', authMiddleware(["user"]), SavedEventCont
 
 router.get('/coupons', authMiddleware(["user"]), CouponController.getAvailableCoupons);
 
+router.get('/bookings', authMiddleware(["user"]), BookingController.getMyBookings);
 router.post('/bookings/create', authMiddleware(["user"]), BookingController.createBooking);
 router.post('/bookings/create-order', authMiddleware(["user"]), BookingController.createOrder);
 router.post('/bookings/verify', authMiddleware(["user"]), BookingController.verifyPayment);
+router.post('/bookings/:bookingId/cancel', authMiddleware(["user"]), BookingController.cancelBooking);
 
 
 

@@ -5,3 +5,16 @@ export interface ISavedEventService {
    saveEvent(userId: string, eventId: string): Promise<boolean>
    removeSavedEvent(userId: string, eventId: string): Promise<boolean>
 }
+export interface SavedEventResponse {
+   id: string;
+   event: {
+     _id: string;
+     title: string;
+     eventImage?: string;
+     date?: string;
+     startTime?: string;
+     endTime?: string;
+     venueName?: string;
+     venueCity?: string;
+   };
+ } 

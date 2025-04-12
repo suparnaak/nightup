@@ -1,12 +1,17 @@
-// models/SavedEvent.ts
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface ISavedEvent extends Document {
-  user: mongoose.Types.ObjectId; // Reference to the user who saved the event
-  event: mongoose.Types.ObjectId; // The unique id of the event (renamed to match usage)
-  title: string;                 // Event title
-  eventImage?: string;           // Optional image URL for the event
-  date?: Date;                   // Optional event date
+  user: mongoose.Types.ObjectId;
+  event: {
+    _id: mongoose.Types.ObjectId;
+    title: string;
+    eventImage?: string;
+    date?: Date;
+    startTime?: Date;
+    endTime?: Date;
+    venueName?: string;
+    venueCity?: string;
+  };
 }
 
 const savedEventSchema: Schema = new Schema(

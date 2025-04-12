@@ -4,7 +4,10 @@ import { ISavedEventRepository } from "./interfaces/ISavedEventRepository";
 
 class SavedEventRepository implements ISavedEventRepository {
   async getSavedEvents(userId: string): Promise<ISavedEvent[]> {
-    return await SavedEvent.find({ user: userId });
+    /* return await SavedEvent.find({ user: userId }); */
+    return await SavedEvent.find({ user: userId })
+    .populate('event', 'title eventImage date startTime endTime venueName venueCity')
+    .exec();
   }
 
   async isEventSaved(userId: string, eventId: Types.ObjectId): Promise<boolean> {

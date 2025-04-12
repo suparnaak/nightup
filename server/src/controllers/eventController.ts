@@ -233,7 +233,7 @@ class EventController implements IEventController {
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: "Event updated successfully",
+        message: MESSAGES.HOST.SUCCESS.EVENT_UPDATE,
         event: updatedEvent,
       });
     } catch (error: any) {
@@ -266,7 +266,7 @@ class EventController implements IEventController {
       await EventService.deleteEvent(new Types.ObjectId(eventId));
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: "Event deleted successfully",
+        message: MESSAGES.HOST.SUCCESS.EVENT_DELETED,
       });
     } catch (error: any) {
       console.error("Error deleting event:", error);

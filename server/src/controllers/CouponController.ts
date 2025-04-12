@@ -214,7 +214,7 @@ class CouponController implements ICouponController {
         return;
       }
   
-      // Now userId is guaranteed to be a string
+      
       const userId = req.user.userId;
       const minAmtRaw = req.query.minimumAmount as string | undefined;
       console.log(req.query.minimumAmount)

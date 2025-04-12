@@ -1,12 +1,11 @@
-// src/models/wallet.ts
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface ITransaction {
-  _id?: Types.ObjectId; // Auto-generated transaction ID
+  _id?: Types.ObjectId; 
   type: "credit" | "debit";
   amount: number;
   description?: string;
-  paymentId?: string; // Razorpay payment ID, optional
+  paymentId?: string; 
   date: Date;
 }
 
@@ -20,7 +19,7 @@ const transactionSchema: Schema = new Schema({
   type: { type: String, enum: ["credit", "debit"], required: true },
   amount: { type: Number, required: true },
   description: { type: String },
-  paymentId: { type: String }, // Field for Razorpay payment ID
+  paymentId: { type: String }, 
   date: { type: Date, default: Date.now },
 });
 
