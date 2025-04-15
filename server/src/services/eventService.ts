@@ -31,12 +31,30 @@ class EventService implements IEventService {
     return await EventRepository.getEventsByHostId(hostId);
   }
 
-  async getAllEvents(): Promise<IEvent[]> {
-    return await EventRepository.getAllEvents();
+  async getAllEvents(query: {
+    page?: number,
+    limit?: number,
+    search?: string,
+    category?: string,
+    date?: string,
+    city?: string
+  }): Promise<{ events: IEvent[], total: number }> {
+    return await EventRepository.getAllEvents(query);
   }
-  async getEventsByCity(city: string): Promise<IEvent[]> {
+  
+  async getEventsByCity(city: string, query: {
+    page?: number,
+    limit?: number,
+    search?: string,
+    category?: string,
+    date?: string
+  }): Promise<{ events: IEvent[], total: number }> {
+    // Include the city in the query
+    return await EventRepository.getAllEvents({ ...query, city });
+  }
+  /* async getEventsByCity(city: string): Promise<IEvent[]> {
     return await EventRepository.getEventsByCity(city);
-  }
+  } */
   async getEventDetails(eventId: Types.ObjectId): Promise<IEvent | null> {
     return await EventRepository.getEventById(eventId);
   }

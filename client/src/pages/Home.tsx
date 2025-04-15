@@ -1,14 +1,9 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-  useCallback,
-} from "react";
+import React, { useEffect, useState } from "react";
 import UserLayout from "../layouts/UserLayout";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import { useEventStore } from "../store/eventStore";
+import { useCategoryStore } from "../store/categoryStore"; // Added import for host store
 import { Link, useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -22,15 +17,29 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-const Home: React.FC = () => {
-  const fetchEvents = useEventStore((state) => state.fetchAllEvents);
-  const events = useEventStore((state) => state.events);
-  const isLoading = useEventStore((state) => state.isLoading);
-  const error = useEventStore((state) => state.error);
-  const selectedCity = useEventStore((state) => state.selectedCity);
-  const fetchEventsByCity = useEventStore((state) => state.fetchEventsByCity);
+interface Category {
+  id?: string | number;
+  name?: string;
+  title?: string;
+}
 
+const Home: React.FC = () => {
   const navigate = useNavigate();
+
+  const {
+    events,
+    isLoading,
+    error,
+    selectedCity,
+    totalEvents,
+    totalPages,
+    currentPage,
+    limit,
+    fetchAllEvents,
+    fetchEventsByCity,
+  } = useEventStore();
+
+  const { categories: allCategories, getUserCategories } = useCategoryStore();
 
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -39,101 +48,74 @@ const Home: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [initialFetchDone, setInitialFetchDone] = useState<boolean>(false);
 
-  const [visibleEventsCount, setVisibleEventsCount] = useState<number>(6);
-  const [hasMore, setHasMore] = useState<boolean>(true);
-  const observer = useRef<IntersectionObserver | null>(null);
-  const loadingRef = useRef<HTMLDivElement>(null);
+  const hasMore = currentPage < totalPages;
 
-  const BATCH_SIZE = 6;
-
-  // based on city
   useEffect(() => {
     if (!initialFetchDone) {
+      //useEventStore.setState({ limit: 6 });
+
+      useEventStore.setState({ currentPage: 1 });
+
       if (selectedCity) {
         fetchEventsByCity(selectedCity);
       } else {
-        fetchEvents();
+        fetchAllEvents();
       }
+
       setInitialFetchDone(true);
     }
-  }, [fetchEvents, fetchEventsByCity, selectedCity, initialFetchDone]);
+  }, [fetchAllEvents, fetchEventsByCity, selectedCity, initialFetchDone]);
 
-  //when city changes
+  useEffect(() => {
+    getUserCategories();
+  }, [getUserCategories]);
+
   useEffect(() => {
     if (initialFetchDone) {
+      useEventStore.setState({ currentPage: 1 });
+
+      const filters: Record<string, any> = {};
+
+      if (selectedCategory && selectedCategory !== "All Categories") {
+        filters.category = selectedCategory;
+      }
+
+      if (selectedDate) {
+        filters.date = selectedDate;
+      }
+
+      useEventStore.setState({
+        searchTerm: searchQuery,
+        filters,
+      });
+
       if (selectedCity) {
         fetchEventsByCity(selectedCity);
       } else {
-        fetchEvents();
+        fetchAllEvents();
       }
-
-      setVisibleEventsCount(6);
-      setHasMore(true);
     }
-  }, [selectedCity, initialFetchDone, fetchEventsByCity, fetchEvents]);
+  }, [
+    searchQuery,
+    selectedCategory,
+    selectedDate,
+    initialFetchDone,
+    fetchEventsByCity,
+    fetchAllEvents,
+    selectedCity,
+  ]);
 
-  const filteredEvents = useMemo(() => {
-    let result = [...events];
+  const loadMoreEvents = () => {
+    if (currentPage < totalPages) {
+      useEventStore.setState({ currentPage: currentPage + 1 });
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (event) =>
-          (event.title && event.title.toLowerCase().includes(query)) ||
-          (event.artist && event.artist.toLowerCase().includes(query)) ||
-          (event.venueName && event.venueName.toLowerCase().includes(query)) ||
-          (event.category && event.category.toLowerCase().includes(query))
-      );
+      if (selectedCity) {
+        fetchEventsByCity(selectedCity);
+      } else {
+        fetchAllEvents();
+      }
     }
-
-    if (selectedCategory && selectedCategory !== "All Categories") {
-      result = result.filter(
-        (event) => event.category && event.category === selectedCategory
-      );
-    }
-
-    if (selectedDate) {
-      const filterDate = new Date(selectedDate).toLocaleDateString();
-      result = result.filter((event) => {
-        if (!event.date) return false;
-        return new Date(event.date).toLocaleDateString() === filterDate;
-      });
-    }
-
-    return result;
-  }, [events, searchQuery, selectedCategory, selectedDate]);
-
-  // Reset visible events count when filters change
-  useEffect(() => {
-    setVisibleEventsCount(6);
-    setHasMore(true);
-  }, [searchQuery, selectedCategory, selectedDate]);
-
-  // Check if we have more events to load
-  useEffect(() => {
-    setHasMore(visibleEventsCount < filteredEvents.length);
-  }, [visibleEventsCount, filteredEvents.length]);
-
-  // Infinite scroll implementation using Intersection Observer
-  const lastEventElementRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (isLoading) return;
-
-      if (observer.current) observer.current.disconnect();
-
-      observer.current = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting && hasMore) {
-            setVisibleEventsCount((prevCount) => prevCount + BATCH_SIZE);
-          }
-        },
-        { threshold: 0.1 }
-      );
-
-      if (node) observer.current.observe(node);
-    },
-    [isLoading, hasMore]
-  );
+  };
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -147,18 +129,23 @@ const Home: React.FC = () => {
     return eventDay === today;
   };
 
-  const categories = [
+  const displayCategories = [
     "All Categories",
-    ...new Set(events.map((event) => event.category).filter(Boolean)),
+    ...allCategories.map(
+      (category: Category) =>
+        category.name || category.title || String(category)
+    ),
   ];
-
-  const displayedEvents = filteredEvents.slice(0, visibleEventsCount);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    if (selectedCity) {
+      fetchEventsByCity(selectedCity);
+    } else {
+      fetchAllEvents();
+    }
   };
 
-  // Format time properly
   const formatTime = (timeString: string) => {
     if (!timeString) return "";
     const date = new Date(timeString);
@@ -184,7 +171,7 @@ const Home: React.FC = () => {
         <div
           className="absolute inset-0 flex flex-col justify-center items-center px-4"
           style={{
-            backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent shadow overlay
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
           }}
         >
           <div className="max-w-screen-xl w-full mx-auto text-center">
@@ -219,17 +206,22 @@ const Home: React.FC = () => {
             {/* Trending categories quick access */}
             <div className="mt-8 hidden md:block">
               <div className="flex justify-center space-x-4">
-                {["Concerts", "Sports", "Technology", "Art", "Food"].map(
-                  (cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className="bg-white bg-opacity-20 hover:bg-opacity-30 text-fuchsia-900 px-4 py-2 rounded-full backdrop-blur-sm transition"
-                    >
-                      {cat}
-                    </button>
-                  )
-                )}
+                {allCategories.slice(0, 3).map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.name!)}
+                    className={`
+          px-4 py-2 rounded-full backdrop-blur-sm transition
+          ${
+            selectedCategory === cat.name
+              ? "bg-fuchsia-700 text-white"
+              : "bg-white bg-opacity-20 text-fuchsia-900 hover:bg-opacity-30"
+          }
+        `}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -306,7 +298,7 @@ const Home: React.FC = () => {
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
                     >
-                      {categories.map((category, index) => (
+                      {displayCategories.map((category, index) => (
                         <option key={index} value={category}>
                           {category}
                         </option>
@@ -345,8 +337,8 @@ const Home: React.FC = () => {
               {selectedCity}
               <button
                 onClick={() => {
-                  // Clear the selected city
-                  useEventStore.setState({ selectedCity: null }); // Adjust this line based on your state management
+                  useEventStore.setState({ selectedCity: null });
+                  fetchAllEvents();
                 }}
                 className="ml-2 text-purple-600 hover:text-purple-800"
               >
@@ -365,7 +357,15 @@ const Home: React.FC = () => {
               <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center">
                 Search: {searchQuery}
                 <button
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    setSearchQuery("");
+                    useEventStore.setState({ searchTerm: "" });
+                    if (selectedCity) {
+                      fetchEventsByCity(selectedCity);
+                    } else {
+                      fetchAllEvents();
+                    }
+                  }}
                   className="ml-2 text-purple-600 hover:text-purple-800"
                 >
                   ✕
@@ -376,7 +376,20 @@ const Home: React.FC = () => {
               <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center">
                 Category: {selectedCategory}
                 <button
-                  onClick={() => setSelectedCategory("All Categories")}
+                  onClick={() => {
+                    setSelectedCategory("All Categories");
+                    const currentFilters =
+                      useEventStore.getState().filters || {};
+                    const newFilters = { ...currentFilters };
+                    delete newFilters.category;
+                    useEventStore.setState({ filters: newFilters });
+
+                    if (selectedCity) {
+                      fetchEventsByCity(selectedCity);
+                    } else {
+                      fetchAllEvents();
+                    }
+                  }}
                   className="ml-2 text-purple-600 hover:text-purple-800"
                 >
                   ✕
@@ -387,7 +400,20 @@ const Home: React.FC = () => {
               <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center">
                 Date: {new Date(selectedDate).toLocaleDateString()}
                 <button
-                  onClick={() => setSelectedDate("")}
+                  onClick={() => {
+                    setSelectedDate("");
+                    const currentFilters =
+                      useEventStore.getState().filters || {};
+                    const newFilters = { ...currentFilters };
+                    delete newFilters.date;
+                    useEventStore.setState({ filters: newFilters });
+
+                    if (selectedCity) {
+                      fetchEventsByCity(selectedCity);
+                    } else {
+                      fetchAllEvents();
+                    }
+                  }}
                   className="ml-2 text-purple-600 hover:text-purple-800"
                 >
                   ✕
@@ -398,7 +424,19 @@ const Home: React.FC = () => {
               selectedDate ||
               searchQuery) && (
               <button
-                onClick={resetFilters}
+                onClick={() => {
+                  resetFilters();
+                  useEventStore.setState({
+                    filters: {},
+                    searchTerm: "",
+                  });
+
+                  if (selectedCity) {
+                    fetchEventsByCity(selectedCity);
+                  } else {
+                    fetchAllEvents();
+                  }
+                }}
                 className="text-purple-600 hover:text-purple-800 text-sm underline"
               >
                 Clear all
@@ -411,14 +449,13 @@ const Home: React.FC = () => {
         <section className="pb-12">
           <h2 className="text-2xl font-bold text-purple-700 mb-6 flex items-center">
             {selectedCity ? `Events in ${selectedCity}` : "Events"}
-            {filteredEvents.length > 0 && (
+            {totalEvents > 0 && (
               <span className="text-gray-500 text-base font-normal ml-2">
-                ({filteredEvents.length}{" "}
-                {filteredEvents.length === 1 ? "event" : "events"} found)
+                ({totalEvents} {totalEvents === 1 ? "event" : "events"} found)
               </span>
             )}
           </h2>
-          {isLoading && !displayedEvents.length && (
+          {isLoading && !events.length && (
             <div className="flex justify-center py-10">
               <div className="animate-spin h-10 w-10 border-4 border-purple-500 border-t-transparent rounded-full"></div>
             </div>
@@ -429,15 +466,10 @@ const Home: React.FC = () => {
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {displayedEvents && displayedEvents.length > 0
-              ? displayedEvents.map((event, index) => (
+            {events && events.length > 0
+              ? events.map((event) => (
                   <div
                     key={event._id}
-                    ref={
-                      index === displayedEvents.length - 1
-                        ? lastEventElementRef
-                        : null
-                    }
                     className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow group"
                   >
                     {/* Event Image with Overlay */}
@@ -567,7 +599,19 @@ const Home: React.FC = () => {
                       selectedDate ||
                       searchQuery) && (
                       <button
-                        onClick={resetFilters}
+                        onClick={() => {
+                          resetFilters();
+                          useEventStore.setState({
+                            filters: {},
+                            searchTerm: "",
+                          });
+
+                          if (selectedCity) {
+                            fetchEventsByCity(selectedCity);
+                          } else {
+                            fetchAllEvents();
+                          }
+                        }}
                         className="mt-4 text-purple-600 hover:text-purple-800 underline"
                       >
                         Clear all filters
@@ -577,19 +621,37 @@ const Home: React.FC = () => {
                 )}
           </div>
 
-          {/* Loading indicator for infinite scroll */}
-          {isLoading && displayedEvents.length > 0 && (
-            <div ref={loadingRef} className="text-center py-6">
+          {/* Load more button */}
+          {!isLoading &&
+            hasMore &&
+            events.length > 0 &&
+            currentPage < totalPages && (
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={loadMoreEvents}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md shadow-md transition-all duration-300"
+                >
+                  Load More Events
+                </button>
+              </div>
+            )}
+
+          {/* Loading indicator for pagination */}
+          {isLoading && events.length > 0 && (
+            <div className="text-center py-6">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
             </div>
           )}
 
           {/* End of results indicator */}
-          {!isLoading && !hasMore && displayedEvents.length > 0 && (
-            <div className="text-center py-6 text-gray-500">
-              No more events to load
-            </div>
-          )}
+          {!isLoading &&
+            !hasMore &&
+            events.length > 0 &&
+            currentPage >= totalPages && (
+              <div className="text-center py-6 text-gray-500">
+                No more events to load
+              </div>
+            )}
         </section>
 
         {/* ===== FEATURES SECTION ===== */}
@@ -636,8 +698,6 @@ const Home: React.FC = () => {
             </div>
           </div>
         </section>
-
-        {/* ===== NEWSLETTER SECTION ===== */}
         {/* ===== BECOME AN EVENT ORGANIZER SECTION ===== */}
         <section className="py-12 border-t border-purple-100">
           <div className="max-w-screen-xl mx-auto px-4">

@@ -22,27 +22,79 @@ class EventRepository implements IEventRepository {
     }
   }
   //list events - not host specific
-  async getAllEvents(): Promise<IEvent[]> {
+  async getAllEvents(query: {
+    page?: number,
+    limit?: number,
+    search?: string,
+    category?: string,
+    date?: string,
+    city?: string
+  }): Promise<{ events: IEvent[], total: number }> {
     try {
+      const { 
+        page = 1, 
+        limit = 6, 
+        search, 
+        category, 
+        date,
+        city 
+      } = query;
+      
+      const skip = (page - 1) * limit;
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
-      const events = await Event.find({ 
+      
+      const filter: any = { 
         isBlocked: false,
         $or: [
           { date: { $gt: today } }, 
-          { 
-            date: today, 
-            endTime: { $gte: now } 
-          }
+          { date: today, endTime: { $gte: now } }
         ]
-      })
-        .sort({ date: 1, startTime: 1 }) 
+      };
+      
+      
+      if (search) {
+        filter.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { artist: { $regex: search, $options: 'i' } },
+          { venueName: { $regex: search, $options: 'i' } },
+          { category: { $regex: search, $options: 'i' } }
+        ];
+      }
+      
+     
+      if (category && category !== 'All Categories') {
+        filter.category = category;
+      }
+      
+      
+      if (date) {
+        const filterDate = new Date(date);
+        filter.date = {
+          $gte: filterDate,
+          $lt: new Date(filterDate.getTime() + 24 * 60 * 60 * 1000) 
+        };
+      }
+      
+      
+      if (city) {
+        filter.venueCity = city;
+      }
+      
+     
+      const total = await Event.countDocuments(filter);
+      
+      
+      const events = await Event.find(filter)
+        .sort({ date: 1, startTime: 1 })
+        .skip(skip)
+        .limit(limit)
         .lean();
-  
-      return events as IEvent[];
+      
+      return { events: events as IEvent[], total };
     } catch (error) {
-      console.error('Error fetching all events:', error);
+      console.error('Error fetching events:', error);
       throw error;
     }
   }
@@ -55,10 +107,10 @@ class EventRepository implements IEventRepository {
         isBlocked: false,
         venueCity: { $regex: new RegExp(city, "i") },
         $or: [
-          { date: { $gt: today } }, // Events in the future
+          { date: { $gt: today } }, 
           { 
             date: today, 
-            endTime: { $gte: now } // Events that are ongoing today
+            endTime: { $gte: now } 
           }
         ]
       })

@@ -11,20 +11,54 @@ export const eventRepository = {
     const response = await axiosHostClient.get("/events");
     return response.data.events;
   },
-  fetchAllEvents: async () => {
-    const response = await axiosUserClient.get("/events");
-    return response.data.events;
+//fetching all the events publically
+  fetchAllEvents: async (page = 1, limit = 6, search = "", filters = {}) => {
+    let url = `/events?page=${page}&limit=${limit}`;
+
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        url += `&${key}=${encodeURIComponent(value.toString())}`;
+      }
+    });
+
+    const response = await axiosUserClient.get(url);
+    return response.data;
   },
+  //event's details
   fetchEventDetails: async (id: string) => {
     //console.log(id)
     const response = await axiosUserClient.get(`/event/${id}`);
     return response.data.event;
   },
-  fetchEventsByCity: async (city: string) => {
-    const response = await axiosUserClient.get(`/events?city=${encodeURIComponent(city)}`);
-    return response.data.events;
+ //fetchig based on city
+  fetchEventsByCity: async (
+    city: string,
+    page = 1,
+    limit = 6,
+    search = "",
+    filters = {}
+  ) => {
+    let url = `/events?city=${encodeURIComponent(
+      city
+    )}&page=${page}&limit=${limit}`;
+
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        url += `&${key}=${encodeURIComponent(value.toString())}`;
+      }
+    });
+
+    const response = await axiosUserClient.get(url);
+    return response.data;
   },
-  
+//editing event
   editEvent: async (id: string, eventData: any) => {
     const response = await axiosHostClient.put(`/events/edit/${id}`, eventData);
     return response.data;

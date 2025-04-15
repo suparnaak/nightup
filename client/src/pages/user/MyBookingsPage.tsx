@@ -202,25 +202,23 @@ const MyBookingsPage: React.FC = () => {
   const handleCancelBooking = async (id: string, reason: string) => {
     setIsCancelling(true);
     try {
-      // Artificial delay for better UX (1.5 seconds)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       const success = await cancelBooking(id, reason);
-      
+
       if (success) {
-        // Update local state immediately to reflect changes
-        setLocalBookings(prevBookings => 
-          prevBookings.map(booking => 
-            booking._id === id 
-              ? { 
-                  ...booking, 
-                  status: 'cancelled',
-                  paymentStatus: 'refunded' // Update payment status as needed
-                } 
+        setLocalBookings((prevBookings) =>
+          prevBookings.map((booking) =>
+            booking._id === id
+              ? {
+                  ...booking,
+                  status: "cancelled",
+                  paymentStatus: "refunded",
+                }
               : booking
           )
         );
-        
+
         toast.success("Booking cancelled successfully");
       }
     } catch (err: any) {
@@ -325,8 +323,12 @@ const MyBookingsPage: React.FC = () => {
                       {booking.tickets.map((t, i) => (
                         <div key={i} className="flex justify-between text-sm">
                           <div>
-                            <span>{t.ticketType} × {t.quantity}</span>
-                            <span className="ml-2 text-purple-600">(₹{t.price.toFixed(2)} each)</span>
+                            <span>
+                              {t.ticketType} × {t.quantity}
+                            </span>
+                            <span className="ml-2 text-purple-600">
+                              (₹{t.price.toFixed(2)} each)
+                            </span>
                           </div>
                           <span>₹{(t.price * t.quantity).toFixed(2)}</span>
                         </div>

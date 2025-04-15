@@ -87,7 +87,8 @@ export const MESSAGES = {
       COUPON_CREATED :"Coupon created",
       COUPON_UPDATED:"Coupon updated",
       COUPON_DELETED:"Coupon deleted",
-
+      CATEGORY_CREATED:"Category created successfully",
+      CATEGORY_UPDATED:"Category updated successfully",
 
 
     },
@@ -103,7 +104,7 @@ export const MESSAGES = {
       INVALID_COUPON_START_DATE:"Invalid start date",
       INVALID_COUPON_END_DATE:"Invalid End date",
       COUPON_CODE_CANNOT_BE_UPDATED:"Counpon update failed",
-
+      INVALID_CATEGORY_NAME:"Invalid category name",
 
 
 

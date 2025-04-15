@@ -11,6 +11,7 @@ export interface IEventDocument extends Document {
   venueState: string;
   venueZip: string;
   venueCapacity: number;
+  categoryId: Types.ObjectId;
   category: string;
   artist: string;
   description: string;
@@ -40,6 +41,7 @@ const eventSchema: Schema = new Schema(
     venueState: { type: String, required: true },
     venueZip: { type: String, required: true },
     venueCapacity: { type: Number, required: true },
+    categoryId:          { type: Schema.Types.ObjectId, ref: "EventType", required: true },
     category: { type: String, required: true },
     artist: { type: String, required: true },
     description: { type: String, required: true },

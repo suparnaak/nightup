@@ -22,7 +22,6 @@ export const bookingRepository = {
   getMyBookings: async () => {
     const response = await axiosUserClient.get("/bookings");
     console.log(response.data)
-    // Expect { success: true, bookings: Booking[] }
     return response.data.bookings as any[];
   },
   cancelBooking: async (bookingId: string, reason: string) => {

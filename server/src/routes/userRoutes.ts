@@ -8,6 +8,7 @@ import SavedEventController from "../controllers/savedEventController";
 import BookingController from "../controllers/bookingController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import CouponController from "../controllers/CouponController";
+import categoryController from "../controllers/categoryController";
 
 const router: Router = Router();
 
@@ -39,6 +40,7 @@ router.post("/wallet/verify-payment", authMiddleware(["user"]), WalletController
 // Public events endpoint
 router.get("/events", EventController.getAllEvents);
 router.get("/event/:eventId", EventController.getEventDetails);
+router.get("/event-types", categoryController.getAllCategories)
 
 //saved events
 router.get('/saved-events', authMiddleware(["user"]), SavedEventController.getSavedEvents);

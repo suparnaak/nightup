@@ -138,14 +138,13 @@ class BookingService implements IBookingService {
     discountedAmount?: number;
     ticketNumber: string;
   }): Promise<{ success: boolean; message?: string; booking?: IBooking }> {
-    const { eventId, tickets, userId, totalAmount, paymentId, ticketNumber } =
-      data;
-
+    const { eventId, tickets, userId, totalAmount, paymentId, ticketNumber } = data;
+  
     const event = await EventRepository.getEventById(eventId);
     if (!event) {
       return { success: false, message: "Event not found." };
     }
-
+  
     for (const ticket of tickets) {
       const eventTicket = event.tickets.find(
         (t) => t.ticketType === ticket.ticketType
@@ -157,12 +156,12 @@ class BookingService implements IBookingService {
         };
       }
     }
-
+  
     const wallet = await WalletRepository.getWallet(userId);
     if (!wallet || wallet.balance < totalAmount) {
       return { success: false, message: "Insufficient wallet balance." };
     }
-
+  
     const bookingData: Partial<IBooking> = {
       userId: new Types.ObjectId(userId),
       eventId: new Types.ObjectId(eventId),
@@ -173,12 +172,13 @@ class BookingService implements IBookingService {
       paymentStatus: "paid",
       ticketNumber,
       status: "confirmed",
-      couponId: new Types.ObjectId(data.couponId),
+      couponId: data.couponId ? new Types.ObjectId(data.couponId) : undefined,
       discountedAmount: data.discountedAmount,
     };
-
+  
     const booking = await BookingRepository.createBooking(bookingData);
-
+  
+    // Update event ticket counts
     for (const ticket of tickets) {
       const eventTicket = event.tickets.find(
         (t) => t.ticketType === ticket.ticketType
@@ -188,16 +188,31 @@ class BookingService implements IBookingService {
       }
     }
     await EventRepository.editEvent(eventId, { tickets: event.tickets });
-
+  
+    // Deduct wallet balance
     await WalletRepository.deductWalletBalance(
       userId,
       totalAmount,
       paymentId,
       "Booking payment for event"
     );
-
-    return { success: true, booking };
+  
+    // Make sure booking has a valid _id before trying to fetch the populated version
+    if (!booking || !booking._id) {
+      return { 
+        success: false, 
+        message: "Failed to create booking" 
+      };
+    }
+    
+    const populatedBooking = await BookingRepository.findById(booking._id.toString());
+    
+    return { 
+      success: true, 
+      booking: populatedBooking || booking 
+    };
   }
+
   async getUserBookings(userId: string): Promise<IBooking[]> {
     return await BookingRepository.findByUserId(userId);
   }
@@ -278,7 +293,7 @@ class BookingService implements IBookingService {
         userId,
         refundAmount,
         refundId,
-        "Refund for booking cancelaltion "
+        "Refund for booking cancellation "
       );
 
       return {

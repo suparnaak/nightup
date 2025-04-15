@@ -113,6 +113,31 @@ export const adminRepository = {
     const response = await axiosAdminClient.delete(`/coupons/${id}`);
     return response.data;
   },
+  //category management
+  getCategories: async () => {
+    const response = await axiosAdminClient.get("/event-types");
+    return response.data;
+  },
+  createCategory: async (payload: {
+    name: string;
+    description: string;
+  }) => {
+    const response = await axiosAdminClient.post("/event-types", payload);
+    return response.data;
+  },
+  updateCategory: async (
+    id: string,
+    payload: {
+      name: string;
+      description: string;
+    }
+  ) => {
+    const response = await axiosAdminClient.put(
+      `/event-types/${id}`,
+      payload
+    );
+    return response.data;
+  },
 };
 
 export default adminRepository;

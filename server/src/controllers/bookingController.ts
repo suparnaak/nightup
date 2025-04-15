@@ -91,40 +91,48 @@ class BookingController implements IBookingController {
       });
     }
   }
+//for wallet based
+async createBooking(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(STATUS_CODES.UNAUTHORIZED).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
+      });
+      return;
+    }
 
-  async createBooking(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        res.status(STATUS_CODES.UNAUTHORIZED).json({
-          success: false,
-          message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
-        });
-        return;
-      }
+    const bookingData = {
+      ...req.body,
+      userId,
+      ticketNumber: crypto.randomBytes(6).toString("hex").toUpperCase(),
+      status: "confirmed",
+    };
 
-      const bookingData = {
-        ...req.body,
-        userId,
-        ticketNumber,
-        status: "confirmed",
-      };
-
-      //const newBooking = await BookingService.createBooking(bookingData);
-      const newBooking = await BookingService.walletBooking(bookingData);
-      console.log("new booking", newBooking);
+    // Use wallet booking flow for wallet payments
+    const result = await BookingService.walletBooking(bookingData);
+    
+    if (result.success) {
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        booking: newBooking,
+        booking: result.booking,
+        message: "Booking created successfully",
       });
-    } catch (error) {
-      console.error("Create Booking Error:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({
+    } else {
+      res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+        message: result.message || "Failed to create booking",
       });
     }
+  } catch (error) {
+    console.error("Create Booking Error:", error);
+    res.status(STATUS_CODES.SERVER_ERROR).json({
+      success: false,
+      message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+    });
   }
+}
   async getMyBookings(req: AuthRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.userId;

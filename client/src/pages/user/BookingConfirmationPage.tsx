@@ -34,12 +34,8 @@ const BookingConfirmationPage: React.FC = () => {
 
   const { getWallet, wallet } = useWalletStore();
 
-  const {
-    createBooking, 
-    createOrder, 
-    verifyPayment, 
-    isLoading,
-  } = useBookingStore();
+  const { createBooking, createOrder, verifyPayment, isLoading } =
+    useBookingStore();
   const { openRazorpay } = useRazorpay();
 
   const [event, setEvent] = useState<any>(null);
@@ -63,7 +59,6 @@ const BookingConfirmationPage: React.FC = () => {
     fetchWalletData();
   }, [isAuthenticated, getWallet]);
 
- 
   const walletBalance = wallet?.balance || 0;
 
   useEffect(() => {
@@ -141,15 +136,12 @@ const BookingConfirmationPage: React.FC = () => {
       const discount = calculateDiscount();
       const total = calculateTotal();
 
-      
       const selectedTicket = event.tickets.find(
         (t: any) => t.ticketType === bookingDetails.tickets[0].ticketType
       );
 
-      
       const couponId = appliedCoupon?.id ?? null;
 
-      
       const commonBookingData = {
         ...bookingDetails,
         couponId,
@@ -160,51 +152,62 @@ const BookingConfirmationPage: React.FC = () => {
           price: selectedTicket.ticketPrice,
         })),
       };
-      console.log("common proceed:", commonBookingData);
-      
+
       if (selectedPaymentMethod === "wallet") {
-       
         if (!isWalletSufficient) {
           toast.error("Insufficient wallet balance for this booking");
           return;
         }
 
-        
         const walletBookingData = {
           ...commonBookingData,
           paymentMethod: "wallet",
           paymentId: `wallet-${Date.now()}`,
-          paymentStatus: "paid", 
+          paymentStatus: "paid",
         };
-        console.log("wallet:", walletBookingData);
-        await toast.promise(createBooking(walletBookingData), {
-          loading: "Processing wallet payment...",
-          success: "Booking successful!",
-          error: "Wallet payment failed.",
-        });
 
-       
-        await getWallet();
+        try {
+          const bookingPromise = new Promise(async (resolve, reject) => {
+            await new Promise((res) => setTimeout(res, 2000));
 
-        sessionStorage.removeItem("currentBooking");
-        navigate("/user/bookings");
+            const result = await createBooking(walletBookingData);
+            resolve(result);
+          });
+
+          await toast.promise(bookingPromise, {
+            loading: "Processing wallet payment...",
+            success: "Booking successful!",
+            error: "Wallet payment failed.",
+          });
+
+          await getWallet();
+
+          sessionStorage.removeItem("currentBooking");
+
+          setTimeout(() => {
+            navigate("/user/bookings");
+          }, 1000);
+        } catch (error) {
+          console.error("Wallet booking error:", error);
+          toast.error("Failed to complete booking. Please try again.");
+        }
       } else if (selectedPaymentMethod === "razorpay") {
         const orderId = await createOrder(total);
         console.log("orderid razor:", typeof orderId);
-        
+
         const options = {
           key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-          amount: total * 100, 
+          amount: total * 100,
           currency: "INR",
           name: "NightUp",
           description: `Booking for ${event.title}`,
           order_id: orderId,
           prefill: {
-            name: "", 
+            name: "",
             email: "",
             contact: "",
           },
-          
+
           theme: { color: "#8b5cf6" },
           modal: {
             ondismiss: () => toast.error("Payment cancelled."),

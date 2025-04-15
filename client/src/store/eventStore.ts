@@ -29,11 +29,18 @@ interface Event {
   isBlocked: boolean;
   location?: {
     type: "Point";
-    coordinates: [number, number]; // [longitude, latitude]
+    coordinates: [number, number]; // [longitude, latitude] for geo location
   };
   createdAt: string;
   updatedAt: string;
   __v: number;
+}
+
+interface EventFilters {
+  category?: string;
+  date?: string;
+  venueCity?: string;
+ 
 }
 
 interface EventStore {
@@ -41,6 +48,22 @@ interface EventStore {
   isLoading: boolean;
   error: string | null;
   selectedCity: string | null;
+  
+  //for pagination
+  currentPage: number;
+  limit: number;
+  totalEvents: number;
+  totalPages: number;
+  searchTerm: string;
+  filters: EventFilters;
+  
+  // pagination and search
+  setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
+  setSearchTerm: (term: string) => void;
+  setFilters: (filters: EventFilters) => void;
+  resetFilters: () => void;
+  
   addEvent: (eventData: Omit<Event, '_id' | 'createdAt' | 'updatedAt' | '__v'>) => Promise<void>;
   fetchEvents: () => Promise<void>;
   fetchAllEvents: () => Promise<void>;
@@ -55,9 +78,21 @@ export const useEventStore = create<EventStore>((set, get) => ({
   events: [],
   isLoading: false,
   error: null,
-  selectedCity:null,
+  selectedCity: null,
+  
+  currentPage: 1,
+  limit: 10,
+  totalEvents: 0,
+  totalPages: 1,
+  searchTerm: '',
+  filters: {},
+  
+  setPage: (page: number) => set({ currentPage: page }),
+  setLimit: (limit: number) => set({ limit }),
+  setSearchTerm: (term: string) => set({ searchTerm: term, currentPage: 1 }), 
+  setFilters: (filters: EventFilters) => set({ filters, currentPage: 1 }),
+  resetFilters: () => set({ filters: {}, searchTerm: '', currentPage: 1 }),
 
-//add events
   addEvent: async (eventData) => {
     try {
       set({ isLoading: true, error: null });
@@ -74,7 +109,6 @@ export const useEventStore = create<EventStore>((set, get) => ({
     }
   },
 
-  //all events - host specific
   fetchEvents: async () => {
     try {
       set({ isLoading: true, error: null });
@@ -88,12 +122,19 @@ export const useEventStore = create<EventStore>((set, get) => ({
     }
   },
 
-  //all events - not host specific
   fetchAllEvents: async () => {
     try {
+      const { currentPage, limit, searchTerm, filters } = get();
       set({ isLoading: true, error: null });
-      const events = await eventRepository.fetchAllEvents(); 
-      set({ events, isLoading: false });
+      
+      const data = await eventRepository.fetchAllEvents(currentPage, limit, searchTerm, filters);
+      
+      set({ 
+        events: data.events,
+        totalEvents: data.totalCount,
+        totalPages: data.totalPages,
+        isLoading: false 
+      });
     } catch (error: any) {
       set({
         isLoading: false,
@@ -101,11 +142,20 @@ export const useEventStore = create<EventStore>((set, get) => ({
       });
     }
   },
+  
   fetchEventsByCity: async (city: string) => {
     try {
+      const { currentPage, limit, searchTerm, filters } = get();
       set({ isLoading: true, error: null });
-      const events = await eventRepository.fetchEventsByCity(city);
-      set({ events, isLoading: false });
+      
+      const data = await eventRepository.fetchEventsByCity(city, currentPage, limit, searchTerm, filters);
+      
+      set({ 
+        events: data.events,
+        totalEvents: data.totalCount,
+        totalPages: data.totalPages,
+        isLoading: false 
+      });
     } catch (error: any) {
       set({
         isLoading: false,
@@ -113,10 +163,10 @@ export const useEventStore = create<EventStore>((set, get) => ({
       });
     }
   },
+  
   fetchEventDetails: async (id: string) => {
     try {
       set({ isLoading: true, error: null });
-      //console.log(id)
       const event = await eventRepository.fetchEventDetails(id);
       set({ isLoading: false });
       return event;
@@ -128,7 +178,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
       return null;
     }
   },
-  // Edit event
+  
   editEvent: async (id: string, eventData: Partial<Event>) => {
     try {
       set({ isLoading: true, error: null });
@@ -148,7 +198,6 @@ export const useEventStore = create<EventStore>((set, get) => ({
     }
   },
 
-  // Delete event
   deleteEvent: async (id: string) => {
     try {
       set({ isLoading: true, error: null });
@@ -165,7 +214,8 @@ export const useEventStore = create<EventStore>((set, get) => ({
       throw error;
     }
   },
+  
   setSelectedCity: (city: string) => {
-    set({ selectedCity: city });
+    set({ selectedCity: city, currentPage: 1 }); 
   },
 }));

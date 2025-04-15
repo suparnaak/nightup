@@ -1,4 +1,4 @@
-//empty string for inputs
+// Empty string for inputs
 export const validateNonEmptyString = (
   value: string,
   fieldName: string
@@ -22,7 +22,8 @@ export const validateNonNegativeNumber = (
   }
   return null;
 };
-//zip code only digits
+
+// Zip code - only digits
 export const validateZipCode = (zip: string): string | null => {
   if (!zip || !zip.trim()) {
     return "Zip code is required.";
@@ -34,7 +35,7 @@ export const validateZipCode = (zip: string): string | null => {
   return null;
 };
 
-// Validate start time less than end time.
+// Validate start time is less than end time
 export const validateTimeOrder = (
   startTime: string,
   endTime: string
@@ -63,7 +64,7 @@ export const validateTicketsCapacity = (
   return null;
 };
 
-// ticket price and count non negative
+// Ticket price and count must be non-negative and type non-empty
 export const validateTickets = (
   tickets: { ticketType: string; ticketPrice: number; ticketCount: number }[]
 ): string | null => {
@@ -82,6 +83,7 @@ export const validateTickets = (
   return null;
 };
 
+// Main event form validator
 export const validateEventForm = (
   title: string,
   date: string,
@@ -92,7 +94,7 @@ export const validateEventForm = (
   venueState: string,
   venueZip: string,
   venueCapacity: number,
-  category: string,
+  categoryId: string,
   artist: string,
   description: string,
   tickets: { ticketType: string; ticketPrice: number; ticketCount: number }[]
@@ -109,7 +111,7 @@ export const validateEventForm = (
     venueState: validateNonEmptyString(venueState, "State"),
     venueZip: validateZipCode(venueZip),
     venueCapacity: validateNonNegativeNumber(venueCapacity, "Venue capacity"),
-    category: validateNonEmptyString(category, "Category"),
+    categoryId: validateNonEmptyString(categoryId, "Category"),
     artist: validateNonEmptyString(artist, "Artist"),
     description: validateNonEmptyString(description, "Description"),
     tickets:

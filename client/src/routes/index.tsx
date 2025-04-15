@@ -40,6 +40,7 @@ import AdminSubscriptionPage from "../pages/admin/AdminSubscriptionPage";
 import AdminCouponPage from "../pages/admin/AdminCouponPage";
 import BookingConfirmationPage from "../pages/user/BookingConfirmationPage";
 import HostEventBookingsPage from "../pages/host/HostEventBookingsPage";
+import AdminCategoryPage from "../pages/admin/AdminCategoryPage";
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -93,6 +94,7 @@ const AppRoutes = () => {
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/subscriptions" element={<AdminSubscriptionPage />} />
           <Route path="/admin/coupons" element={<AdminCouponPage />} />
+          <Route path="/admin/event-categories" element={<AdminCategoryPage />} />
 
         </Route>
         

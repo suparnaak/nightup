@@ -1,4 +1,3 @@
-// src/store/adminStore.ts
 import { create } from "zustand";
 import { adminRepository } from "../repositories/adminRepository";
 
@@ -19,7 +18,6 @@ export interface Host extends BaseUser {
   subscriptionPlan: string;
   subStatus: string;
   documentUrl: string;
-  // Replace adminVerified with documentStatus and optional rejectionReason
   documentStatus: "pending" | "approved" | "rejected";
   rejectionReason?: string;
 }

@@ -3,7 +3,15 @@ import { bookingRepository } from "../repositories/bookingRepository";
 
 interface Booking {
   _id: string;
-  eventId: string;
+  eventId: {
+    _id: string;
+    title: string;
+    date: string;
+    venueName: string;
+    venueCity: string;
+    venueState: string;
+    eventImage?: string;
+  } | string;
   userId: string;
   tickets: Array<{
     ticketType: string;
@@ -50,12 +58,14 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
   bookings: [],
   isLoading: false,
   error: null,
-
+//normal booking ie, wallet based booking
   createBooking: async (data) => {
     try {
       set({ isLoading: true, error: null });
-      const booking = await bookingRepository.createBooking(data);
-      set({ bookings: [...get().bookings, booking], isLoading: false });
+      const response = await bookingRepository.createBooking(data);
+      set({ isLoading: false });
+      await get().fetchMyBookings();
+      return response.data;
     } catch (error: any) {
       set({
         isLoading: false,
@@ -64,7 +74,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       throw error;
     }
   },
-  //razor pay order id creation
+  //razor pay order id creation or creating the payment
   createOrder: async (totalAmount) => {
     set({ isLoading: true, error: null });
     try {
@@ -80,7 +90,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
     }
   },
 
-  //razor payment
+  //razor payment vrification
 verifyPayment: async (paymentData, bookingData) => {
   console.log("entering verify store")
   set({ isLoading: true, error: null });
@@ -100,6 +110,7 @@ verifyPayment: async (paymentData, bookingData) => {
     throw err;
   }
 },
+//fetching the bookings by user
 fetchMyBookings: async () => {
   set({ isLoading: true, error: null });
   try {
@@ -113,12 +124,12 @@ fetchMyBookings: async () => {
     throw err;
   }
 },
+//booking cancellation
 cancelBooking: async (bookingId: string, reason: string) => {
   set({ isLoading: true, error: null });
   try {
     const success = await bookingRepository.cancelBooking(bookingId, reason);
     if (success) {
-      // Update local state to reflect the cancellation
       const updatedBookings = get().bookings.map(booking => 
         booking._id === bookingId 
           ? { ...booking, status: "cancelled" as "cancelled" } 
@@ -135,6 +146,7 @@ cancelBooking: async (bookingId: string, reason: string) => {
     throw err;
   }
 },
+//fetch bookings per event(for host)
 fetchBookingsByEvent: async (eventId) => {
   set({ isLoading: true, error: null });
   try {

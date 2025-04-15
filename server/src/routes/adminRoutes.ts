@@ -3,6 +3,7 @@ import passport from "passport";
 import AdminController from "../controllers/adminController";
 import SubscriptionController from "../controllers/subscriptionController";
 import CouponController from "../controllers/CouponController";
+import CategoryController from "../controllers/categoryController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
 
@@ -35,5 +36,15 @@ router
   .route("/coupons/:id")
   .put(authMiddleware(["admin"]), CouponController.updateCoupon) 
   .delete(authMiddleware(["admin"]), CouponController.deleteCoupon); 
+
+  router
+  .route("/event-types")
+  .get(authMiddleware(["admin"]), CategoryController.getAllCategories)
+  .post(authMiddleware(["admin"]), CategoryController.createCategory);
+
+router
+  .route("/event-types/:id")
+  .put(authMiddleware(["admin"]), CategoryController.updateCategory);
+
 
 export default router;

@@ -44,6 +44,7 @@ class EventController implements IEventController {
         venueState,
         venueZip,
         venueCapacity,
+        categoryId,
         category,
         artist,
         description,
@@ -63,6 +64,7 @@ class EventController implements IEventController {
         !venueState ||
         !venueZip ||
         !venueCapacity ||
+        !categoryId||
         !category ||
         !artist ||
         !description ||
@@ -85,6 +87,7 @@ class EventController implements IEventController {
         venueState,
         venueZip,
         venueCapacity,
+        categoryId,
         category,
         artist,
         description,
@@ -150,20 +153,40 @@ class EventController implements IEventController {
   // get all events not host specific
   async getAllEvents(req: Request, res: Response): Promise<void> {
     try {
-      const { city } = req.query;
-      let events: IEvent[];
+      const { 
+        city, 
+        page, 
+        limit, 
+        search, 
+        category, 
+        date 
+      } = req.query;
+      
+      const query = {
+        page: page ? parseInt(page as string) : 1,
+        limit: limit ? parseInt(limit as string) : 6,
+        search: search as string,
+        category: category as string,
+        date: date as string
+      };
+      
+      let result;
       if (city && typeof city === "string" && city.trim() !== "") {
-        events = await EventService.getEventsByCity(city);
-        console.log(events)
+        result = await EventService.getEventsByCity(city, query);
       } else {
-        events = await EventService.getAllEvents();
-        
+        result = await EventService.getAllEvents(query);
       }
-
+  
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         message: MESSAGES.HOST.SUCCESS.EVENT_FETCHED,
-        events,
+        events: result.events,
+        pagination: {
+          total: result.total,
+          page: query.page,
+          limit: query.limit,
+          totalPages: Math.ceil(result.total / query.limit)
+        }
       });
     } catch (error: any) {
       console.error("Error fetching events:", error);

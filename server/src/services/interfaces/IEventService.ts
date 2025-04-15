@@ -18,6 +18,7 @@ export interface IEvent {
   venueZip: string;
   venueCapacity: number;
   category: string;
+  categoryId:Types.ObjectId;
   artist: string;
   description: string;
   tickets: ITicket[];
@@ -33,8 +34,22 @@ export interface IEvent {
 export interface IEventService {
   addEvent(eventData: IEvent): Promise<IEvent>;
   getEventsByHostId(hostId: Types.ObjectId): Promise<IEvent[]>;
-  getAllEvents(): Promise<IEvent[]>;
-  getEventsByCity(city: string): Promise<IEvent[]>
+  getAllEvents(query: {
+    page?: number,
+    limit?: number,
+    search?: string,
+    category?: string,
+    date?: string,
+    city?: string
+  }): Promise<{ events: IEvent[], total: number }>
+  //getEventsByCity(city: string): Promise<IEvent[]>
+  getEventsByCity(city: string, query: {
+    page?: number,
+    limit?: number,
+    search?: string,
+    category?: string,
+    date?: string
+  }): Promise<{ events: IEvent[], total: number }>
   getEventDetails(eventId: Types.ObjectId): Promise<IEvent | null>
   editEvent(eventId: Types.ObjectId, eventData: Partial<IEvent>): Promise<IEvent | null>
   deleteEvent(eventId: Types.ObjectId): Promise<void>

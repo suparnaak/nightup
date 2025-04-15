@@ -3,6 +3,7 @@ import HostController from "../controllers/hostController";
 import HostProfileController from "../controllers/hostProfileController";
 import HostSubscriptionController from "../controllers/hostSubscriptionController";
 import EventController from "../controllers/eventController";
+import CategoryController from "../controllers/categoryController";
 import BookingController from "../controllers/bookingController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
@@ -16,7 +17,7 @@ router.post("/resend-otp", HostController.resendOtp);
 router.get("/profile", authMiddleware(["host"]), HostProfileController.getHostProfile);
 router.patch("/profile/update", authMiddleware(["host"]), HostProfileController.updateHostProfile);
 
-
+router.get("/event-types",authMiddleware(["host"]), CategoryController.getAllCategories)
 //event management routes
 router.post("/events/add", authMiddleware(["host"]), EventController.addEvent);
 router.get("/events", authMiddleware(["host"]), EventController.getEvents); //list all events host specific
