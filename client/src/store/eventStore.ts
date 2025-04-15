@@ -199,13 +199,13 @@ export const useEventStore = create<EventStore>((set, get) => ({
     }
   },
 
- // in your store:
+ 
 deleteEvent: async (id: string, reason: string) => {
   try {
     set({ isLoading: true, error: null });
     const updatedEvent = await eventRepository.blockEvent(id, reason);
     const updatedEvents = get().events.map(ev =>
-      ev._id === id ? updatedEvent : ev    // <-- use updatedEvent directly
+      ev._id === id ? updatedEvent : ev    
     );
     set({ events: updatedEvents, isLoading: false });
   } catch (error: any) {

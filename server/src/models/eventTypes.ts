@@ -24,7 +24,6 @@ export const EventType = mongoose.model("EventType", eventTypeSchema);
  */
 import mongoose, { Document, Schema } from "mongoose";
 
-// Step 1: Define the interface
 export interface IEventTypeDocument extends Document {
   name: string;
   description: string;
@@ -32,7 +31,6 @@ export interface IEventTypeDocument extends Document {
   updatedAt: Date;
 }
 
-// Step 2: Define the schema
 const eventTypeSchema: Schema<IEventTypeDocument> = new Schema(
   {
     name: {
@@ -52,5 +50,4 @@ const eventTypeSchema: Schema<IEventTypeDocument> = new Schema(
   }
 );
 
-// Step 3: Export the model
 export const EventType = mongoose.model<IEventTypeDocument>("EventType", eventTypeSchema);

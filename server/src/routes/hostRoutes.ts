@@ -40,7 +40,7 @@ router.post("/subscriptions/verify-payment", authMiddleware(["host"]), HostSubsc
 
 router.post("/subscriptions/create-upgrade-order", authMiddleware(["host"]), HostSubscriptionController.createUpgradeOrder);
 router.post("/subscriptions/verify-upgrade", authMiddleware(["host"]), HostSubscriptionController.verifyUpgradePayment);
-
+//bookings
 router.get("/events/:eventId/bookings", authMiddleware(["host"]), BookingController.getBookingsByEvent);
 
 

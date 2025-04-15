@@ -36,8 +36,8 @@ router
   .route("/coupons/:id")
   .put(authMiddleware(["admin"]), CouponController.updateCoupon) 
   .delete(authMiddleware(["admin"]), CouponController.deleteCoupon); 
-
-  router
+//event type management
+router
   .route("/event-types")
   .get(authMiddleware(["admin"]), CategoryController.getAllCategories)
   .post(authMiddleware(["admin"]), CategoryController.createCategory);

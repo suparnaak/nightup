@@ -7,7 +7,7 @@ import { MESSAGES, STATUS_CODES } from "../utils/constants";
 import NodeGeocoder, { Options as GeocoderOptions } from "node-geocoder";
 
 const geocoderOptions: GeocoderOptions = {
-  provider: "openstreetmap", 
+  provider: "openstreetmap",
 };
 
 const geocoder = NodeGeocoder(geocoderOptions);
@@ -64,7 +64,7 @@ class EventController implements IEventController {
         !venueState ||
         !venueZip ||
         !venueCapacity ||
-        !categoryId||
+        !categoryId ||
         !category ||
         !artist ||
         !description ||
@@ -106,7 +106,6 @@ class EventController implements IEventController {
         };
       } else {
         console.error("Geocoding failed for address:", fullAddress);
-        
       }
       const event = await EventService.addEvent(eventData);
 
@@ -153,30 +152,23 @@ class EventController implements IEventController {
   // get all events not host specific
   async getAllEvents(req: Request, res: Response): Promise<void> {
     try {
-      const { 
-        city, 
-        page, 
-        limit, 
-        search, 
-        category, 
-        date 
-      } = req.query;
-      
+      const { city, page, limit, search, category, date } = req.query;
+
       const query = {
         page: page ? parseInt(page as string) : 1,
         limit: limit ? parseInt(limit as string) : 6,
         search: search as string,
         category: category as string,
-        date: date as string
+        date: date as string,
       };
-      
+
       let result;
       if (city && typeof city === "string" && city.trim() !== "") {
         result = await EventService.getEventsByCity(city, query);
       } else {
         result = await EventService.getAllEvents(query);
       }
-  
+
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         message: MESSAGES.HOST.SUCCESS.EVENT_FETCHED,
@@ -185,13 +177,13 @@ class EventController implements IEventController {
           total: result.total,
           page: query.page,
           limit: query.limit,
-          totalPages: Math.ceil(result.total / query.limit)
-        }
+          totalPages: Math.ceil(result.total / query.limit),
+        },
       });
     } catch (error: any) {
       console.error("Error fetching events:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({ 
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR 
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
       });
     }
   }
@@ -199,19 +191,21 @@ class EventController implements IEventController {
   async getEventDetails(req: Request, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;
-   
+
       if (!eventId || !Types.ObjectId.isValid(eventId)) {
-        res.status(STATUS_CODES.BAD_REQUEST).json({ 
-          message: MESSAGES.COMMON.ERROR.INVALID_EVENT_ID 
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          message: MESSAGES.COMMON.ERROR.INVALID_EVENT_ID,
         });
         return;
       }
 
-      const event = await EventService.getEventDetails(new Types.ObjectId(eventId));
+      const event = await EventService.getEventDetails(
+        new Types.ObjectId(eventId)
+      );
 
       if (!event) {
-        res.status(STATUS_CODES.NOT_FOUND).json({ 
-          message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND 
+        res.status(STATUS_CODES.NOT_FOUND).json({
+          message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND,
         });
         return;
       }
@@ -246,7 +240,10 @@ class EventController implements IEventController {
         return;
       }
 
-      const updatedEvent = await EventService.editEvent(new Types.ObjectId(eventId), req.body);
+      const updatedEvent = await EventService.editEvent(
+        new Types.ObjectId(eventId),
+        req.body
+      );
       if (!updatedEvent) {
         res
           .status(STATUS_CODES.NOT_FOUND)
@@ -267,7 +264,6 @@ class EventController implements IEventController {
     }
   }
 
-  // New method: Delete event
   async deleteEvent(req: AuthRequest, res: Response): Promise<void> {
     try {
       const hostIdStr = req.user?.userId;
@@ -277,32 +273,33 @@ class EventController implements IEventController {
         });
         return;
       }
-  
+
       const { eventId } = req.params;
       const { reason } = req.body;
-  
+
       if (!eventId || !Types.ObjectId.isValid(eventId)) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           message: MESSAGES.COMMON.ERROR.INVALID_EVENT_ID,
         });
         return;
       }
-  
+
       if (!reason || typeof reason !== "string") {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           message: "Cancellation reason is required.",
         });
         return;
       }
-  
-      // In your controller method:
-const updatedEvent = await EventService.deleteEvent(new Types.ObjectId(eventId), reason);
-res.status(STATUS_CODES.SUCCESS).json({
-  success: true,
-  event: updatedEvent,        // <-- send it back
-  message: MESSAGES.HOST.SUCCESS.EVENT_DELETED,
-});
 
+      const updatedEvent = await EventService.deleteEvent(
+        new Types.ObjectId(eventId),
+        reason
+      );
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        event: updatedEvent,
+        message: MESSAGES.HOST.SUCCESS.EVENT_DELETED,
+      });
     } catch (error: any) {
       console.error("Error deleting event:", error);
       res.status(STATUS_CODES.SERVER_ERROR).json({

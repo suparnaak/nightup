@@ -159,7 +159,7 @@ class EventRepository implements IEventRepository {
       return await Event.findByIdAndUpdate(
         eventId,
         { isBlocked: true, cancellationReason: reason },
-        { new: true }              // <-- return the updated doc
+        { new: true }             
       );
     }
     

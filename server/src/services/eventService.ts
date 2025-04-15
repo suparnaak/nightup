@@ -51,7 +51,7 @@ class EventService implements IEventService {
     category?: string,
     date?: string
   }): Promise<{ events: IEvent[], total: number }> {
-    // Include the city in the query
+    
     return await EventRepository.getAllEvents({ ...query, city });
   }
   /* async getEventsByCity(city: string): Promise<IEvent[]> {
