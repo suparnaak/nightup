@@ -1,4 +1,5 @@
 import { Types } from 'mongoose';
+import { IEventDocument } from '../../models/events';
 
 export interface ITicket {
   ticketType: string;
@@ -52,6 +53,6 @@ export interface IEventService {
   }): Promise<{ events: IEvent[], total: number }>
   getEventDetails(eventId: Types.ObjectId): Promise<IEvent | null>
   editEvent(eventId: Types.ObjectId, eventData: Partial<IEvent>): Promise<IEvent | null>
-  deleteEvent(eventId: Types.ObjectId): Promise<void>
+  deleteEvent(eventId: Types.ObjectId, reason: string): Promise<IEventDocument>
 
 }

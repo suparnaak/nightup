@@ -1,7 +1,9 @@
 import { Types } from 'mongoose';
 import { IEventRepository } from './interfaces/IEventRepository';
 import { IEvent } from '../services/interfaces/IEventService';
-import Event from '../models/events'; 
+import Event, { IEventDocument } from '../models/events'; 
+import Booking from '../models/booking'
+import WalletRepository from './walletRepository';
 
 class EventRepository implements IEventRepository {
 
@@ -145,14 +147,25 @@ class EventRepository implements IEventRepository {
   }
 
   // Delete event
-  async deleteEvent(eventId: Types.ObjectId): Promise<void> {
+  /* async deleteEvent(eventId: Types.ObjectId): Promise<void> {
     try {
       await Event.findByIdAndDelete(eventId);
     } catch (error) {
       console.error("Error deleting event:", error);
       throw error;
     }
-  }
+  } */
+    async blockEvent(eventId: Types.ObjectId, reason: string): Promise<IEventDocument | null> {
+      return await Event.findByIdAndUpdate(
+        eventId,
+        { isBlocked: true, cancellationReason: reason },
+        { new: true }              // <-- return the updated doc
+      );
+    }
+    
+
+    
+    
 }
 
 export default new EventRepository();

@@ -272,25 +272,37 @@ class EventController implements IEventController {
     try {
       const hostIdStr = req.user?.userId;
       if (!hostIdStr) {
-        res
-          .status(STATUS_CODES.UNAUTHORIZED)
-          .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
+        res.status(STATUS_CODES.UNAUTHORIZED).json({
+          message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
+        });
         return;
       }
-
+  
       const { eventId } = req.params;
+      const { reason } = req.body;
+  
       if (!eventId || !Types.ObjectId.isValid(eventId)) {
-        res
-          .status(STATUS_CODES.BAD_REQUEST)
-          .json({ message: MESSAGES.COMMON.ERROR.INVALID_EVENT_ID });
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          message: MESSAGES.COMMON.ERROR.INVALID_EVENT_ID,
+        });
         return;
       }
+  
+      if (!reason || typeof reason !== "string") {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          message: "Cancellation reason is required.",
+        });
+        return;
+      }
+  
+      // In your controller method:
+const updatedEvent = await EventService.deleteEvent(new Types.ObjectId(eventId), reason);
+res.status(STATUS_CODES.SUCCESS).json({
+  success: true,
+  event: updatedEvent,        // <-- send it back
+  message: MESSAGES.HOST.SUCCESS.EVENT_DELETED,
+});
 
-      await EventService.deleteEvent(new Types.ObjectId(eventId));
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        message: MESSAGES.HOST.SUCCESS.EVENT_DELETED,
-      });
     } catch (error: any) {
       console.error("Error deleting event:", error);
       res.status(STATUS_CODES.SERVER_ERROR).json({

@@ -23,6 +23,7 @@ export interface IEventDocument extends Document {
   eventImage: string; 
   additionalDetails?: string;
   isBlocked: boolean;
+  cancellationReason?: string;
   location?: {
     type: "Point";
     coordinates: [number, number]; 
@@ -55,7 +56,7 @@ const eventSchema: Schema = new Schema(
     eventImage: { type: String },
     additionalDetails: { type: String },
     isBlocked: { type: Boolean, default: false },
-    
+    cancellationReason: { type: String },
     location: {
       type: { type: String, enum: ["Point"], default: "Point" },
       coordinates: { type: [Number] },

@@ -3,21 +3,22 @@ import CategoryService from "../services/categoryService";
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { isRequired } from "../utils/validators";
 import { ICategoryController } from "./interfaces/ICategoryController";
+import { IEventTypeDocument } from "../models/eventTypes";
 
 class CategoryController implements ICategoryController {
   // GET: Fetch all categories (event types)
   async getAllCategories(req: Request, res: Response): Promise<void> {
     try {
       const categories = await CategoryService.getAllCategories();
-      console.log(categories)
-      const payload = categories.map((cat) => ({
-        id: cat._id.toString(),
+      console.log(categories);
+      const payload = categories.map((cat: IEventTypeDocument) => ({
+        id: String(cat._id), // Now TypeScript knows _id exists on cat
         name: cat.name,
         description: cat.description,
         createdAt: cat.createdAt,
         updatedAt: cat.updatedAt,
       }));
-  
+      
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         categories: payload,

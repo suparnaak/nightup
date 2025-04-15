@@ -3,7 +3,9 @@ import { IEventService, IEvent } from './interfaces/IEventService';
 import EventRepository from '../repositories/eventRepository';
 import HostRepository from '../repositories/hostRepository';
 import HostSubscriptionRepository from '../repositories/hostSubscriptionRepository';
+import BookingRepository from '../repositories/bookingRepository';
 import { MESSAGES } from "../utils/constants";
+import { IEventDocument } from '../models/events';
 
 
 class EventService implements IEventService {
@@ -62,8 +64,11 @@ class EventService implements IEventService {
     return await EventRepository.editEvent(eventId, eventData);
   }
 
-  async deleteEvent(eventId: Types.ObjectId): Promise<void> {
-    return await EventRepository.deleteEvent(eventId);
+  async deleteEvent(eventId: Types.ObjectId, reason: string): Promise<IEventDocument> {
+    const updatedEvent = await EventRepository.blockEvent(eventId, reason);
+    await BookingRepository.cancelAndRefundBookings(eventId, reason);
+    if (!updatedEvent) throw new Error("Event not found");
+    return updatedEvent;
   }
 }
 

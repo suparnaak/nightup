@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import Booking, { IBooking } from "../models/booking";
 import { IBookingRepository } from "./interfaces/IBookingRepository";
+import WalletRepository from "./walletRepository";
 
 class BookingRepository implements IBookingRepository {
   async createBooking(data: Partial<IBooking>): Promise<IBooking> {
@@ -86,6 +87,30 @@ class BookingRepository implements IBookingRepository {
       
     return bookings as IBooking[];
   }
+  async cancelAndRefundBookings(eventId: Types.ObjectId, reason: string): Promise<void> {
+    const bookings = await Booking.find({ eventId, status: "confirmed" });
+  
+    for (const booking of bookings) {
+      await WalletRepository.updateWalletBalance(
+        booking.userId.toString(),
+        booking.discountedAmount,
+        booking.paymentId,
+        "Refund for event cancellation"
+      );
+  
+      booking.status = "cancelled";
+      booking.paymentStatus = "refunded";
+      booking.cancellation = {
+        cancelledBy: "host",
+        cancelledAt: new Date(),
+        reason: `Event cancelled: ${reason}`,
+      };
+  
+      await booking.save();
+    }
+  }
+  
+  
 }
 
 export default new BookingRepository();

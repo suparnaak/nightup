@@ -27,6 +27,7 @@ interface Event {
   eventImage: string;
   additionalDetails: string;
   isBlocked: boolean;
+  cancellationReason?: string;
   location?: {
     type: "Point";
     coordinates: [number, number]; // [longitude, latitude] for geo location
@@ -69,7 +70,7 @@ interface EventStore {
   fetchAllEvents: () => Promise<void>;
   fetchEventDetails: (id: string) => Promise<Event | null>;
   editEvent: (id: string, eventData: Partial<Event>) => Promise<void>;
-  deleteEvent: (id: string) => Promise<void>;
+  deleteEvent: (id: string, reason: string) => Promise<void>;
   fetchEventsByCity: (city: string) => Promise<void>;
   setSelectedCity: (city: string) => void;
 }
@@ -198,22 +199,26 @@ export const useEventStore = create<EventStore>((set, get) => ({
     }
   },
 
-  deleteEvent: async (id: string) => {
-    try {
-      set({ isLoading: true, error: null });
-      await eventRepository.deleteEvent(id);
-      const updatedEvents = get().events.filter((ev) => ev._id !== id);
-      set({ events: updatedEvents, isLoading: false });
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error:
-          error.response?.data?.message ||
-          "Failed to delete event. Please try again.",
-      });
-      throw error;
-    }
-  },
+ // in your store:
+deleteEvent: async (id: string, reason: string) => {
+  try {
+    set({ isLoading: true, error: null });
+    const updatedEvent = await eventRepository.blockEvent(id, reason);
+    const updatedEvents = get().events.map(ev =>
+      ev._id === id ? updatedEvent : ev    // <-- use updatedEvent directly
+    );
+    set({ events: updatedEvents, isLoading: false });
+  } catch (error: any) {
+    set({
+      isLoading: false,
+      error: error.response?.data?.message ||
+             "Failed to block event. Please try again.",
+    });
+    throw error;
+  }
+},
+
+  
   
   setSelectedCity: (city: string) => {
     set({ selectedCity: city, currentPage: 1 }); 

@@ -65,9 +65,13 @@ export const eventRepository = {
   },
 
   // Delete event
-  deleteEvent: async (id: string) => {
+  /* deleteEvent: async (id: string) => {
     const response = await axiosHostClient.delete(`/events/${id}`);
     return response.data;
+  }, */
+  blockEvent: async (id: string, reason: string) => {
+    const response = await axiosHostClient.put(`/events/cancel/${id}`, { reason });
+    return response.data.event;
   },
 };
 

@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import { IEvent } from '../../services/interfaces/IEventService';
+import { IEventDocument } from '../../models/events';
 
 export interface IEventRepository {
   addEvent(eventData: IEvent): Promise<IEvent | null>;
@@ -15,5 +16,5 @@ export interface IEventRepository {
   getEventById(eventId: Types.ObjectId): Promise<IEvent | null>
   getEventsByCity(city: string): Promise<IEvent[]>
   editEvent(eventId: Types.ObjectId, eventData: Partial<IEvent>): Promise<IEvent | null>
-  deleteEvent(eventId: Types.ObjectId): Promise<void>
+  blockEvent(eventId: Types.ObjectId, reason: string): Promise<IEventDocument | null>
 }
