@@ -99,7 +99,7 @@ class HostSubscriptionController implements IHostSubscriptionController{
       if (verified) {
         res.status(STATUS_CODES.SUCCESS).json({
           success: true,
-          message: MESSAGES.ADMIN.SUCCESS.SUBSCRIPTION_CREATED || "Subscription created successfully",
+          message: MESSAGES.HOST.SUCCESS.SUBSCRIPTION_CREATED,
         });
       } else {
         res.status(STATUS_CODES.BAD_REQUEST).json({
@@ -131,7 +131,7 @@ async createUpgradeOrder(req: AuthRequest, res: Response): Promise<void> {
     if (!planId || !amount || !currentSubscriptionId) {
       res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
-        message: "Missing required fields: planId, amount, or currentSubscriptionId",
+        message: MESSAGES.HOST.ERROR.MISSING_SUBSCRIPTION_FIELDS,
       });
       return;
     }
@@ -155,56 +155,67 @@ async createUpgradeOrder(req: AuthRequest, res: Response): Promise<void> {
     });
   }
 }
-async verifyUpgradePayment(req: AuthRequest, res: Response): Promise<void> {
-  try {
-    if (!req.user?.userId) {
-      res.status(STATUS_CODES.UNAUTHORIZED).json({
+
+  async verifyUpgradePayment(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user?.userId) {
+        res.status(STATUS_CODES.UNAUTHORIZED).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
+        });
+        return;
+      }
+            console.log("incoming",req.body)
+      const { 
+        razorpay_payment_id, 
+        razorpay_order_id, 
+        razorpay_signature, 
+        planId, 
+        currentSubscriptionId,
+        proratedAmount 
+      } = req.body;
+      
+      if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature || !planId || !currentSubscriptionId) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.PAYMENT_FAILED,
+        });
+        return;
+      }
+      const prorated = typeof proratedAmount === "number"
+        ? proratedAmount
+        : Number(proratedAmount) || 0;
+      const paymentData = {
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature,
+        planId,
+        currentSubscriptionId,
+        proratedAmount: prorated
+      };
+      
+      const result = await HostSubscriptionService.verifyUpgradePayment(req.user.userId, paymentData);
+      
+      if (result.success) {
+        res.status(STATUS_CODES.SUCCESS).json({
+          success: true,
+          message:MESSAGES.HOST.SUCCESS.SUBSCRIPTION_UPGRADED,
+          subscription: result.subscription,
+        });
+      } else {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.PAYMENT_FAILED,
+        });
+      }
+    } catch (error) {
+      console.error("Verify Upgrade Payment Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
         success: false,
-        message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
-      });
-      return;
-    }
-    
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, planId, currentSubscriptionId } = req.body;
-    
-    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature || !planId || !currentSubscriptionId) {
-      res.status(STATUS_CODES.BAD_REQUEST).json({
-        success: false,
-        message: "Missing required payment verification data",
-      });
-      return;
-    }
-    
-    const paymentData = {
-      razorpay_payment_id,
-      razorpay_order_id,
-      razorpay_signature,
-      planId,
-      currentSubscriptionId
-    };
-    
-    const result = await HostSubscriptionService.verifyUpgradePayment(req.user.userId, paymentData);
-    
-    if (result.success) {
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        message: "Subscription upgraded successfully",
-        subscription: result.subscription,
-      });
-    } else {
-      res.status(STATUS_CODES.BAD_REQUEST).json({
-        success: false,
-        message: MESSAGES.COMMON.ERROR.PAYMENT_FAILED,
+        message: error instanceof Error ? error.message : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
       });
     }
-  } catch (error) {
-    console.error("Verify Upgrade Payment Error:", error);
-    res.status(STATUS_CODES.SERVER_ERROR).json({
-      success: false,
-      message: error instanceof Error ? error.message : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-    });
   }
-}
 }
 
 export default new HostSubscriptionController();

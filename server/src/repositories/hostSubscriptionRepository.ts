@@ -17,24 +17,35 @@ class HostSubscriptionRepository implements IHostSubscriptionRepository {
   async getSubscriptionPlanById(planId: string): Promise<ISubscriptionPlan | null> {
     return await SubscriptionPlan.findById(planId).lean();
   }
-  async createSubscription(payload: {
-    host: string;
-    subscriptionPlan: string;
-    startDate: Date;
-    endDate: Date;
-    status: "Active" | "Expired";
-    paymentId?: string;
-  }): Promise<ISubscription> {
-    const newSubscription = new Subscription({
-      host: payload.host,
-      subscriptionPlan: payload.subscriptionPlan,
-      startDate: payload.startDate,
-      endDate: payload.endDate,
-      status: payload.status,
-      paymentId: payload.paymentId,
-    });
-    return await newSubscription.save();
-  }
+ 
+    async createSubscription(payload: {
+      host: string;
+      subscriptionPlan: string;
+      startDate: Date;
+      endDate: Date;
+      status: "Active" | "Expired";
+      paymentId?: string;
+      isUpgrade?: boolean;
+      upgradedFrom?: string;
+      proratedAmount?: number;
+      originalAmount?: number;
+      transactionType?: "New" | "Renewal" | "Upgrade";
+    }): Promise<ISubscription> {
+      const newSubscription = new Subscription({
+        host: payload.host,
+        subscriptionPlan: payload.subscriptionPlan,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        status: payload.status,
+        paymentId: payload.paymentId,
+        isUpgrade: payload.isUpgrade || false,
+        upgradedFrom: payload.upgradedFrom,
+        proratedAmount: payload.proratedAmount,
+        originalAmount: payload.originalAmount,
+        transactionType: payload.transactionType || "New"
+      });
+      return await newSubscription.save();
+    }
   async getSubscriptionById(subscriptionId: string): Promise<ISubscription | null> {
     return await Subscription.findById(subscriptionId)
       .populate("subscriptionPlan")

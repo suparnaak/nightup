@@ -65,6 +65,8 @@ export const MESSAGES = {
       EVENT_UPDATE:"Event updated successfully",
       EVENT_DELETED:"Event deleted successfully",
       FETCH_PROFILE: "Profile retrieved successfully",
+      SUBSCRIPTION_UPGRADED: "Subscription upgraded successfully",
+      SUBSCRIPTION_CREATED:"Subscribed successfully",
     },
     ERROR: {
       
@@ -72,6 +74,10 @@ export const MESSAGES = {
       HOST_NOT_VERIFIED: "You are not allowed to add an event. Your account status does not permit this action.",
       DOCUMENT_NOT_VERIFIED: "You are not allowed to add an event. Your document is not verified by admin.",
       NO_SUBSCRIPTION: "You are not allowed to add an event. You don't have an active subscription.",
+      MISSING_SUBSCRIPTION_FIELDS: "Missing required fields: planId, amount, or currentSubscriptionId",
+      INVALID_SUBSCRIPTION:"Invalid subscription plan",
+      UNAUTHORISED_SUBSCRIPTION:"Unauthorized: This subscription does not belong to you",
+      SUBSCRIPTION_FAILED:"Failed to create new subscription",
       
     },
   },

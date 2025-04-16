@@ -47,7 +47,7 @@ const HostSubscriptionPage: React.FC = () => {
       });
   }, [getHostSubscription, getAvailablePlans]);
 
-  // Calculate days remaining in current subscription
+  
   const calculateRemainingDays = (endDate: string) => {
     const end = new Date(endDate);
     const now = new Date();
@@ -55,13 +55,10 @@ const HostSubscriptionPage: React.FC = () => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // Calculate prorated cost for upgrade
   const calculateProratedCost = (currentPrice: number, newPrice: number, daysRemaining: number) => {
-    // Get price difference
-    const priceDiff = newPrice - currentPrice;
     
-    // Calculate prorated amount based on remaining days
-    // Assuming subscriptions are for 30 days
+    const priceDiff = newPrice - currentPrice;
+   
     const prorationFactor = daysRemaining / 30;
     return priceDiff * prorationFactor;
   };
@@ -75,8 +72,8 @@ const HostSubscriptionPage: React.FC = () => {
       confirmButtonText: "Yes, Subscribe",
       cancelButtonText: "Cancel",
       background: '#ffffff',
-      confirmButtonColor: '#6b5b9a', // Darker purple for confirmation
-      cancelButtonColor: '#d1d5db', // Gray for cancel
+      confirmButtonColor: '#6b5b9a', 
+      cancelButtonColor: '#d1d5db', 
     });
     
     if (!result.isConfirmed) return;
@@ -123,7 +120,7 @@ const HostSubscriptionPage: React.FC = () => {
           planName: plan.name,
         },
         theme: {
-          color: "#6b5b9a", // Main purple color for Razorpay
+          color: "#6b5b9a", 
         },
         modal: {
           ondismiss: function () {
@@ -139,7 +136,7 @@ const HostSubscriptionPage: React.FC = () => {
     }
   };
 
-  // Handle plan upgrade
+  // plan upgrade
   const handleUpgrade = async (plan: any) => {
     if (!subscription) return;
     console.log("Subscription object:", subscription);
@@ -168,7 +165,7 @@ const HostSubscriptionPage: React.FC = () => {
     if (!result.isConfirmed) return;
     
     try {
-      const subscriptionId = subscription._id;/* || subscription._id; */ // Try alternative properties
+      const subscriptionId = subscription._id;
         
         if (!subscriptionId) {
             console.error("Subscription ID is undefined", subscription);
@@ -181,7 +178,7 @@ const HostSubscriptionPage: React.FC = () => {
           amount: proratedCost,
           currentSubscriptionId: subscriptionId
         });
-        
+        console.log("prorated cost",proratedCost)
         const orderId = await createUpgradeOrder(plan.id, proratedCost, subscriptionId);
       
       const options = {
@@ -197,18 +194,19 @@ const HostSubscriptionPage: React.FC = () => {
             console.log("Verifying with planId:", plan.id, "and subscriptionId:", subscriptionId);
             
             const success = await verifyUpgradePayment(
-              {
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature
-              },
-              plan.id,
-              subscriptionId
-            );
+                      {
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature,
+                        proratedAmount: proratedCost
+                      },
+                      plan.id,
+                      subscriptionId
+                    );
             
             if (success) {
               toast.success("Upgrade successful! Your new plan is now active.");
-              // Refresh subscription data
+             
               getHostSubscription();
             } else {
               toast.error("Upgrade verification failed. Please contact support.");
@@ -277,7 +275,7 @@ const HostSubscriptionPage: React.FC = () => {
   }
 
   const UpgradePlanCard = ({ plan, currentPlan, remainingDays, onUpgrade }: UpgradeCardProps) => {
-    // Calculate prorated cost
+   
     const proratedCost = calculateProratedCost(
       currentPlan.price,
       plan.price,

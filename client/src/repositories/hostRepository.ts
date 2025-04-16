@@ -68,12 +68,14 @@ export const hostRepository = {
     return response.data;
   },
   //verifying subscription upgrade payment
+  
   verifyUpgradePayment: async (paymentData: {
     razorpay_payment_id: string;
     razorpay_order_id: string;
     razorpay_signature: string;
     planId: string;
     currentSubscriptionId: string;
+    proratedAmount?: number;
   }) => {
     console.log("Sending verification request to server:", paymentData);
     const response = await axiosHostClient.post(
@@ -81,7 +83,7 @@ export const hostRepository = {
       paymentData
     );
     return response.data;
-  },
+  }
 };
 
 export default hostRepository;
