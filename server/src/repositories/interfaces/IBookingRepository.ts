@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { IBooking } from "../../models/booking";
 
 export interface IBookingRepository {
@@ -13,4 +14,5 @@ export interface IBookingRepository {
   ): Promise<IBooking | null>;
   findById(bookingId: string): Promise<IBooking | null>;
   getBookingsByEvent(eventId: string): Promise<IBooking[]>;
+  cancelAndRefundBookings(eventId: Types.ObjectId, reason: string): Promise<void>
 }

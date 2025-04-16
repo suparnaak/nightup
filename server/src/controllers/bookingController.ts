@@ -222,6 +222,31 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
       });
     }
   }
+
+  async getBookingsByEventAdmin(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { eventId } = req.params;
+      const adminId = req.user?.userId;
+      if (!adminId) {
+        res
+          .status(STATUS_CODES.UNAUTHORIZED)
+          .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
+        return;
+      }
+      const bookings = await BookingService.getBookingsByEvent(eventId);
+      console.log(bookings);
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        bookings,
+      });
+    } catch (error) {
+      console.error("Get Bookings By Event Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  }
 }
 
 export default new BookingController();

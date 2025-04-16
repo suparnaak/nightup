@@ -138,6 +138,7 @@ export const adminRepository = {
     );
     return response.data;
   },
+  
 };
 
 export default adminRepository;

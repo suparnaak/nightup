@@ -42,6 +42,7 @@ import AdminSubscriptionPage from "../pages/admin/AdminSubscriptionPage";
 import AdminCouponPage from "../pages/admin/AdminCouponPage";
 import AdminCategoryPage from "../pages/admin/AdminCategoryPage";
 import AdminEventsPage from "../pages/admin/AdminEvents";
+import AdminEventBookingsPage from '../pages/admin/AdminEventBookings'
 
 const AppRoutes = () => {
   return (
@@ -98,6 +99,7 @@ const AppRoutes = () => {
           <Route path="/admin/coupons" element={<AdminCouponPage />} />
           <Route path="/admin/event-categories" element={<AdminCategoryPage />} />
           <Route path="/admin/events" element={<AdminEventsPage />} />
+          <Route path="/admin/events/:eventId/bookings" element={<AdminEventBookingsPage />} />
 
         </Route>
         

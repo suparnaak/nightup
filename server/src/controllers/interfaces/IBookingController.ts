@@ -7,4 +7,5 @@ export interface IBookingController {
     getMyBookings(req: Request, res: Response): Promise<void>
     cancelBooking(req: Request, res: Response): Promise<void>
     getBookingsByEvent(req: Request, res: Response): Promise<void>
+    getBookingsByEventAdmin(req: Request, res: Response): Promise<void>
 }

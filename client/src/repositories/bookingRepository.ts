@@ -1,3 +1,4 @@
+import axiosAdminClient from "../api/axiosAdminClient";
 import axiosHostClient from "../api/axiosHostClient";
 import axiosUserClient from "../api/axiosUserClient";
 
@@ -31,6 +32,10 @@ export const bookingRepository = {
 
   getBookingsByEvent: async (eventId: string) => {
     const response = await axiosHostClient.get(`/events/${eventId}/bookings`);
+    return response.data.bookings as any[];
+  },
+  getBookingsByEventForAdmin: async (eventId: string) => {
+    const response = await axiosAdminClient.get(`/events/${eventId}/bookings`);
     return response.data.bookings as any[];
   },
 };

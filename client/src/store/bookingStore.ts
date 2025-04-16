@@ -52,6 +52,7 @@ interface BookingStore {
   fetchMyBookings: () => Promise<void>;
   cancelBooking: (bookingId: string, reason: string) => Promise<boolean>;
   fetchBookingsByEvent: (eventId: string) => Promise<void>;//bookings per event for host
+  fetchBookingsByEventAdmin:  (eventId: string) => Promise<void>;
 }
 
 export const useBookingStore = create<BookingStore>((set, get) => ({
@@ -157,6 +158,19 @@ fetchBookingsByEvent: async (eventId) => {
     set({
       isLoading: false,
       error: err.response?.data?.message || "Failed to fetch bookings for event",
+    });
+    throw err;
+  }
+},
+fetchBookingsByEventAdmin: async (eventId: string) => {
+  set({ isLoading: true, error: null });
+  try {
+    const bookings = await bookingRepository.getBookingsByEventForAdmin(eventId);
+    set({ bookings, isLoading: false });
+  } catch (err: any) {
+    set({
+      isLoading: false,
+      error: err.response?.data?.message || "Failed to fetch admin bookings",
     });
     throw err;
   }

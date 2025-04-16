@@ -14,8 +14,6 @@ import {
   MapPin,
   Users,
   Info,
-  Music,
-  FileText,
   User,
   Mail,
   Heart,
@@ -40,14 +38,10 @@ const DetailedEventPage: React.FC = () => {
   const [availableQuantities, setAvailableQuantities] = useState<Record<string, number>>({});
   const MAX_TICKETS = 5;
 
-  // Pre‑fetch saved events on mount (or when auth changes)
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchSavedEvents().catch(console.error);
-    }
+    if (isAuthenticated) fetchSavedEvents().catch(console.error);
   }, [isAuthenticated, fetchSavedEvents]);
 
-  // Fetch event details
   useEffect(() => {
     if (!id) return;
     const fetchEvent = async () => {
@@ -60,8 +54,6 @@ const DetailedEventPage: React.FC = () => {
           return;
         }
         setEvent(fetchedEvent);
-
-        // Initialize ticket quantities
         if (Array.isArray(fetchedEvent.tickets)) {
           setSelectedTicketType(fetchedEvent.tickets[0].ticketType);
           const initQ: Record<string, number> = {};
@@ -84,12 +76,8 @@ const DetailedEventPage: React.FC = () => {
     fetchEvent();
   }, [id, fetchEventDetails]);
 
-  // Derived liked state
-  const isLiked = Boolean(
-    event && savedEvents.some(se => se.event._id === event._id)
-  );
+  const isLiked = Boolean(event && savedEvents.some(se => se.event._id === event._id));
 
-  // Ticket quantity handlers
   const handleTicketQuantityChange = (ticketType: string, change: number) => {
     if (ticketType !== selectedTicketType) return;
     setTicketQuantities(prev => {
@@ -108,55 +96,30 @@ const DetailedEventPage: React.FC = () => {
     });
   };
 
-  const handleSelectTicketType = (ticketType: string) => {
-    setSelectedTicketType(ticketType);
-  };
+  const handleSelectTicketType = (ticketType: string) => setSelectedTicketType(ticketType);
 
   const handleBookingSubmit = (e: FormEvent) => {
     e.preventDefault();
     const qty = ticketQuantities[selectedTicketType] || 0;
     const avail = availableQuantities[selectedTicketType] || 0;
-    if (qty <= 0) {
-      toast.error("Please select at least one ticket");
-      return;
-    }
-    if (qty > avail) {
-      toast.error(`Only ${avail} tickets available`);
-      return;
-    }
-    if (!isAuthenticated) {
-      toast.error("Please login to continue");
-      return;
-    }
+    if (qty <= 0) return toast.error("Please select at least one ticket");
+    if (qty > avail) return toast.error(`Only ${avail} tickets available`);
+    if (!isAuthenticated) return toast.error("Please login to continue");
     sessionStorage.setItem(
       "currentBooking",
-      JSON.stringify({
-        eventId: event._id,
-        tickets: [{ ticketType: selectedTicketType, quantity: qty }],
-        timestamp: new Date().toISOString(),
-      })
+      JSON.stringify({ eventId: event._id, tickets: [{ ticketType: selectedTicketType, quantity: qty }], timestamp: new Date().toISOString() })
     );
     toast.success("Proceeding to booking confirmation!");
     navigate(`/event/${event._id}/booking-confirmation`);
   };
 
   const handleSaveEvent = async () => {
-    if (!isAuthenticated) {
-      toast.error("Please login to save events");
-      return;
-    }
+    if (!isAuthenticated) return toast.error("Please login to save events");
     if (!event) return;
     try {
-      if (!isLiked) {
-        await saveEvent(event._id);
-        toast.success("Event saved to your wishlist");
-      } else {
-        await removeSavedEvent(event._id);
-        toast.success("Event removed from your wishlist");
-      }
-      // No local setState needed; isLiked will update from store
-    } catch (err) {
-      console.error(err);
+      if (!isLiked) await saveEvent(event._id), toast.success("Event saved to your wishlist");
+      else await removeSavedEvent(event._id), toast.success("Event removed from your wishlist");
+    } catch {
       toast.error("Failed to update wishlist");
     }
   };
@@ -165,61 +128,27 @@ const DetailedEventPage: React.FC = () => {
     if (!event) return;
     const shareData = { title: event.title, text: event.description, url: window.location.href };
     if (navigator.share) {
-      try { await navigator.share(shareData); }
-      catch { toast.error("Error sharing event."); }
+      try { await navigator.share(shareData); } catch { toast.error("Error sharing event."); }
     } else {
-      try { await navigator.clipboard.writeText(window.location.href); toast.success("Link copied!"); }
-      catch { toast.error("Failed to copy link."); }
+      try { await navigator.clipboard.writeText(window.location.href); toast.success("Link copied!"); } catch { toast.error("Failed to copy link."); }
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50">
-        <Spinner />
-      </div>
-    );
-  }
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50"><Spinner /></div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50"><div className="text-red-600 text-lg bg-white p-6 rounded-lg shadow-lg">{error}</div></div>;
+  if (!event) return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-slate-50"><div className="text-gray-600 text-lg bg-white p-6 rounded-lg shadow-lg">No event details available.</div></div>;
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50">
-        <div className="text-red-600 text-lg bg-white p-6 rounded-lg shadow-lg">{error}</div>
-      </div>
-    );
-  }
-
-  if (!event) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-slate-50">
-        <div className="text-gray-600 text-lg bg-white p-6 rounded-lg shadow-lg">
-          No event details available.
-        </div>
-      </div>
-    );
-  }
+  const eventDate = new Date(event.date);
+  const now = new Date();
+  const isPast = eventDate < now;
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "Description":
-        return <div className="prose max-w-none"><p>{event.description}</p></div>;
-      case "Artist":
-        return <div><p>{event.artist || "No artist info."}</p></div>;
-      case "Additional Details":
-        return <div><p>{event.additionalDetails || "No additional details."}</p></div>;
-      case "Event By":
-        return (
-          <div className="bg-white rounded-lg p-6">
-            {event.hostId ? (
-              <>
-                <div><User /> {event.hostId.name}</div>
-                <div><Mail /> {event.hostId.email}</div>
-              </>
-            ) : <p>Host info not available.</p>}
-          </div>
-        );
-      default:
-        return null;
+      case "Description": return <div className="prose max-w-none"><p>{event.description}</p></div>;
+      case "Artist": return <div><p>{event.artist || "No artist info."}</p></div>;
+      case "Additional Details": return <div><p>{event.additionalDetails || "No additional details."}</p></div>;
+      case "Event By": return <div className="bg-white rounded-lg p-6">{event.hostId ? <><div><User /> {event.hostId.name}</div><div><Mail /> {event.hostId.email}</div></> : <p>Host info not available.</p>}</div>;
+      default: return null;
     }
   };
 
@@ -238,9 +167,7 @@ const DetailedEventPage: React.FC = () => {
                   className="w-full h-[300px] object-cover"
                 />
                 <div className="absolute bottom-0 inset-x-0 bg-black/40 backdrop-blur-sm p-6 flex justify-between items-start">
-                  <div>
-                    <h1 className="text-3xl font-bold text-white">{event.title}</h1>
-                  </div>
+                  <h1 className="text-3xl font-bold text-white">{event.title}</h1>
                   <div className="flex gap-2">
                     <button onClick={handleSaveEvent} className="p-2 rounded-full bg-white/20">
                       <Heart className={`h-5 w-5 ${isLiked ? "fill-red-500 text-red-500" : "text-white"}`} />
@@ -318,64 +245,72 @@ const DetailedEventPage: React.FC = () => {
               )}
             </div>
 
-            {/* Right: Booking */}
+            {/* Right: Booking or Past */}
             <div className="lg:w-1/3">
-              <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
-                <h2 className="text-2xl font-bold mb-2">Book Your Ticket</h2>
-                <p className="text-sm text-gray-600 mb-6">Max {MAX_TICKETS} tickets</p>
+              {isPast ? (
+                <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
+                  <Info className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">Event Over</h2>
+                  <p className="text-gray-600">This event took place on {eventDate.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' })}.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
+                  <h2 className="text-2xl font-bold mb-2">Book Your Ticket</h2>
+                  <p className="text-sm text-gray-600 mb-6">Max {MAX_TICKETS} tickets</p>
 
-                {Array.isArray(event.tickets) && event.tickets.length ? (
-                  <form onSubmit={handleBookingSubmit} className="space-y-6">
-                    {event.tickets.map((ticket: any) => {
-                      const isSelected = ticket.ticketType === selectedTicketType;
-                      const currentQty = ticketQuantities[ticket.ticketType] || 0;
-                      const availQty = availableQuantities[ticket.ticketType] || 0;
-                      const maxReached = currentQty >= Math.min(MAX_TICKETS, availQty);
+                  {Array.isArray(event.tickets) && event.tickets.length ? (
+                    <form onSubmit={handleBookingSubmit} className="space-y-6">
+                      {event.tickets.map((ticket: any) => {
+                        const isSelected = ticket.ticketType === selectedTicketType;
+                        const currentQty = ticketQuantities[ticket.ticketType] || 0;
+                        const availQty = availableQuantities[ticket.ticketType] || 0;
+                        const maxReached = currentQty >= Math.min(MAX_TICKETS, availQty);
 
-                      return (
-                        <div key={ticket.ticketType} className={`${isSelected ? "border-2 border-purple-500" : "border"} rounded-xl p-4`}>
-                          <label className="flex justify-between items-center">
-                            <div>
-                              <input
-                                type="radio"
-                                name="ticketType"
-                                checked={isSelected}
-                                onChange={() => handleSelectTicketType(ticket.ticketType)}
-                                className="mr-2"
-                              />
-                              {ticket.ticketType}
+                        return (
+                          <div key={ticket.ticketType} className={`${isSelected ? "border-2 border-purple-500" : "border"} rounded-xl p-4`}>
+                            <label className="flex justify-between items-center">
+                              <div>
+                                <input
+                                  type="radio"
+                                  name="ticketType"
+                                  checked={isSelected}
+                                  onChange={() => handleSelectTicketType(ticket.ticketType)}
+                                  className="mr-2"
+                                />
+                                {ticket.ticketType}
+                              </div>
+                              <span>₹{ticket.ticketPrice}</span>
+                            </label>
+                            <div className="flex items-center justify-end gap-3 mt-3">
+                              <button
+                                type="button"
+                                onClick={() => handleTicketQuantityChange(ticket.ticketType, -1)}
+                                disabled={!isSelected || currentQty <= 0}
+                                className="px-2"
+                              >-</button>
+                              <span>{isSelected ? currentQty : 0}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleTicketQuantityChange(ticket.ticketType, 1)}
+                                disabled={!isSelected || maxReached}
+                                className="px-2"
+                              >+</button>
                             </div>
-                            <span>₹{ticket.ticketPrice}</span>
-                          </label>
-                          <div className="flex items-center justify-end gap-3 mt-3">
-                            <button
-                              type="button"
-                              onClick={() => handleTicketQuantityChange(ticket.ticketType, -1)}
-                              disabled={!isSelected || currentQty <= 0}
-                              className="px-2"
-                            >-</button>
-                            <span>{isSelected ? currentQty : 0}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleTicketQuantityChange(ticket.ticketType, 1)}
-                              disabled={!isSelected || maxReached}
-                              className="px-2"
-                            >+</button>
+                            {isSelected && availQty === 0 && <p className="text-red-500 mt-2">Sold out</p>}
                           </div>
-                          {isSelected && availQty === 0 && <p className="text-red-500 mt-2">Sold out</p>}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
 
-                    <Button label="Proceed to Booking" type="submit" className="w-full bg-purple-600 text-white py-3 rounded-xl" />
-                  </form>
-                ) : (
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-700">Tickets not available.</p>
-                  </div>
-                )}
-              </div>
+                      <Button label="Proceed to Booking" type="submit" className="w-full bg-purple-600 text-white py-3 rounded-xl" />
+                    </form>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-700">Tickets not available.</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
