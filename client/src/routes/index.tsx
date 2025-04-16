@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// Public Pages for host, user
+// Public Pages for host, user, admin
 import Home from "../pages/Home";
 import DetailedEventPage from "../pages/DetailedEventPage";
 import Login from "../pages/auth/Login";
@@ -24,6 +24,7 @@ import HostSubscriptionPage from "../pages/host/HostSubscriptionPage";
 import HostProfileManagement from "../pages/host/HostProfileManagement";
 import HostDetailedEventPage from "../pages/host/HostDetailedEventPage";
 import HostEditEventPage from "../pages/host/HostEditEventPage";
+import HostEventBookingsPage from "../pages/host/HostEventBookingsPage";
 
 //user specific
 import Profile from "../pages/user/Profile";
@@ -31,6 +32,7 @@ import ChangePassword from "../pages/user/ChangePassword";
 import WalletPage from "../pages/user/WalletPage";
 import MyBookingsPage from "../pages/user/MyBookingsPage"
 import SavedEventsPage from "../pages/user/SavedEventsPage";
+import BookingConfirmationPage from "../pages/user/BookingConfirmationPage";
 
 //admin specific
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -38,9 +40,9 @@ import AdminHostsPage from "../pages/admin/AdminHostsPage";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminSubscriptionPage from "../pages/admin/AdminSubscriptionPage";
 import AdminCouponPage from "../pages/admin/AdminCouponPage";
-import BookingConfirmationPage from "../pages/user/BookingConfirmationPage";
-import HostEventBookingsPage from "../pages/host/HostEventBookingsPage";
 import AdminCategoryPage from "../pages/admin/AdminCategoryPage";
+import AdminEventsPage from "../pages/admin/AdminEvents";
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -95,6 +97,7 @@ const AppRoutes = () => {
           <Route path="/admin/subscriptions" element={<AdminSubscriptionPage />} />
           <Route path="/admin/coupons" element={<AdminCouponPage />} />
           <Route path="/admin/event-categories" element={<AdminCategoryPage />} />
+          <Route path="/admin/events" element={<AdminEventsPage />} />
 
         </Route>
         

@@ -54,5 +54,12 @@ export interface IEventService {
   getEventDetails(eventId: Types.ObjectId): Promise<IEvent | null>
   editEvent(eventId: Types.ObjectId, eventData: Partial<IEvent>): Promise<IEvent | null>
   deleteEvent(eventId: Types.ObjectId, reason: string): Promise<IEventDocument>
+  getAllEventsForAdmin({
+    page,
+    limit,
+  }: {
+    page: number;
+    limit: number;
+  }): Promise<{ events: IEvent[]; total: number }>
 
 }

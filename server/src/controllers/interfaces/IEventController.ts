@@ -7,4 +7,5 @@ export interface IEventController {
   getEventDetails(req: Request, res: Response): Promise<void>
   editEvent(req: Request, res: Response): Promise<void>
   deleteEvent(req: Request, res: Response): Promise<void>
+  getAllEventsForAdmin(req: Request, res: Response): Promise<void>
 }

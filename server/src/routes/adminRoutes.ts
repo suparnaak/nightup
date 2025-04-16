@@ -5,6 +5,7 @@ import SubscriptionController from "../controllers/subscriptionController";
 import CouponController from "../controllers/CouponController";
 import CategoryController from "../controllers/categoryController";
 import { authMiddleware } from "../middlewares/authMiddleware";
+import EventController from "../controllers/eventController";
 
 
 const router: Router = Router();
@@ -46,5 +47,5 @@ router
   .route("/event-types/:id")
   .put(authMiddleware(["admin"]), CategoryController.updateCategory);
 
-
+router.get('/events',authMiddleware(["admin"]),EventController.getAllEventsForAdmin)
 export default router;

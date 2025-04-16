@@ -307,6 +307,34 @@ class EventController implements IEventController {
       });
     }
   }
+  // admin side fetching all events
+async getAllEventsForAdmin(req: Request, res: Response): Promise<void> {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    const result = await EventService.getAllEventsForAdmin({ page, limit });
+console.log("events for admin",result)
+    res.status(STATUS_CODES.SUCCESS).json({
+      success: true,
+      message: MESSAGES.ADMIN.SUCCESS.EVENTS_FETCHED,
+      events: result.events,
+      pagination: {
+        total: result.total,
+        page,
+        limit,
+        totalPages: Math.ceil(result.total / limit),
+      },
+    });
+  } catch (error: any) {
+    console.error("Error fetching events for admin:", error);
+    res.status(STATUS_CODES.SERVER_ERROR).json({
+      message: error.message || MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+    });
+  }
+}
+
+  
 }
 
 export default new EventController();

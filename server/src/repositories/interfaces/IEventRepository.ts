@@ -17,4 +17,8 @@ export interface IEventRepository {
   getEventsByCity(city: string): Promise<IEvent[]>
   editEvent(eventId: Types.ObjectId, eventData: Partial<IEvent>): Promise<IEvent | null>
   blockEvent(eventId: Types.ObjectId, reason: string): Promise<IEventDocument | null>
+  getEventsForAdmin(
+        page: number,
+        limit: number
+      ): Promise<{ events: IEvent[]; total: number }>
 }

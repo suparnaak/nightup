@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { eventRepository } from '../repositories/eventRepository';
+import { create } from "zustand";
+import { eventRepository } from "../repositories/eventRepository";
 
 interface Ticket {
   _id: string;
@@ -14,7 +14,12 @@ interface Event {
   startTime: string;
   endTime: string;
   date: string;
-  hostId: string;
+  hostId:
+    | {
+        _id: string;
+        name: string;
+      }
+    | string;
   venueName: string;
   venueCity: string;
   venueState: string;
@@ -41,7 +46,6 @@ interface EventFilters {
   category?: string;
   date?: string;
   venueCity?: string;
- 
 }
 
 interface EventStore {
@@ -49,7 +53,7 @@ interface EventStore {
   isLoading: boolean;
   error: string | null;
   selectedCity: string | null;
-  
+
   //for pagination
   currentPage: number;
   limit: number;
@@ -57,15 +61,17 @@ interface EventStore {
   totalPages: number;
   searchTerm: string;
   filters: EventFilters;
-  
+
   // pagination and search
   setPage: (page: number) => void;
   setLimit: (limit: number) => void;
   setSearchTerm: (term: string) => void;
   setFilters: (filters: EventFilters) => void;
   resetFilters: () => void;
-  
-  addEvent: (eventData: Omit<Event, '_id' | 'createdAt' | 'updatedAt' | '__v'>) => Promise<void>;
+
+  addEvent: (
+    eventData: Omit<Event, "_id" | "createdAt" | "updatedAt" | "__v">
+  ) => Promise<void>;
   fetchEvents: () => Promise<void>;
   fetchAllEvents: () => Promise<void>;
   fetchEventDetails: (id: string) => Promise<Event | null>;
@@ -73,6 +79,7 @@ interface EventStore {
   deleteEvent: (id: string, reason: string) => Promise<void>;
   fetchEventsByCity: (city: string) => Promise<void>;
   setSelectedCity: (city: string) => void;
+  fetchEventsForAdmin: () => Promise<void>;
 }
 
 export const useEventStore = create<EventStore>((set, get) => ({
@@ -80,19 +87,19 @@ export const useEventStore = create<EventStore>((set, get) => ({
   isLoading: false,
   error: null,
   selectedCity: null,
-  
+
   currentPage: 1,
   limit: 10,
   totalEvents: 0,
   totalPages: 1,
-  searchTerm: '',
+  searchTerm: "",
   filters: {},
-  
+
   setPage: (page: number) => set({ currentPage: page }),
   setLimit: (limit: number) => set({ limit }),
-  setSearchTerm: (term: string) => set({ searchTerm: term, currentPage: 1 }), 
+  setSearchTerm: (term: string) => set({ searchTerm: term, currentPage: 1 }),
   setFilters: (filters: EventFilters) => set({ filters, currentPage: 1 }),
-  resetFilters: () => set({ filters: {}, searchTerm: '', currentPage: 1 }),
+  resetFilters: () => set({ filters: {}, searchTerm: "", currentPage: 1 }),
 
   addEvent: async (eventData) => {
     try {
@@ -104,7 +111,9 @@ export const useEventStore = create<EventStore>((set, get) => ({
     } catch (error: any) {
       set({
         isLoading: false,
-        error: error.response?.data?.message || 'Event creation failed. Please try again.',
+        error:
+          error.response?.data?.message ||
+          "Event creation failed. Please try again.",
       });
       throw error;
     }
@@ -118,7 +127,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
     } catch (error: any) {
       set({
         isLoading: false,
-        error: error.response?.data?.message || 'Failed to fetch events',
+        error: error.response?.data?.message || "Failed to fetch events",
       });
     }
   },
@@ -127,44 +136,56 @@ export const useEventStore = create<EventStore>((set, get) => ({
     try {
       const { currentPage, limit, searchTerm, filters } = get();
       set({ isLoading: true, error: null });
-      
-      const data = await eventRepository.fetchAllEvents(currentPage, limit, searchTerm, filters);
-      
-      set({ 
+
+      const data = await eventRepository.fetchAllEvents(
+        currentPage,
+        limit,
+        searchTerm,
+        filters
+      );
+
+      set({
         events: data.events,
         totalEvents: data.totalCount,
         totalPages: data.totalPages,
-        isLoading: false 
+        isLoading: false,
       });
     } catch (error: any) {
       set({
         isLoading: false,
-        error: error.response?.data?.message || 'Failed to fetch all events',
+        error: error.response?.data?.message || "Failed to fetch all events",
       });
     }
   },
-  
+
   fetchEventsByCity: async (city: string) => {
     try {
       const { currentPage, limit, searchTerm, filters } = get();
       set({ isLoading: true, error: null });
-      
-      const data = await eventRepository.fetchEventsByCity(city, currentPage, limit, searchTerm, filters);
-      
-      set({ 
+
+      const data = await eventRepository.fetchEventsByCity(
+        city,
+        currentPage,
+        limit,
+        searchTerm,
+        filters
+      );
+
+      set({
         events: data.events,
         totalEvents: data.totalCount,
         totalPages: data.totalPages,
-        isLoading: false 
+        isLoading: false,
       });
     } catch (error: any) {
       set({
         isLoading: false,
-        error: error.response?.data?.message || 'Failed to fetch events by city',
+        error:
+          error.response?.data?.message || "Failed to fetch events by city",
       });
     }
   },
-  
+
   fetchEventDetails: async (id: string) => {
     try {
       set({ isLoading: true, error: null });
@@ -174,12 +195,12 @@ export const useEventStore = create<EventStore>((set, get) => ({
     } catch (error: any) {
       set({
         isLoading: false,
-        error: error.response?.data?.message || 'Failed to fetch event details',
+        error: error.response?.data?.message || "Failed to fetch event details",
       });
       return null;
     }
   },
-  
+
   editEvent: async (id: string, eventData: Partial<Event>) => {
     try {
       set({ isLoading: true, error: null });
@@ -199,28 +220,52 @@ export const useEventStore = create<EventStore>((set, get) => ({
     }
   },
 
- 
-deleteEvent: async (id: string, reason: string) => {
-  try {
-    set({ isLoading: true, error: null });
-    const updatedEvent = await eventRepository.blockEvent(id, reason);
-    const updatedEvents = get().events.map(ev =>
-      ev._id === id ? updatedEvent : ev    
-    );
-    set({ events: updatedEvents, isLoading: false });
-  } catch (error: any) {
-    set({
-      isLoading: false,
-      error: error.response?.data?.message ||
-             "Failed to block event. Please try again.",
-    });
-    throw error;
-  }
-},
+  deleteEvent: async (id: string, reason: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const updatedEvent = await eventRepository.blockEvent(id, reason);
+      const updatedEvents = get().events.map((ev) =>
+        ev._id === id ? updatedEvent : ev
+      );
+      set({ events: updatedEvents, isLoading: false });
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error:
+          error.response?.data?.message ||
+          "Failed to block event. Please try again.",
+      });
+      throw error;
+    }
+  },
 
-  
-  
   setSelectedCity: (city: string) => {
-    set({ selectedCity: city, currentPage: 1 }); 
+    set({ selectedCity: city, currentPage: 1 });
+  },
+  //events listing at admin
+  fetchEventsForAdmin: async () => {
+    try {
+      const { currentPage, limit } = get();
+      set({ isLoading: true, error: null });
+
+      const { events, totalCount } = await eventRepository.fetchEventsForAdmin(
+        currentPage,
+        limit
+      );
+
+      const totalPages = Math.ceil(totalCount / limit);
+
+      set({
+        events,
+        totalEvents: totalCount,
+        totalPages,
+        isLoading: false,
+      });
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to fetch admin events",
+      });
+    }
   },
 }));

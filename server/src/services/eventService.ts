@@ -70,6 +70,16 @@ class EventService implements IEventService {
     if (!updatedEvent) throw new Error("Event not found");
     return updatedEvent;
   }
+  async  getAllEventsForAdmin({
+    page,
+    limit,
+  }: {
+    page: number;
+    limit: number;
+  }): Promise<{ events: IEvent[]; total: number }> {
+    return await EventRepository.getEventsForAdmin(page, limit);
+  }
+  
 }
 
 export default new EventService();

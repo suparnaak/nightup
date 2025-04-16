@@ -162,8 +162,23 @@ class EventRepository implements IEventRepository {
         { new: true }             
       );
     }
+    async getEventsForAdmin(
+      page: number,
+      limit: number
+    ): Promise<{ events: IEvent[]; total: number }> {
+      const skip = (page - 1) * limit;
     
-
+      const [events, total] = await Promise.all([
+        Event.find()
+          .skip(skip)
+          .limit(limit)
+          .sort({ date: -1 })
+          .populate('hostId', 'name'), 
+        Event.countDocuments(),
+      ]);
+    
+      return { events, total };
+    }
     
     
 }

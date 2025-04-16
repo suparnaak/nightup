@@ -89,6 +89,7 @@ export const MESSAGES = {
       COUPON_DELETED:"Coupon deleted",
       CATEGORY_CREATED:"Category created successfully",
       CATEGORY_UPDATED:"Category updated successfully",
+      EVENTS_FETCHED: "Events fetched successfully for admin",
 
 
     },

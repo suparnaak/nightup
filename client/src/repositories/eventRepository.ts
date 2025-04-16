@@ -1,5 +1,6 @@
 import axiosHostClient from "../api/axiosHostClient";
 import axiosUserClient from "../api/axiosUserClient";
+import axiosAdminClient from "../api/axiosAdminClient";
 
 export const eventRepository = {
   addEvent: async (eventData: any) => {
@@ -73,6 +74,21 @@ export const eventRepository = {
     const response = await axiosHostClient.put(`/events/cancel/${id}`, { reason });
     return response.data.event;
   },
+  fetchEventsForAdmin: async (
+    page: number,
+    limit: number,
+    
+  ) => {
+    const response = await axiosAdminClient.get('/events', {
+      params: {
+        page,
+        limit
+      },
+    });
+  
+    return response.data;
+  },
+  
 };
 
 export default eventRepository;
