@@ -6,6 +6,7 @@ import EventController from "../controllers/eventController";
 import CategoryController from "../controllers/categoryController";
 import BookingController from "../controllers/bookingController";
 import { authMiddleware } from "../middlewares/authMiddleware";
+import HostRevenueController from "../controllers/hostRevenueController"
 
 const router: Router = Router();
 
@@ -42,6 +43,19 @@ router.post("/subscriptions/create-upgrade-order", authMiddleware(["host"]), Hos
 router.post("/subscriptions/verify-upgrade", authMiddleware(["host"]), HostSubscriptionController.verifyUpgradePayment);
 //bookings
 router.get("/events/:eventId/bookings", authMiddleware(["host"]), BookingController.getBookingsByEvent);
+
+router.get(
+  "/revenue",
+  authMiddleware(["host"]),
+  HostRevenueController.getHostRevenueData
+);
+
+// Generate revenue report PDF for a host
+router.get(
+  "/revenue/report",
+  authMiddleware(["host"]),
+  HostRevenueController.generateHostRevenueReport
+);
 
 
 

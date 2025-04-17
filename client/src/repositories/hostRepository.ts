@@ -67,6 +67,7 @@ export const hostRepository = {
     );
     return response.data;
   },
+  
   //verifying subscription upgrade payment
   
   verifyUpgradePayment: async (paymentData: {
@@ -83,6 +84,38 @@ export const hostRepository = {
       paymentData
     );
     return response.data;
+  },
+  getHostRevenueData: async (period: string = "month") => {
+    const response = await axiosHostClient.get(`/revenue`, {
+      params: { period }
+    });
+    return response.data.data;
+  },
+  generateHostRevenueReport: async (period: string = "month") => {
+    const response = await axiosHostClient.get(`/revenue/report`, {
+      params: { period },
+      responseType: 'blob'
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `host-revenue-report-${period}.pdf`);
+    
+    document.body.appendChild(link);
+    
+    link.click();
+    
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    return { success: true };
+  },
+   
+   getEventRevenueAnalytics: async (eventId: string) => {
+    const response = await axiosHostClient.get(`/revenue/event/${eventId}`);
+    return response.data.data;
   }
 };
 

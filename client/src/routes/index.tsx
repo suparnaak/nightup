@@ -17,7 +17,7 @@ import GoogleAuthCallback from "../components/user/GoogleAuthCallback";
 // ProtectedRoutes
 import ProtectedRoute from "../components/ProtectedRoute";
 //host specific
-import HostDashboard from "../pages/host/HostDashboard";
+import HostDashboard from "../pages/host/HostRevenueDashboard";
 import HostEvents from "../pages/host/HostEvents";
 import HostAddEvent from "../pages/host/HostAddEvent";
 import HostSubscriptionPage from "../pages/host/HostSubscriptionPage";
