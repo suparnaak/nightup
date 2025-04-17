@@ -138,7 +138,20 @@ export const adminRepository = {
     );
     return response.data;
   },
-  
+  getRevenueData: async (period = "year") => {
+    const { data } = await axiosAdminClient.get(`/revenue?period=${period}`);
+    return data;
+  },
+
+  generateRevenueReport: async (period = "year") => {
+    const { data } = await axiosAdminClient.get(`/revenue/report?period=${period}`, {
+      responseType: 'blob'
+    });
+    // Create a URL for the blob data to download
+    const blob = new Blob([data], { type: 'application/pdf' });
+    const reportUrl = URL.createObjectURL(blob);
+    return { reportUrl };
+  },
 };
 
 export default adminRepository;

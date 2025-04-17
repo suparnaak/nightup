@@ -7,6 +7,7 @@ import CategoryController from "../controllers/categoryController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import EventController from "../controllers/eventController";
 import BookingController from "../controllers/bookingController";
+import RevenueController from "../controllers/revenueController";
 
 
 const router: Router = Router();
@@ -50,4 +51,7 @@ router
 
 router.get('/events',authMiddleware(["admin"]),EventController.getAllEventsForAdmin)
 router.get("/events/:eventId/bookings", authMiddleware(["admin"]), BookingController.getBookingsByEventAdmin);
+
+router.get("/revenue", authMiddleware(["admin"]), RevenueController.getRevenueData);
+router.get("/revenue/report", authMiddleware(["admin"]), RevenueController.generateRevenueReport);
 export default router;
