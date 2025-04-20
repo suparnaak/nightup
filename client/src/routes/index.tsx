@@ -25,6 +25,7 @@ import HostProfileManagement from "../pages/host/HostProfileManagement";
 import HostDetailedEventPage from "../pages/host/HostDetailedEventPage";
 import HostEditEventPage from "../pages/host/HostEditEventPage";
 import HostEventBookingsPage from "../pages/host/HostEventBookingsPage";
+import HostInboxPage from "../pages/host/HostInboxPage"
 
 //user specific
 import Profile from "../pages/user/Profile";
@@ -33,6 +34,7 @@ import WalletPage from "../pages/user/WalletPage";
 import MyBookingsPage from "../pages/user/MyBookingsPage"
 import SavedEventsPage from "../pages/user/SavedEventsPage";
 import BookingConfirmationPage from "../pages/user/BookingConfirmationPage";
+
 
 //admin specific
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -43,6 +45,9 @@ import AdminCouponPage from "../pages/admin/AdminCouponPage";
 import AdminCategoryPage from "../pages/admin/AdminCategoryPage";
 import AdminEventsPage from "../pages/admin/AdminEvents";
 import AdminEventBookingsPage from '../pages/admin/AdminEventBookings'
+import UserInboxPage from "../pages/user/UserInboxPage";
+//import ConversationsPage from "../pages/user/MyConversations";
+//import ChatPage from "../pages/ChatPage";
 
 const AppRoutes = () => {
   return (
@@ -61,7 +66,7 @@ const AppRoutes = () => {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/event/:id/booking-confirmation" element={<BookingConfirmationPage />} />
 
-        {/* host specific */}
+               {/* host specific */}
         <Route path="/host/signup" element={<HostSignup />} />
         <Route path="/host/verify-otp" element={<HostOtpVerification />} />
         <Route path="/host/login" element={<HostLogin />} />
@@ -80,6 +85,7 @@ const AppRoutes = () => {
           <Route path="/user/wallet" element={<WalletPage />} />
           <Route path="/user/bookings" element={<MyBookingsPage />} />
           <Route path="/user/saved-events" element={<SavedEventsPage />} />
+          <Route path="/user/inbox" element={<UserInboxPage />} />
         </Route>
         {/* host specific */}
         <Route element={<ProtectedRoute allowedRoles={["host"]} />}>
@@ -88,6 +94,7 @@ const AppRoutes = () => {
           <Route path="/host/events/add" element={<HostAddEvent />} />
           <Route path="/host/subscription" element={<HostSubscriptionPage />} />
           <Route path="/host/profile" element={<HostProfileManagement />} />
+          <Route path="/host/inbox" element={<HostInboxPage />} />
         </Route>
 
         {/* admin specific */}
@@ -100,9 +107,19 @@ const AppRoutes = () => {
           <Route path="/admin/event-categories" element={<AdminCategoryPage />} />
           <Route path="/admin/events" element={<AdminEventsPage />} />
           <Route path="/admin/events/:eventId/bookings" element={<AdminEventBookingsPage />} />
-
         </Route>
-        
+
+        {/* <Route element={<ProtectedRoute allowedRoles={["user", "host"]} />}> */}
+  {/* Regular chat routes */}
+  {/* <Route path="/conversations" element={<ConversationsPage />} />
+  <Route path="/chat/:conversationId" element={<ChatPage />} /> */}
+  
+  {/* Special route for starting a new chat from event page */}
+  {/* <Route path="/chat/:hostId/:entityType" element={<ChatPage />} /> */}
+  
+  {/* This is the specific route for chatting with a host about an event */}
+  {/* <Route path="/chat/:hostId/host" element={<ChatPage />} /> */}
+{/* </Route> */}
 
         {/* for all other routes */}
         <Route path="*" element={<Navigate to="/" replace />} />

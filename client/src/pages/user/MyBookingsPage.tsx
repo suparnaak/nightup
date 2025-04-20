@@ -174,7 +174,7 @@ const CancelBookingModal: React.FC<CancelModalProps> = ({
 };
 
 const MyBookingsPage: React.FC = () => {
-  const { bookings, isLoading, error, fetchMyBookings, cancelBooking } =
+  const { bookings, isLoading, error, fetchMyBookings, cancelBooking, submitReview, getReviewByBookingId } =
     useBookingStore();
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(
@@ -199,6 +199,7 @@ const MyBookingsPage: React.FC = () => {
     })();
   }, [fetchMyBookings]);
 
+  
   const handleCancelBooking = async (id: string, reason: string) => {
     setIsCancelling(true);
     try {
@@ -229,11 +230,18 @@ const MyBookingsPage: React.FC = () => {
     }
   };
 
-  const handleSubmitReview = (rating: number, review: string) => {
-    toast.success(`Review for ${selectedBookingId}: ${rating} stars`);
-    setShowReviewModal(false);
-    setSelectedBookingId(null);
-  };
+  const handleSubmitReview = async (rating: number, reviewText: string) => {
+      if (!selectedBookingId) return;
+     try {
+        await submitReview(selectedBookingId, rating, reviewText);
+         toast.success("Thank you for your review!");
+       } catch (err: any) {
+         toast.error(err.message || "Could not submit review");
+       } finally {
+        setShowReviewModal(false);
+         setSelectedBookingId(null);
+       }
+     };
 
   const isUpcoming = (date: string) => new Date(date) > new Date();
   const isPast = (date: string) => new Date(date) < new Date();

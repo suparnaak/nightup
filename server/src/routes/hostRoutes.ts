@@ -7,6 +7,7 @@ import CategoryController from "../controllers/categoryController";
 import BookingController from "../controllers/bookingController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import HostRevenueController from "../controllers/hostRevenueController"
+import ChatController from "../controllers/chatController";
 
 const router: Router = Router();
 
@@ -57,6 +58,11 @@ router.get(
   HostRevenueController.generateHostRevenueReport
 );
 
+
+router.get("/conversations", authMiddleware(["host"]), ChatController.listConversations);
+
+router.get("/chat/:otherId/event/:eventId",authMiddleware(["host"]), ChatController.fetchMessages);
+router.post("/chat/:otherId/event/:eventId",authMiddleware(["host"]), ChatController.sendMessage);
 
 
 export default router;

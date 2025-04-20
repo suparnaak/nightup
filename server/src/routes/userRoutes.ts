@@ -9,6 +9,8 @@ import BookingController from "../controllers/bookingController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import CouponController from "../controllers/CouponController";
 import categoryController from "../controllers/categoryController";
+import ReviewController from "../controllers/reviewController";
+import ChatController from "../controllers/chatController";
 
 const router: Router = Router();
 
@@ -55,6 +57,25 @@ router.post('/bookings/create-order', authMiddleware(["user"]), BookingControlle
 router.post('/bookings/verify', authMiddleware(["user"]), BookingController.verifyPayment);
 router.post('/bookings/:bookingId/cancel', authMiddleware(["user"]), BookingController.cancelBooking);
 
+router.post(
+  "/bookings/:bookingId/review",
+  authMiddleware(["user"]),
+  ReviewController.createReview
+);
 
+router.get(
+  "/bookings/:bookingId/review",
+  authMiddleware(["user"]),
+  ReviewController.getReviewByBookingId
+);
+
+
+router.get(
+  "/events/:eventId/reviews",
+  ReviewController.getReviewsByEvent
+);
+router.get("/conversations", authMiddleware(["user"]), ChatController.listConversations);
+router.get("/chat/:otherId/event/:eventId",authMiddleware(["user"]), ChatController.fetchMessages);
+router.post("/chat/:otherId/event/:eventId",authMiddleware(["user"]), ChatController.sendMessage);
 
 export default router;

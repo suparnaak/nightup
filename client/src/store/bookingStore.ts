@@ -53,6 +53,16 @@ interface BookingStore {
   cancelBooking: (bookingId: string, reason: string) => Promise<boolean>;
   fetchBookingsByEvent: (eventId: string) => Promise<void>;//bookings per event for host
   fetchBookingsByEventAdmin:  (eventId: string) => Promise<void>;
+  getReviewByBookingId: (bookingId: string) => Promise<{
+    rating: number;
+    review: string;
+    createdAt: string;
+  } | null>;
+  submitReview: (
+    bookingId: string,
+    rating: number,
+    review: string
+  ) => Promise<void>;
 }
 
 export const useBookingStore = create<BookingStore>((set, get) => ({
@@ -173,6 +183,35 @@ fetchBookingsByEventAdmin: async (eventId: string) => {
       error: err.response?.data?.message || "Failed to fetch admin bookings",
     });
     throw err;
+  }
+},
+getReviewByBookingId: async (bookingId) => {
+  set({ isLoading: true, error: null });
+  try {
+    const review = await bookingRepository.getReviewByBookingId(bookingId);
+    set({ isLoading: false });
+    return review;
+  } catch (err: any) {
+    set({
+      isLoading: false,
+      error: err.response?.data?.message || "Failed to fetch review",
+    });
+    throw err;
+  }
+},
+submitReview: async (bookingId, rating, review) => {
+  set({ isLoading: true, error: null });
+  try {
+    await bookingRepository.createReview(bookingId, rating, review);
+    // optionally: re‑fetch to get any updated booking‑level review flag
+    await get().fetchMyBookings();
+  } catch (err: any) {
+    set({
+      error: err.response?.data?.message || "Failed to submit review",
+    });
+    throw err;
+  } finally {
+    set({ isLoading: false });
   }
 },
 }));

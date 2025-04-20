@@ -38,6 +38,21 @@ export const bookingRepository = {
     const response = await axiosAdminClient.get(`/events/${eventId}/bookings`);
     return response.data.bookings as any[];
   },
+  getReviewByBookingId: async (bookingId: string) => {
+    const response = await axiosUserClient.get(`/bookings/${bookingId}/review`);
+    return response.data.review;
+  },
+  createReview: async (
+    bookingId: string,
+    rating: number,
+    review: string
+  ) => {
+    const response = await axiosUserClient.post(
+      `/bookings/${bookingId}/review`,
+      { rating, review }
+    );
+    return response.data;
+  },
 };
 
 

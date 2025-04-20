@@ -1,4 +1,4 @@
-import React, { useEffect, useState, FormEvent } from "react";
+import React, { useEffect, useState, FormEvent, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import Button from "../components/common/Button";
@@ -8,6 +8,7 @@ import MapView from "../components/common/MapView";
 import { useEventStore } from "../store/eventStore";
 import { useAuthStore } from "../store/authStore";
 import { useUserStore } from "../store/userStore";
+import { useChatStore } from "../store/chatStore";
 import {
   Calendar,
   Clock,
@@ -18,6 +19,11 @@ import {
   Mail,
   Heart,
   Share2,
+  MessageCircle,
+  Send,
+  X,
+  Minimize2,
+  Maximize2,
 } from "lucide-react";
 
 type TabOption = "Description" | "Artist" | "Additional Details" | "Event By";
@@ -26,14 +32,21 @@ const DetailedEventPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { fetchEventDetails } = useEventStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { savedEvents, fetchSavedEvents, saveEvent, removeSavedEvent } = useUserStore();
 
+  const { messages, isLoading: chatLoading, error: chatError, fetchMessages, sendMessage } = useChatStore();
+
+  const [showChat, setShowChat] = useState(false);
+  const [minimizedChat, setMinimizedChat] = useState(false);
+  const [newMsg, setNewMsg] = useState("");
+  const messageEndRef = useRef<HTMLDivElement>(null);
+
   const [event, setEvent] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<TabOption>("Description");
-  const [selectedTicketType, setSelectedTicketType] = useState<string>("");
+  const [selectedTicketType, setSelectedTicketType] = useState("");
   const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
   const [availableQuantities, setAvailableQuantities] = useState<Record<string, number>>({});
   const MAX_TICKETS = 5;
@@ -76,6 +89,13 @@ const DetailedEventPage: React.FC = () => {
     fetchEvent();
   }, [id, fetchEventDetails]);
 
+  // Scroll to bottom of messages when new messages arrive or chat opens
+  useEffect(() => {
+    if (showChat && !minimizedChat) {
+      messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, showChat, minimizedChat]);
+
   const isLiked = Boolean(event && savedEvents.some(se => se.event._id === event._id));
 
   const handleTicketQuantityChange = (ticketType: string, change: number) => {
@@ -105,6 +125,7 @@ const DetailedEventPage: React.FC = () => {
     if (qty <= 0) return toast.error("Please select at least one ticket");
     if (qty > avail) return toast.error(`Only ${avail} tickets available`);
     if (!isAuthenticated) return toast.error("Please login to continue");
+
     sessionStorage.setItem(
       "currentBooking",
       JSON.stringify({ eventId: event._id, tickets: [{ ticketType: selectedTicketType, quantity: qty }], timestamp: new Date().toISOString() })
@@ -117,8 +138,13 @@ const DetailedEventPage: React.FC = () => {
     if (!isAuthenticated) return toast.error("Please login to save events");
     if (!event) return;
     try {
-      if (!isLiked) await saveEvent(event._id), toast.success("Event saved to your wishlist");
-      else await removeSavedEvent(event._id), toast.success("Event removed from your wishlist");
+      if (!isLiked) {
+        await saveEvent(event._id);
+        toast.success("Event saved to your wishlist");
+      } else {
+        await removeSavedEvent(event._id);
+        toast.success("Event removed from your wishlist");
+      }
     } catch {
       toast.error("Failed to update wishlist");
     }
@@ -132,6 +158,40 @@ const DetailedEventPage: React.FC = () => {
     } else {
       try { await navigator.clipboard.writeText(window.location.href); toast.success("Link copied!"); } catch { toast.error("Failed to copy link."); }
     }
+  };
+
+  const handleChatWithHost = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to chat with the host");
+      return;
+    }
+    if (!event?.hostId?._id) {
+      toast.error("Host information not available");
+      return;
+    }
+    setShowChat(true);
+    setMinimizedChat(false);
+    await fetchMessages(event.hostId._id, event._id);
+  };
+
+  const handleSendMessage = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!newMsg.trim()) return;
+    try {
+      await sendMessage(event.hostId._id, event._id, newMsg.trim());
+      setNewMsg("");
+    } catch {
+      toast.error("Failed to send message");
+    }
+  };
+
+  const handleCloseChat = () => {
+    setShowChat(false);
+    setMinimizedChat(false);
+  };
+
+  const handleToggleChatSize = () => {
+    setMinimizedChat(!minimizedChat);
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50"><Spinner /></div>;
@@ -157,22 +217,20 @@ const DetailedEventPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Left: Event Details */}
             <div className="lg:w-2/3 space-y-8">
-              {/* Hero */}
+              {/* Hero & Actions */}
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <img
-                  src={event.eventImage}
-                  alt={event.title}
-                  className="w-full h-[300px] object-cover"
-                />
+                <img src={event.eventImage} alt={event.title} className="w-full h-[300px] object-cover" />
                 <div className="absolute bottom-0 inset-x-0 bg-black/40 backdrop-blur-sm p-6 flex justify-between items-start">
                   <h1 className="text-3xl font-bold text-white">{event.title}</h1>
                   <div className="flex gap-2">
-                    <button onClick={handleSaveEvent} className="p-2 rounded-full bg-white/20">
+                    <button onClick={handleChatWithHost} className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors" title="Chat with host">
+                      <MessageCircle className="h-5 w-5 text-white" />
+                    </button>
+                    <button onClick={handleSaveEvent} className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors" title={isLiked ? "Remove from wishlist" : "Add to wishlist"}>
                       <Heart className={`h-5 w-5 ${isLiked ? "fill-red-500 text-red-500" : "text-white"}`} />
                     </button>
-                    <button onClick={handleShareEvent} className="p-2 rounded-full bg-white/20">
+                    <button onClick={handleShareEvent} className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors" title="Share event">
                       <Share2 className="h-5 w-5 text-white" />
                     </button>
                   </div>
@@ -315,6 +373,95 @@ const DetailedEventPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Bottom-Right Chat Window */}
+      {showChat && (
+        <div className={`fixed bottom-6 right-6 z-50 flex flex-col ${
+          minimizedChat ? 'w-64 h-12' : 'w-80 h-96 max-h-[70vh]'
+        } bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ease-in-out`}>
+          {/* Chat Header */}
+          <div className="bg-purple-600 text-white p-3 flex justify-between items-center">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <User className="h-4 w-4 flex-shrink-0" />
+              <div className="overflow-hidden">
+                <h3 className="font-medium text-sm truncate">{event?.hostId?.name || "Event Host"}</h3>
+                {!minimizedChat && <p className="text-xs text-purple-200 truncate">{event?.title}</p>}
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <button onClick={handleToggleChatSize} className="p-1 hover:bg-purple-700 rounded-full">
+                {minimizedChat ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
+              </button>
+              <button onClick={handleCloseChat} className="p-1 hover:bg-purple-700 rounded-full">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Messages Area - Hidden when minimized */}
+          {!minimizedChat && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {chatLoading ? (
+                <div className="flex justify-center items-center h-full">
+                  <Spinner />
+                </div>
+              ) : chatError ? (
+                <div className="text-center text-red-500 p-2 text-sm">
+                  Failed to load messages.
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="text-center text-gray-500 p-2 text-sm">
+                  No messages yet. Start the conversation!
+                </div>
+              ) : (
+                messages.map((msg: any) => {
+                  const isCurrentUser = msg.senderType === user?.role && msg.senderId === user?.id;
+                  return (
+                    <div 
+                      key={msg._id} 
+                      className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div 
+                        className={`max-w-[80%] p-2 rounded-lg text-sm ${
+                          isCurrentUser 
+                            ? 'bg-purple-600 text-white rounded-br-none' 
+                            : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                        }`}
+                      >
+                        <p>{msg.content}</p>
+                        <p className={`text-xs mt-1 ${isCurrentUser ? 'text-purple-200' : 'text-gray-500'}`}>
+                          {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={messageEndRef} />
+            </div>
+          )}
+          
+          {/* Message Input - Hidden when minimized */}
+          {!minimizedChat && (
+            <form onSubmit={handleSendMessage} className="border-t p-2 flex gap-1">
+              <input
+                type="text"
+                value={newMsg}
+                onChange={(e) => setNewMsg(e.target.value)}
+                placeholder="Type your message..."
+                className="flex-1 border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+              />
+              <button 
+                type="submit" 
+                disabled={!newMsg.trim()}
+                className="bg-purple-600 text-white p-1 rounded-md disabled:bg-purple-300"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </form>
+          )}
+        </div>
+      )}
     </UserLayout>
   );
 };
