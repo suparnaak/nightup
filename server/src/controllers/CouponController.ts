@@ -1,6 +1,9 @@
+import "reflect-metadata";
+import { injectable, inject } from "inversify";
+import TYPES from "../config/di/types";
 import { Request, Response } from "express";
 import { ICouponController } from "./interfaces/ICouponController";
-import CouponService from "../services/couponService";
+import { ICouponService } from "../services/interfaces/ICouponService";
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { isRequired, isPositiveNumber, isFutureDate, isEndDateValid } from "../utils/validators";
 interface AuthRequest extends Request {
@@ -10,10 +13,16 @@ interface AuthRequest extends Request {
   };
 }
 
-class CouponController implements ICouponController {
+@injectable()
+export class CouponController implements ICouponController {
+
+  constructor(@inject(TYPES.CouponService)
+  private couponService: ICouponService
+){}
+
   async getCoupons(req: Request, res: Response): Promise<void> {
     try {
-      const coupons = await CouponService.getCoupons();
+      const coupons = await this.couponService.getCoupons();
       console.log("coupons")
       console.log(coupons)
       const transformedCoupons = coupons.map(coupon => ({
@@ -90,7 +99,7 @@ class CouponController implements ICouponController {
         return;
       }
 
-      const coupon = await CouponService.createCoupon({
+      const coupon = await this.couponService.createCoupon({
         couponCode: payload.couponCode,
         couponAmount: Number(payload.couponAmount),
         minimumAmount: Number(payload.minimumAmount),
@@ -165,7 +174,7 @@ class CouponController implements ICouponController {
         return;
       }
 
-      const coupon = await CouponService.updateCoupon(id, {
+      const coupon = await this.couponService.updateCoupon(id, {
         couponAmount: payload.couponAmount !== undefined ? Number(payload.couponAmount) : undefined,
         minimumAmount: payload.minimumAmount !== undefined ? Number(payload.minimumAmount) : undefined,
         startDate: payload.startDate ? new Date(payload.startDate) : undefined,
@@ -190,7 +199,7 @@ class CouponController implements ICouponController {
   async deleteCoupon(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      await CouponService.deleteCoupon(id);
+      await this.couponService.deleteCoupon(id);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         message: MESSAGES.ADMIN.SUCCESS.COUPON_DELETED || "Coupon deleted successfully",
@@ -222,7 +231,7 @@ class CouponController implements ICouponController {
         ? parseFloat(minAmtRaw)
         : undefined;
 
-      const coupons = await CouponService.getAvailableCoupons(req.user!.userId,minimumAmount);
+      const coupons = await this.couponService.getAvailableCoupons(req.user!.userId,minimumAmount);
 
       const transformed = coupons.map(coupon => ({
         id: coupon._id.toString(),
@@ -248,4 +257,4 @@ console.log(transformed)
   }
 }
 
-export default new CouponController();
+//export default new CouponController();

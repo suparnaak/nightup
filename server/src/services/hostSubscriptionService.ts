@@ -1,18 +1,28 @@
-import HostSubscriptionRepository from "../repositories/hostSubscriptionRepository";
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
+import { IHostSubscriptionRepository } from '../repositories/interfaces/IHostSubscriptionRepository';
 import { ISubscription } from "../models/subscription";
 import { ISubscriptionPlan } from "../models/subscriptionPlan";
 import { IHostSubscriptionService } from "./interfaces/IHostSubscriptionService";
 import Razorpay from "razorpay";
-import * as PaymentService from "./paymentService";
+import { IPaymentService } from './interfaces/IPaymentService';
 import { MESSAGES } from "../utils/constants";
 
-class HostSubscriptionService implements IHostSubscriptionService {
+@injectable()
+export class HostSubscriptionService implements IHostSubscriptionService {
+  constructor(
+    @inject(TYPES.HostSubscriptionRepository)
+    private hostSubscriptionRepository: IHostSubscriptionRepository,
+    @inject(TYPES.PaymentService)
+    private paymentService: IPaymentService
+  ){}
   async getHostSubscription(hostId: string): Promise<ISubscription | null> {
-    return await HostSubscriptionRepository.getHostSubscription(hostId);
+    return await this.hostSubscriptionRepository.getHostSubscription(hostId);
   }
 
   async getAvailableSubscriptions(): Promise<ISubscriptionPlan[] | null> {
-    return await HostSubscriptionRepository.getAvailableSubscriptions();
+    return await this.hostSubscriptionRepository.getAvailableSubscriptions();
   }
 
   async createOrder(
@@ -31,7 +41,7 @@ class HostSubscriptionService implements IHostSubscriptionService {
       currency: "INR",
       receipt,
     };
-    const order = await PaymentService.createOrder(options);
+    const order = await this.paymentService.createOrder(options);
     return order;
   }
 
@@ -44,13 +54,13 @@ class HostSubscriptionService implements IHostSubscriptionService {
       planId: string;
     }
   ): Promise<boolean> {
-    const verified = await PaymentService.verifyPayment(paymentData);
+    const verified = await this.paymentService.verifyPayment(paymentData);
     if (verified) {
-      const plan = await HostSubscriptionRepository.getSubscriptionPlanById(
+      const plan = await this.hostSubscriptionRepository.getSubscriptionPlanById(
         paymentData.planId
       );
       if (!plan) {
-        throw new Error("Subscription plan not found");
+        throw new Error(MESSAGES.HOST.ERROR.NO_SUBSCRIPTION_PLAN);
       }
       let months = 1;
       if (plan.duration === "6 Months") months = 6;
@@ -59,7 +69,7 @@ class HostSubscriptionService implements IHostSubscriptionService {
       const endDate = new Date(startDate);
       endDate.setMonth(endDate.getMonth() + months);
 
-      await HostSubscriptionRepository.createSubscription({
+      await this.hostSubscriptionRepository.createSubscription({
         host: hostId,
         subscriptionPlan: paymentData.planId,
         startDate,
@@ -80,23 +90,23 @@ class HostSubscriptionService implements IHostSubscriptionService {
     amount: number,
     currentSubscriptionId: string
   ): Promise<{ id: string }> {
-    const subscription = await HostSubscriptionRepository.getSubscriptionById(
+    const subscription = await this.hostSubscriptionRepository.getSubscriptionById(
       currentSubscriptionId
     );
 
     if (!subscription) {
-      throw new Error("Subscription not found");
+      throw new Error(MESSAGES.HOST.ERROR.NO_SUBSCRIPTION_PLAN);
     }
 
     if (subscription.host.toString() !== hostId) {
-      throw new Error("Unauthorized: This subscription does not belong to you");
+      throw new Error(MESSAGES.HOST.ERROR.NOT_YOUR_SUBSCRIPTION_PLAN);
     }
 
-    const newPlan = await HostSubscriptionRepository.getSubscriptionPlanById(
+    const newPlan = await this.hostSubscriptionRepository.getSubscriptionPlanById(
       planId
     );
     if (!newPlan) {
-      throw new Error("Invalid subscription plan");
+      throw new Error(MESSAGES.HOST.ERROR.NO_SUBSCRIPTION_PLAN);
     }
 
     const shortHostId = hostId.slice(0, 6);
@@ -114,7 +124,7 @@ class HostSubscriptionService implements IHostSubscriptionService {
       },
     };
 
-    const order = await PaymentService.createOrder(options);
+    const order = await this.paymentService.createOrder(options);
     return order;
   }
   async verifyUpgradePayment(
@@ -137,14 +147,14 @@ class HostSubscriptionService implements IHostSubscriptionService {
       razorpay_signature: paymentData.razorpay_signature,
     };
 
-    const verified = await PaymentService.verifyPayment(signatureData);
+    const verified = await this.paymentService.verifyPayment(signatureData);
 
     if (!verified) {
       return { success: false };
     }
 
     const currentSubscription =
-      await HostSubscriptionRepository.getSubscriptionById(
+      await this.hostSubscriptionRepository.getSubscriptionById(
         paymentData.currentSubscriptionId
       );
 
@@ -156,7 +166,7 @@ class HostSubscriptionService implements IHostSubscriptionService {
       throw new Error(MESSAGES.HOST.ERROR.UNAUTHORISED_SUBSCRIPTION);
     }
 
-    const newPlan = await HostSubscriptionRepository.getSubscriptionPlanById(
+    const newPlan = await this.hostSubscriptionRepository.getSubscriptionPlanById(
       paymentData.planId
     );
     if (!newPlan) {
@@ -190,7 +200,7 @@ class HostSubscriptionService implements IHostSubscriptionService {
       subscriptionPlanId = String(subscriptionPlan);
     }
 
-    await HostSubscriptionRepository.updateSubscription(
+    await this.hostSubscriptionRepository.updateSubscription(
       paymentData.currentSubscriptionId,
       {
         status: "Expired",
@@ -202,7 +212,7 @@ class HostSubscriptionService implements IHostSubscriptionService {
 
     const originalAmount = newPlan.price;
 
-    const newSubscription = await HostSubscriptionRepository.createSubscription(
+    const newSubscription = await this.hostSubscriptionRepository.createSubscription(
       {
         host: hostId,
         subscriptionPlan: paymentData.planId,
@@ -229,4 +239,4 @@ class HostSubscriptionService implements IHostSubscriptionService {
   }
 }
 
-export default new HostSubscriptionService();
+//export default new HostSubscriptionService();

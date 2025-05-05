@@ -13,7 +13,8 @@ export const MESSAGES = {
       LOGOUT:"Logged out Successfully",
       PROFILE_UPDATED:"Your profile is updated successfully",
       PASSWORD_CHANGED:"Password changed successfully",
-      EVENT_FETCHED: "Event details fetched successfully"
+      EVENT_FETCHED: "Event details fetched successfully",
+      TOKEN_REFRESH: "Access token refreshed successfully",
     },
     ERROR: {
       INVALID_NAME: "Invalid name.",
@@ -40,7 +41,16 @@ export const MESSAGES = {
       REFRESH_TOKEN_MISSING: "No refresh token provided",
       REFRESH_TOKEN_INVALID: "refresh token is invalid",
       PAYMENT_FAILED: "Payment Failed Please try again",
-      
+      PROFILE_UPDATE_FAILED: "Failed to update user profile",
+      NO_ACCOUNT: "User not found.",
+      INVALID_CURRENT_PASSWORD: "Current password is incorrect.",
+      NEW_CANNOT_CURRENT_PASSWORD: "New password cannot be the same as the current password.",
+      FETCH_REVENUE_FAILED: "Failed to fetch revenue data",
+      REVENUE_REPORT_FAILED: "Failed to generate revenue report",
+      FETCH_MESSAGE_FAILED: 'Failed to fetch messages',
+      MESSAGE_REQUIRED: 'Message content is required',
+      CHAT_FAILED: 'Failed to send message',
+      CHAT_LIST_FAILED: 'Failed to list conversations',
     },
   },
 
@@ -50,11 +60,26 @@ export const MESSAGES = {
       EVENT_SAVED : "Event saved successfully",
       EVENT_REMOVED: "Event removed successfully",
       WALLET_UPDATED: "Wallet updated successfully",
+      CANCELLATION_SUCCESS: "Booking cancelled successfully and refund processed to wallet",
     },
     ERROR: {
       EVENT_ID_MISSING: "Event is missing",
       EVENT_IS_SAVED: "Event is already saved",
       AMOUNT_INVALID: "Invalid Amount",
+      NO_GOOGLE_AUTH: "Google profile did not return an email address.",
+      NO_BOOKING: "No Booking found or This Booking is not for you",
+      NO_UPCOMING_REVIEW: "Cannot review an upcoming event",
+      REVIEW_SUBMITTED_ALREADY:"Review already submitted for this booking",
+      NOT_ENOUGH_TICKETS: "Not enough tickets for",
+      INSUFFICIENT_WALLET: "Insufficient wallet balance.",
+      BOOKING_FAILED: "Failed to create booking" ,
+      BOOKING_ALREADY_CANCELLED: "Booking is already cancelled or pending",
+      CANCELLATION_FAILED: "Failed to cancel booking",
+      FETCH_BOOKING_FAILED: "Failed to fetch bookings for the event",
+      INVALID_RATING: "Rating must be between 1 and 5",
+      REVIEW_REQUIRED: "Review text is required",
+      NO_REVIEW: "No review found for this booking",
+      
     },
   },
 
@@ -78,6 +103,9 @@ export const MESSAGES = {
       INVALID_SUBSCRIPTION:"Invalid subscription plan",
       UNAUTHORISED_SUBSCRIPTION:"Unauthorized: This subscription does not belong to you",
       SUBSCRIPTION_FAILED:"Failed to create new subscription",
+      NO_SUBSCRIPTION_PLAN:"Subscription plan not found",
+      NOT_YOUR_SUBSCRIPTION_PLAN: "Unauthorized: This subscription does not belong to you",
+      
       
     },
   },
@@ -96,6 +124,7 @@ export const MESSAGES = {
       CATEGORY_CREATED:"Category created successfully",
       CATEGORY_UPDATED:"Category updated successfully",
       EVENTS_FETCHED: "Events fetched successfully for admin",
+      STATUS_UPDATED: "Host has been updated successfully",
 
 
     },
@@ -112,6 +141,11 @@ export const MESSAGES = {
       INVALID_COUPON_END_DATE:"Invalid End date",
       COUPON_CODE_CANNOT_BE_UPDATED:"Counpon update failed",
       INVALID_CATEGORY_NAME:"Invalid category name",
+      NO_SUBSCRIPTION_FOUND: "Subscription not found",
+      NO_DUPLICATE_CATEGORY: "Category with this name already exists",
+      INVALID_CATEGORY: "Invalid category ID",
+      NO_CATEGORY: "Category not found",
+      STATUS_TOGGLE_FAILED: "Failed to update block status",
 
 
 

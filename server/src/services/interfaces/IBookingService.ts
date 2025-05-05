@@ -36,5 +36,12 @@ export interface IBookingService {
           bookingId: string,
           reason?: string
         ): Promise<{ success: boolean; message: string; booking?: IBooking }>
-        getBookingsByEvent(eventId: string): Promise<IBooking[]>
+        //getBookingsByEvent(eventId: string): Promise<IBooking[]>
+        getBookingsByEvent(eventId: string, page: number, limit: number): Promise<{ 
+          bookings: IBooking[], 
+          total: number, 
+          pages: number 
+        }>
+        //getUserBookings(userId: string): Promise<IBooking[]>
+        getUserBookings(userId: string, page: number, limit: number): Promise<{ bookings: IBooking[], total: number, pages: number }>
 }

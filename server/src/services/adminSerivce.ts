@@ -1,16 +1,32 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { IAdmin } from "../models/admin";
 import { MESSAGES } from "../utils/constants";
 import { IAdminService } from "./interfaces/IAdminService";
-import AdminRepository from "../repositories/adminRepository";
-import HostRepository from "../repositories/hostRepository";
+import { IAdminRepository } from '../repositories/interfaces/IAdminRepository';
+import { IHostRepository } from '../repositories/interfaces/IHostRepository';
+import { IUserRepository } from '../repositories/interfaces/IUserRepository';
+//import AdminRepository from "../repositories/adminRepository";
+//import HostRepository from "../repositories/hostRepository";
 import { IHost } from "../models/host";
 import { sendDocumentVerificationEmail } from "../utils/mailer";
-import UserRepository from "../repositories/userRepository";
+//import UserRepository from "../repositories/userRepository";
 import { IUser } from "../models/user";
 
-class AdminService implements IAdminService {
+@injectable()
+export class AdminService implements IAdminService {
+  constructor(
+    @inject(TYPES.AdminRepository)
+      private adminRepository: IAdminRepository,
+    @inject(TYPES.HostRepository)
+      private hostRepository: IHostRepository,
+    @inject(TYPES.UserRepository)
+    private userRepository: IUserRepository
+    
+  ){}
   async login(
     email: string,
     password: string
@@ -21,7 +37,7 @@ class AdminService implements IAdminService {
     refreshToken: string;
     admin: Partial<IAdmin>;
   }> {
-    const admin = await AdminRepository.findByEmail(email);
+    const admin = await this.adminRepository.findByEmail(email);
     if (!admin) {
       return {
         success: false,
@@ -69,7 +85,7 @@ class AdminService implements IAdminService {
       jwtRefreshSecret,
       { expiresIn: "7d" }
     );
-    await AdminRepository.updateRefreshToken(admin._id, refreshToken);
+    await this.adminRepository.updateRefreshToken(admin._id, refreshToken);
     return {
       success: true,
       message: MESSAGES.COMMON.SUCCESS.LOGIN || "Login successful",
@@ -106,16 +122,19 @@ class AdminService implements IAdminService {
       return {
         success: true,
         token: newAccessToken,
-        message: "Access token refreshed successfully",
+        message: MESSAGES.COMMON.SUCCESS.TOKEN_REFRESH,
       };
     } catch (error) {
       throw new Error("Invalid refresh token");
     }
   }
 
-  async getHosts(): Promise<IHost[]> {
-    return await HostRepository.getAllHosts();
-  }
+  /* async getHosts(): Promise<IHost[]> {
+    return await this.hostRepository.getAllHosts();
+  } */
+    async getHosts(page: number = 1, limit: number = 10): Promise<{ hosts: IHost[], total: number }> {
+      return await this.hostRepository.getAllHosts(page, limit);
+    }
 
   // verify document
 async verifyDocument(
@@ -131,7 +150,7 @@ async verifyDocument(
     ),
   };
 
-  const updatedHost = await HostRepository.updateHost(hostId, updateData);
+  const updatedHost = await this.hostRepository.updateHost(hostId, updateData);
   if (!updatedHost) {
     return {
       success: false,
@@ -159,21 +178,24 @@ async verifyDocument(
     newStatus: boolean
   ): Promise<{ success: boolean; message: string }> {
     console.log(newStatus);
-    const updatedHost = await HostRepository.updateHost(hostId, {
+    const updatedHost = await this.hostRepository.updateHost(hostId, {
       isBlocked: newStatus,
     });
     if (!updatedHost) {
-      return { success: false, message: "Failed to update block status" };
+      return { success: false, message: MESSAGES.ADMIN.ERROR.STATUS_TOGGLE_FAILED };
     }
     return {
       success: true,
-      message: `Host has been ${newStatus ? "blocked" : "unblocked"} successfully`,
+      message: MESSAGES.ADMIN.SUCCESS.STATUS_UPDATED,
     };
   }
 
-  async getUsers(): Promise<IUser[]> {
-    return await UserRepository.getAllUsers();
-  }
+  /* async getUsers(): Promise<IUser[]> {
+    return await this.userRepository.getAllUsers();
+  } */
+    async getUsers(page: number = 1, limit: number = 10): Promise<{ users: IUser[], total: number }> {
+      return await this.userRepository.getAllUsers(page, limit);
+    }
 
   // block or unblock users
   async userToggleStatus(
@@ -181,17 +203,17 @@ async verifyDocument(
     newStatus: boolean
   ): Promise<{ success: boolean; message: string }> {
     console.log(newStatus);
-    const updatedUser = await UserRepository.updateUser(userId, {
+    const updatedUser = await this.userRepository.updateUser(userId, {
       isBlocked: newStatus,
     });
     if (!updatedUser) {
-      return { success: false, message: "Failed to update block status" };
+      return { success: false, message: MESSAGES.ADMIN.ERROR.STATUS_TOGGLE_FAILED };
     }
     return {
       success: true,
-      message: `User has been ${newStatus ? "blocked" : "unblocked"} successfully`,
+      message: MESSAGES.ADMIN.SUCCESS.STATUS_UPDATED,
     };
   }
 }
 
-export default new AdminService();
+//export default new AdminService();

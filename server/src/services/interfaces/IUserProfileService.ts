@@ -10,7 +10,13 @@ export interface UserProfileResponse {
   message: string;
 }
 
+export interface PasswordChangeData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface IUserProfileService {
   updateProfile(userId: string, profileData: any): Promise<UserProfileResponse>;
-  changePassword(userId: string, passwordData: { newPassword: string }): Promise<UserProfile>;
+  changePassword(userId: string, passwordData: PasswordChangeData): Promise<UserProfile>;
 }

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import UserLayout from "../layouts/UserLayout";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import { useEventStore } from "../store/eventStore";
-import { useCategoryStore } from "../store/categoryStore"; // Added import for host store
+import { useCategoryStore } from "../store/categoryStore";
 import { Link, useNavigate } from "react-router-dom";
+import { debounce } from "lodash";
 import {
   Calendar,
   MapPin,
@@ -34,7 +35,6 @@ const Home: React.FC = () => {
     totalEvents,
     totalPages,
     currentPage,
-    limit,
     fetchAllEvents,
     fetchEventsByCity,
   } = useEventStore();
@@ -50,71 +50,62 @@ const Home: React.FC = () => {
 
   const hasMore = currentPage < totalPages;
 
+
   useEffect(() => {
     if (!initialFetchDone) {
-      //useEventStore.setState({ limit: 6 });
-
       useEventStore.setState({ currentPage: 1 });
-
-      if (selectedCity) {
-        fetchEventsByCity(selectedCity);
-      } else {
-        fetchAllEvents();
-      }
-
+      if (selectedCity) fetchEventsByCity(selectedCity);
+      else fetchAllEvents();
       setInitialFetchDone(true);
     }
   }, [fetchAllEvents, fetchEventsByCity, selectedCity, initialFetchDone]);
+
 
   useEffect(() => {
     getUserCategories();
   }, [getUserCategories]);
 
+
+  const debouncedSearch = useCallback(
+    debounce((query: string) => {
+      useEventStore.setState({ currentPage: 1, searchTerm: query });
+      if (selectedCity) fetchEventsByCity(selectedCity);
+      else fetchAllEvents();
+    }, 500),
+    [selectedCity, fetchEventsByCity, fetchAllEvents]
+  );
+
+  useEffect(() => {
+    debouncedSearch(searchQuery);
+    return () => debouncedSearch.cancel();
+  }, [searchQuery, debouncedSearch]);
+
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    debouncedSearch.cancel();
+    useEventStore.setState({ currentPage: 1, searchTerm: searchQuery });
+    if (selectedCity) fetchEventsByCity(selectedCity);
+    else fetchAllEvents();
+  };
+
+ 
   useEffect(() => {
     if (initialFetchDone) {
       useEventStore.setState({ currentPage: 1 });
-
       const filters: Record<string, any> = {};
-
-      if (selectedCategory && selectedCategory !== "All Categories") {
+      if (selectedCategory !== "All Categories") {
         filters.category = selectedCategory;
       }
-
-      if (selectedDate) {
-        filters.date = selectedDate;
-      }
-
-      useEventStore.setState({
-        searchTerm: searchQuery,
-        filters,
-      });
-
-      if (selectedCity) {
-        fetchEventsByCity(selectedCity);
-      } else {
-        fetchAllEvents();
-      }
+      if (selectedDate) filters.date = selectedDate;
+      useEventStore.setState({ filters });
+      if (selectedCity) fetchEventsByCity(selectedCity);
+      else fetchAllEvents();
     }
-  }, [
-    searchQuery,
-    selectedCategory,
-    selectedDate,
-    initialFetchDone,
-    fetchEventsByCity,
-    fetchAllEvents,
-    selectedCity,
-  ]);
+  }, [selectedCategory, selectedDate, selectedCity, fetchAllEvents, fetchEventsByCity, initialFetchDone]);
 
-  const loadMoreEvents = () => {
-    if (currentPage < totalPages) {
-      useEventStore.setState({ currentPage: currentPage + 1 });
-
-      if (selectedCity) {
-        fetchEventsByCity(selectedCity);
-      } else {
-        fetchAllEvents();
-      }
-    }
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
   const resetFilters = () => {
@@ -132,17 +123,15 @@ const Home: React.FC = () => {
   const displayCategories = [
     "All Categories",
     ...allCategories.map(
-      (category: Category) =>
-        category.name || category.title || String(category)
+      (cat: Category) => cat.name || cat.title || String(cat)
     ),
   ];
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedCity) {
-      fetchEventsByCity(selectedCity);
-    } else {
-      fetchAllEvents();
+  const loadMoreEvents = () => {
+    if (hasMore) {
+      useEventStore.setState({ currentPage: currentPage + 1 });
+      if (selectedCity) fetchEventsByCity(selectedCity);
+      else fetchAllEvents();
     }
   };
 
@@ -156,6 +145,7 @@ const Home: React.FC = () => {
       hour12: true,
     });
   };
+
 
   return (
     <UserLayout>
@@ -191,7 +181,7 @@ const Home: React.FC = () => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchInputChange}
                 placeholder="Search events, artists, venues..."
                 className="flex-1 px-6 py-4 text-gray-700 text-base focus:outline-none"
               />

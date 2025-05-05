@@ -1,9 +1,17 @@
+import 'reflect-metadata';
+import { injectable,inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { IHostRevenueService } from "./interfaces/IHostRevenueService";
-import HostRevenueRepository from "../repositories/hostRevenueRepository";
+import { IHostRevenueRepository } from '../repositories/interfaces/IHostRevenueRepository';
 import PDFDocument from "pdfkit";
 
-class HostRevenueService implements IHostRevenueService {
+@injectable()
+export class HostRevenueService implements IHostRevenueService {
   
+  constructor(
+    @inject(TYPES.HostRevenueRepository)
+    private hostRevenueRepository: IHostRevenueRepository
+  ){}
   async getHostRevenueData(hostId: string, period: string): Promise<any> {
     const endDate = new Date();
     const startDate = new Date();
@@ -17,32 +25,32 @@ class HostRevenueService implements IHostRevenueService {
       startDate.setFullYear(2025, 3, 1);
     }
 
-    const totalRevenue = await HostRevenueRepository.getHostTotalRevenue(
+    const totalRevenue = await this.hostRevenueRepository.getHostTotalRevenue(
       hostId,
       startDate,
       endDate
     );
-    const monthlyRevenue = await HostRevenueRepository.getHostMonthlyRevenue(
+    const monthlyRevenue = await this.hostRevenueRepository.getHostMonthlyRevenue(
       hostId,
       startDate,
       endDate
     );
-    const eventRevenue = await HostRevenueRepository.getEventRevenue(
+    const eventRevenue = await this.hostRevenueRepository.getEventRevenue(
       hostId,
       startDate,
       endDate
     );
-    const paymentMethods = await HostRevenueRepository.getPaymentMethodBreakdown(
+    const paymentMethods = await this.hostRevenueRepository.getPaymentMethodBreakdown(
       hostId,
       startDate,
       endDate
     );
-    const cancellations = await HostRevenueRepository.getCancellationAnalytics(
+    const cancellations = await this.hostRevenueRepository.getCancellationAnalytics(
       hostId,
       startDate,
       endDate
     );
-    const ticketTypes = await HostRevenueRepository.getTicketTypeBreakdown(
+    const ticketTypes = await this.hostRevenueRepository.getTicketTypeBreakdown(
       hostId,
       startDate,
       endDate
@@ -237,4 +245,4 @@ class HostRevenueService implements IHostRevenueService {
   }
 }
 
-export default new HostRevenueService();
+//export default new HostRevenueService();

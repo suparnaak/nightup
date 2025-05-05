@@ -1,9 +1,18 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { IUserProfileService, UserProfile, UserProfileResponse } from "./interfaces/IUserProfileService";
-import UserRepository from "../repositories/userRepository";
+import { IUserRepository } from '../repositories/interfaces/IUserRepository';
 import bcrypt from "bcryptjs";
+import { MESSAGES } from "../utils/constants";
 
-class UserProfileService implements IUserProfileService {
+@injectable()
+export class UserProfileService implements IUserProfileService {
 
+  constructor(
+    @inject(TYPES.UserRepository)
+    private userRepository: IUserRepository
+  ){}
   async updateProfile(userId: string, profileData: any): Promise<UserProfileResponse> {
     let updateData: Record<string, any> = {};
     if (profileData instanceof FormData && typeof profileData.forEach === "function") {
@@ -14,9 +23,9 @@ class UserProfileService implements IUserProfileService {
       updateData = profileData;
     }
 
-    const updatedUser = await UserRepository.updateUser(userId, updateData);
+    const updatedUser = await this.userRepository.updateUser(userId, updateData);
     if (!updatedUser) {
-      throw new Error("Failed to update user profile");
+      throw new Error(MESSAGES.COMMON.ERROR.PROFILE_UPDATE_FAILED);
     }
     const userProfile: UserProfile = {
       id: updatedUser._id.toString(),
@@ -26,24 +35,24 @@ class UserProfileService implements IUserProfileService {
     };
     return {
       user: userProfile,
-      message: "User profile updated successfully",
+      message:MESSAGES.COMMON.SUCCESS.PROFILE_UPDATED ,
     };
   }
 
   async changePassword(userId: string, { currentPassword, newPassword, confirmPassword }: { currentPassword: string; newPassword: string; confirmPassword: string }) {
-    const user = await UserRepository.findById(userId);
+    const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new Error("User not found.");
+      throw new Error(MESSAGES.COMMON.ERROR.NO_ACCOUNT);
     }
   
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     console.log(isMatch)
     if (!isMatch) {
-      throw new Error("Current password is incorrect.");
+      throw new Error(MESSAGES.COMMON.ERROR.INVALID_CURRENT_PASSWORD);
     }
     const isSamePassword = await bcrypt.compare(newPassword, user.password);
     if (isSamePassword) {
-      throw new Error("New password cannot be the same as the current password.");
+      throw new Error(MESSAGES.COMMON.ERROR.NEW_CANNOT_CURRENT_PASSWORD);
     }
   
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -61,4 +70,4 @@ class UserProfileService implements IUserProfileService {
   
 }
 
-export default new UserProfileService();
+//export default new UserProfileService();

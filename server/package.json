@@ -13,11 +13,17 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@automapper/classes": "^8.8.1",
+    "@automapper/core": "^8.8.1",
     "bcryptjs": "^3.0.2",
+    "class-transformer": "^0.5.1",
+    "cloudinary": "^2.6.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "inversify": "^6.2.2",
+    "inversify-express-utils": "^6.5.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.12.1",
     "nanoid": "^5.1.5",
@@ -27,6 +33,7 @@
     "passport-google-oauth20": "^2.0.0",
     "pdfkit": "^0.17.0",
     "razorpay": "^2.9.6",
+    "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
@@ -43,6 +50,7 @@
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/pdfkit": "^0.13.9",
     "@types/recharts": "^2.0.1",
+    "@types/reflect-metadata": "^0.1.0",
     "@types/socket.io": "^3.0.2",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",

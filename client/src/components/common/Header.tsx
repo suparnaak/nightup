@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import ProfileDropdown from "../user/ProfileDropdown";
 import HostProfileDropdown from "../host/HostProfileDropdown";
 import { MapPin } from "lucide-react";
+import {debounce} from 'lodash'
 import CityAutocomplete from "./CityAutocomplete";
 import { useEventStore } from "../../store/eventStore"
 
@@ -24,20 +25,27 @@ const Header: React.FC = () => {
 
   const isHost = userRole === "host";
 
-  const handleCitySelect = (city: { id: string; name: string }) => {
-    console.log("Selected city:", city);
-    const cityName = city.name.split(",")[0].trim();
-    setSelectedCity(cityName);
-    console.log(cityName)
-    fetchEventsByCity(cityName);
-    navigate("/")
-    // You might want to store the selected city in a store or context
-    // For example:
-    // cityStore.setSelectedCity(city);
-    
-    // Optional: Fetch events for the selected city
-    // fetchEventsByCity(city.id);
-  };
+  const handleCitySelect = useMemo(()=>
+    debounce((city: { id: string; name: string }) => {
+      console.log("Selected city:", city);
+      const cityName = city.name.split(",")[0].trim();
+      setSelectedCity(cityName);
+      console.log(cityName)
+      fetchEventsByCity(cityName);
+      navigate("/")
+  
+    },500),[fetchEventsByCity,setSelectedCity,navigate]
+  )
+
+  useEffect(() => {
+    return () => {
+      handleCitySelect.cancel();
+    };
+  }, [handleCitySelect]);
+  
+
+
+
 
   return (
     <header className="bg-black text-white py-4 px-6">

@@ -2,13 +2,13 @@ import { io as socketIO } from "socket.io-client";
 
 const SOCKET_URL = import.meta.env.VITE_API_URL;
 
-// Create a singleton socket instance
-export const io = socketIO(SOCKET_URL || "http://localhost:5000", {
+// socket instance is created
+export const io = socketIO(SOCKET_URL, {
   autoConnect: true,
-  // Additional options as needed
+ 
 });
 
-// Add connection logging
+
 io.on('connect', () => {
   console.log('Socket connected with ID:', io.id);
 });

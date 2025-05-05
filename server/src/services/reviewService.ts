@@ -1,46 +1,42 @@
-// services/reviewService.ts
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
 import { Types } from "mongoose";
-import ReviewRepository from "../repositories/reviewRepository"
+import { IReviewRepository } from '../repositories/interfaces/IReviewRepository';
 import Booking from "../models/booking";
+import { IBookingRepository } from '../repositories/interfaces/IBookingRepository';
 import { IReviewDocument } from "../models/review";
+import { MESSAGES } from "../utils/constants";
+import { IReviewService } from "./interfaces/IReviewService";
+import TYPES from '../config/di/types';
 
-export interface IReviewService {
-  createReview(
-    userId: string,
-    bookingId: string,
-    rating: number,
-    reviewText: string
-  ): Promise<IReviewDocument>;
+@injectable()
+export class ReviewService implements IReviewService {
+  constructor(
+    @inject(TYPES.ReviewRepository)
+    private reviewRepository: IReviewRepository,
+    @inject(TYPES.BookingRepository)
+    private bookingRepository: IBookingRepository
+  ){}
 
-  getReviewByBookingId(bookingId: string): Promise<IReviewDocument | null>;
-
-  getReviewsByEvent(eventId: string): Promise<IReviewDocument[]>;
-}
-
-class ReviewService implements IReviewService {
-  /** Ensure one review per booking, then create it */
   async createReview(
     userId: string,
     bookingId: string,
     rating: number,
     reviewText: string
   ): Promise<IReviewDocument> {
-    // Optional: verify booking exists and belongs to this user
-    const booking = await Booking.findById(bookingId);
+  
+    const booking = await this.bookingRepository.findById(bookingId);
     if (!booking || booking.userId.toString() !== userId) {
-      throw new Error("Booking not found or access denied");
-    }
-    // Optional: only allow reviews for past events
-    if (new Date(booking.eventId.getTimestamp()) > new Date()) {
-      throw new Error("Cannot review an upcoming event");
+      throw new Error(MESSAGES.USER.ERROR.NO_BOOKING);
     }
 
-    const existing = await ReviewRepository.findByBookingId(bookingId);
+   
+    const existing = await this.reviewRepository.findByBookingId(bookingId);
     if (existing) {
-      throw new Error("Review already submitted for this booking");
+      throw new Error(MESSAGES.USER.ERROR.REVIEW_SUBMITTED_ALREADY);
     }
 
-    return await ReviewRepository.create({
+    return await this.reviewRepository.create({
       bookingId: new Types.ObjectId(bookingId),
       userId: new Types.ObjectId(userId),
       eventId: booking.eventId as Types.ObjectId,
@@ -50,13 +46,27 @@ class ReviewService implements IReviewService {
   }
 
   async getReviewByBookingId(bookingId: string): Promise<IReviewDocument | null> {
-    return await ReviewRepository.findByBookingId(bookingId);
+    return await this.reviewRepository.findByBookingId(bookingId);
   }
 
-  /** Fetch all reviews for an event */
   async getReviewsByEvent(eventId: string): Promise<IReviewDocument[]> {
-    return await ReviewRepository.findByEventId(eventId);
+    return await this.reviewRepository.findByEventId(eventId);
+  }
+
+  async getReviewsByHost(hostId: string) {
+    const reviews = await this.reviewRepository.findByHostId(hostId);
+    return reviews.map(r => ({
+      _id:        r._id.toString(),
+      bookingId:  r.bookingId.toString(),
+      eventId:    r.eventId.toString(),
+      eventTitle: r.event.title,         
+      rating:     r.rating,
+      review:     r.review,
+      createdAt:  r.createdAt,
+      user: {
+        _id:   r.user._id.toString(),
+        name:  r.user.name,
+      }
+    }));
   }
 }
-
-export default new ReviewService();

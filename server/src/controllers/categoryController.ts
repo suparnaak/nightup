@@ -1,18 +1,27 @@
+import "reflect-metadata";
+import { injectable, inject } from "inversify";
 import { Request, Response } from "express";
-import CategoryService from "../services/categoryService";
+import TYPES from "../config/di/types";
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { isRequired } from "../utils/validators";
 import { ICategoryController } from "./interfaces/ICategoryController";
+import { ICategoryService } from "../services/interfaces/ICategoryService";
 import { IEventTypeDocument } from "../models/eventTypes";
 
-class CategoryController implements ICategoryController {
-  // GET: Fetch all categories (event types)
+@injectable()
+export class CategoryController implements ICategoryController {
+
+  constructor(
+    @inject(TYPES.CategoryService)
+    private categoryService: ICategoryService
+  ) {}
+
   async getAllCategories(req: Request, res: Response): Promise<void> {
     try {
-      const categories = await CategoryService.getAllCategories();
+      const categories = await this.categoryService.getAllCategories();
       console.log(categories);
       const payload = categories.map((cat: IEventTypeDocument) => ({
-        id: String(cat._id), // Now TypeScript knows _id exists on cat
+        id: String(cat._id), 
         name: cat.name,
         description: cat.description,
         createdAt: cat.createdAt,
@@ -32,7 +41,7 @@ class CategoryController implements ICategoryController {
     }
   }
 
-  // POST: Create new category (event type)
+  
   async createCategory(req: Request, res: Response): Promise<void> {
     try {
       const { name, description } = req.body;
@@ -45,7 +54,7 @@ class CategoryController implements ICategoryController {
         return;
       }
 
-      const category = await CategoryService.createCategory({ name, description });
+      const category = await this.categoryService.createCategory({ name, description });
       
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -70,7 +79,7 @@ class CategoryController implements ICategoryController {
     }
   }
 
-  // PUT: Update category (event type) by ID
+
   async updateCategory(req: Request, res: Response): Promise<void> {
     try {
      
@@ -86,7 +95,7 @@ class CategoryController implements ICategoryController {
         return;
       }
 
-      const category = await CategoryService.updateCategory(id, { name, description });
+      const category = await this.categoryService.updateCategory(id, { name, description });
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -121,4 +130,4 @@ class CategoryController implements ICategoryController {
 
 }
 
-export default new CategoryController();
+//export default new CategoryController();

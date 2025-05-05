@@ -1,10 +1,18 @@
+import "reflect-metadata";
+import { injectable, inject } from "inversify";
 import { Request, Response } from "express";
-import { IAdminController } from "./interfaces/IAdminController";
 import { MESSAGES, STATUS_CODES } from "../utils/constants";
-import AdminService from "../services/adminSerivce";
+import TYPES from "../config/di/types";
+import { IAdminService } from "../services/interfaces/IAdminService";
+import { IAdminController } from "./interfaces/IAdminController";
 
-class AdminController implements IAdminController {
 
+@injectable()
+export class AdminController implements IAdminController {
+  constructor(
+    @inject(TYPES.AdminService)
+    private adminService: IAdminService
+  ) {}
   async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
@@ -17,7 +25,7 @@ class AdminController implements IAdminController {
         return;
       }
 
-      const result = await AdminService.login(email, password);
+      const result = await this.adminService.login(email, password);
 
       if (!result.success) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
@@ -68,7 +76,7 @@ class AdminController implements IAdminController {
         res.status(STATUS_CODES.UNAUTHORIZED).json({ success: false, message: MESSAGES.COMMON.ERROR.REFRESH_TOKEN_MISSING });
         return;
       }
-      const result = await AdminService.refreshToken(refreshToken);
+      const result = await this.adminService.refreshToken(refreshToken);
 
       const accessTokenCookieOptions = {
         httpOnly: true,
@@ -95,9 +103,9 @@ class AdminController implements IAdminController {
   }
 
   //get all hosts
-  async getHosts(req: Request, res: Response): Promise<void> {
+  /* async getHosts(req: Request, res: Response): Promise<void> {
     try {
-      const hosts = await AdminService.getHosts();
+      const hosts = await this.adminService.getHosts();
       //console.log(hosts)
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -111,7 +119,33 @@ class AdminController implements IAdminController {
         message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
       });
     }
-  }
+  } */
+    async getHosts(req: Request, res: Response): Promise<void> {
+      try {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        
+        const { hosts, total } = await this.adminService.getHosts(page, limit);
+        
+        res.status(STATUS_CODES.SUCCESS).json({
+          success: true,
+          message: MESSAGES.ADMIN.SUCCESS.HOSTS_FETCHED,
+          hosts,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching hosts:", error);
+        res.status(STATUS_CODES.SERVER_ERROR).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+        });
+      }
+    }
   //document verification
   async verifyDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -124,7 +158,7 @@ class AdminController implements IAdminController {
         return;
       }
       // Pass rejectionReason along (it will be ignored for approvals)
-      const result = await AdminService.verifyDocument(hostId, action, rejectionReason);
+      const result = await this.adminService.verifyDocument(hostId, action, rejectionReason);
       
       if (!result.success) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
@@ -159,7 +193,7 @@ class AdminController implements IAdminController {
         });
         return;
       }
-      const result = await AdminService.hostToggleStatus(hostId, newStatus);
+      const result = await this.adminService.hostToggleStatus(hostId, newStatus);
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -173,9 +207,9 @@ class AdminController implements IAdminController {
       });
     }
   }
-  async getUsers(req: Request, res: Response): Promise<void> {
+/*   async getUsers(req: Request, res: Response): Promise<void> {
     try {
-      const users = await AdminService.getUsers();
+      const users = await this.adminService.getUsers();
       //console.log(hosts)
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -189,7 +223,33 @@ class AdminController implements IAdminController {
         message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
       });
     }
-  }
+  } */
+    async getUsers(req: Request, res: Response): Promise<void> {
+      try {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        
+        const { users, total } = await this.adminService.getUsers(page, limit);
+        
+        res.status(STATUS_CODES.SUCCESS).json({
+          success: true,
+          message: MESSAGES.ADMIN.SUCCESS.USERS_FETCHED,
+          users,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(STATUS_CODES.SERVER_ERROR).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+        });
+      }
+    }
    //block or unblock users
    async userToggleStatus(req: Request, res: Response): Promise<void> {
     try {
@@ -203,7 +263,7 @@ class AdminController implements IAdminController {
         });
         return;
       }
-      const result = await AdminService.userToggleStatus(userId, newStatus);
+      const result = await this.adminService.userToggleStatus(userId, newStatus);
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -219,4 +279,4 @@ class AdminController implements IAdminController {
   }
 }
 
-export default new AdminController();
+//export default new AdminController();

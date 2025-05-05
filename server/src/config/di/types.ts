@@ -1,0 +1,61 @@
+const TYPES = {
+    // Controllers
+    AdminController:  Symbol.for("AdminController"),
+    BookingController: Symbol.for("BookingController"),
+    CategoryController: Symbol.for("CategoryController"),
+    ChatController: Symbol.for("ChatController"),
+    CouponController: Symbol.for("CouponController"),
+    EventController: Symbol.for("EventController"),
+    HostController: Symbol.for("HostController"),
+    HostProfileController: Symbol.for("HostProfileController"),
+    HostRevenueController: Symbol.for("HostRevenueController"),
+    HostSubscriptionController: Symbol.for("HostSubscriptionController"),
+    RevenueController: Symbol.for("revenueController"),
+    ReviewController: Symbol.for("ReviewController"),
+    SavedEventController: Symbol.for("SavedEventController"),
+    SubscriptionController: Symbol.for("SubscriptionController"),
+    UserController: Symbol.for("UserController"),
+    UserProfileController: Symbol.for("UserProfileController"),
+    WalletController: Symbol.for("WalletController"),
+  
+    // Services
+    AdminService:     Symbol.for("AdminService"),
+    BookingService:    Symbol.for("BookingService"),
+    CategoryService:    Symbol.for("CategoryService"),
+    ChatService:    Symbol.for("ChatService"),
+    CouponService:    Symbol.for("CouponService"),
+    EventService:    Symbol.for("EventService"),
+    HostProfileService:    Symbol.for("HostProfileService"),
+    HostRevenueService:    Symbol.for("HostRevenueService"),
+    HostService:    Symbol.for("HostService"),
+    HostSubscriptionService:    Symbol.for("HostSubscriptionService"),
+    PaymentService:    Symbol.for("PaymentService"),
+    RevenueService:    Symbol.for("RevenueService"),
+    ReviewService:    Symbol.for("ReviewService"),
+    SavedEventService:    Symbol.for("SavedEventService"),
+    SubscriptionService:    Symbol.for("SubscriptionService"),
+    UserProfileService:    Symbol.for("UserProfileService"),
+    UserService:    Symbol.for("UserService"),
+    WalletService:    Symbol.for("WalletService"),
+
+    // Repositories
+    AdminRepository:  Symbol.for("AdminRepository"),
+    BookingRepository: Symbol.for("BookingRepository"),
+    CategoryRepository: Symbol.for("CategoryRepository"),
+    ChatRepository: Symbol.for("ChatRepository"),
+    CouponRepository: Symbol.for("CouponRepository"),
+    EventRepository: Symbol.for("EventRepository"),
+    HostRepository: Symbol.for("HostRepository"),
+    HostRevenueRepository: Symbol.for("HostRevenueRepository"),
+    HostSubscriptionRepository: Symbol.for("HostSubscriptionRepository"),
+    RevenueRepository: Symbol.for("RevenueRepository"),
+    ReviewRepository: Symbol.for("ReviewRepository"),
+    SavedEventRepository: Symbol.for("SavedEventRepository"),
+    SubscriptionRepository: Symbol.for("SubscriptionRepository"),
+    UserRepository: Symbol.for("UserRepository"),
+    WalletRepository: Symbol.for("WalletRepository"),
+    
+    
+  };
+
+  export default TYPES

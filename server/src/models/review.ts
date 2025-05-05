@@ -1,4 +1,3 @@
-// models/Review.ts
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IReviewDocument extends Document {
@@ -17,7 +16,7 @@ const reviewSchema: Schema<IReviewDocument> = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Booking",
       required: true,
-      unique: true,          // one review per booking
+      unique: true,        
     },
     userId: {
       type: Schema.Types.ObjectId,
@@ -42,7 +41,7 @@ const reviewSchema: Schema<IReviewDocument> = new Schema(
     },
   },
   {
-    timestamps: true,        // adds createdAt & updatedAt
+    timestamps: true,       
   }
 );
 

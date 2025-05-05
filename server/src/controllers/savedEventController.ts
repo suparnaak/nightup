@@ -1,6 +1,9 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { Request, Response } from "express";
-import SavedEventService from "../services/savedEventService";
-import EventRepository from "../repositories/eventRepository";
+import { ISavedEventService } from '../services/interfaces/ISavedEventService';
+//import { IEventService } from '../services/interfaces/IEventService';
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { ISavedEventController } from "./interfaces/ISavedEventController";
 
@@ -11,7 +14,12 @@ interface AuthRequest extends Request {
   };
 }
 
-class SavedEventController implements ISavedEventController {
+@injectable()
+export class SavedEventController implements ISavedEventController {
+  constructor(
+    @inject(TYPES.SavedEventService)
+    private savedEventService:ISavedEventService
+  ){}
   async getSavedEvents(req: AuthRequest, res: Response): Promise<void> {
    
       try {
@@ -23,7 +31,7 @@ class SavedEventController implements ISavedEventController {
           });
           return;
         }
-        const savedEvents = await SavedEventService.getSavedEvents(userId);
+        const savedEvents = await this.savedEventService.getSavedEvents(userId);
         console.log("saved events:-",savedEvents)
         res.status(STATUS_CODES.SUCCESS).json({
           success: true,
@@ -57,7 +65,7 @@ class SavedEventController implements ISavedEventController {
         });
         return;
       }
-      const isSaved = await SavedEventService.saveEvent(userId, eventId);
+      const isSaved = await this.savedEventService.saveEvent(userId, eventId);
       if (!isSaved) {
         res.status(STATUS_CODES.CONFLICT).json({
           success: false,
@@ -96,7 +104,7 @@ class SavedEventController implements ISavedEventController {
         });
         return;
       }
-      const isRemoved = await SavedEventService.removeSavedEvent(userId, eventId);
+      const isRemoved = await this.savedEventService.removeSavedEvent(userId, eventId);
       console.log("is removed controller",isRemoved)
       if (!isRemoved) {
         res.status(STATUS_CODES.NOT_FOUND).json({
@@ -119,4 +127,4 @@ class SavedEventController implements ISavedEventController {
   }
 }
 
-export default new SavedEventController();
+//export default new SavedEventController();

@@ -1,13 +1,23 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { Types } from 'mongoose';
 import ChatMessage, { IChatMessage } from "../models/chatMessage";
 import { IConversationResult } from '../services/interfaces/IChatService';
 import User from "../models/user"; 
 import Host from "../models/host"; 
-import UserRepository from "./userRepository"; 
-import HostRepository from "./hostRepository"; 
+import { IUserRepository } from './interfaces/IUserRepository';
+import { IHostRepository } from './interfaces/IHostRepository';
+import { IChatRepository } from './interfaces/IChatRepository';
 
-class ChatRepository {
- 
+@injectable()
+export class ChatRepository implements IChatRepository {
+ constructor(
+  @inject(TYPES.UserRepository)
+  private userRepository: IUserRepository,
+  @inject(TYPES.HostRepository)
+  private hostRepository: IHostRepository
+ ){}
   async fetchMessages(
       eventId: string,
       p1Id: string,
@@ -130,10 +140,10 @@ class ChatRepository {
       
      
       if (convo.otherType === 'user') {
-        const user = await UserRepository.findById(convo.otherId.toString());
+        const user = await this.userRepository.findById(convo.otherId.toString());
         otherName = user ? user.name : 'Unknown User';
       } else if (convo.otherType === 'host') {
-        const host = await HostRepository.getHostProfile(convo.otherId.toString());
+        const host = await this.hostRepository.getHostProfile(convo.otherId.toString());
         otherName = host && host.name ? host.name : 'Unknown Host';
       }
       
@@ -153,4 +163,4 @@ class ChatRepository {
 
 }
 
-export default new ChatRepository();
+//export default new ChatRepository();

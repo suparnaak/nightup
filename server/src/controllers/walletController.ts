@@ -1,5 +1,8 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { Request, Response } from "express";
-import WalletService from "../services/walletService";
+import { IWalletService } from '../services/interfaces/IWalletSevice';
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { IWalletController } from "./interfaces/IWalletController";
 interface AuthRequest extends Request {
@@ -8,7 +11,13 @@ interface AuthRequest extends Request {
       type?: string;
     };
   }
-class WalletController implements IWalletController {
+  @injectable()
+export class WalletController implements IWalletController {
+  constructor(
+    @inject(TYPES.WalletService)
+      private walletService: IWalletService
+    
+  ){}
   async getWallet(req: AuthRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.userId;
@@ -19,7 +28,7 @@ class WalletController implements IWalletController {
         });
         return;
       }
-      const wallet = await WalletService.getWallet(userId);
+      const wallet = await this.walletService.getWallet(userId);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         wallet,
@@ -52,7 +61,7 @@ class WalletController implements IWalletController {
         });
         return;
       }
-      const order = await WalletService.createOrder(userId, amount);
+      const order = await this.walletService.createOrder(userId, amount);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         orderId: order.id,
@@ -78,7 +87,7 @@ class WalletController implements IWalletController {
         return;
       }
       const paymentData = req.body;
-      const success = await WalletService.verifyPayment(userId, paymentData);
+      const success = await this.walletService.verifyPayment(userId, paymentData);
       if (success) {
         res.status(STATUS_CODES.SUCCESS).json({
           success: true,
@@ -100,4 +109,4 @@ class WalletController implements IWalletController {
   }
 }
 
-export default new WalletController();
+//export default new WalletController();

@@ -32,7 +32,6 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
     listConversations();
   }, [listConversations]);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);

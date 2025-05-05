@@ -1,8 +1,16 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { IRevenueService } from "./interfaces/IRevenueService";
-import RevenueRepository from "../repositories/revenueRepository";
+import { IRevenueRepository } from '../repositories/interfaces/IRevenueRepository';
 import PDFDocument from "pdfkit";
 
-class RevenueService implements IRevenueService {
+@injectable()
+export class RevenueService implements IRevenueService {
+  constructor(
+    @inject(TYPES.RevenueRepository)
+    private revenueRepository:IRevenueRepository
+  ){}
   async getRevenueData(period: string): Promise<any> {
     const endDate = new Date();
     const startDate = new Date();
@@ -15,23 +23,23 @@ class RevenueService implements IRevenueService {
       startDate.setFullYear(2025, 3, 1);
     }
 
-    const totalRevenue = await RevenueRepository.getTotalRevenue(
+    const totalRevenue = await this.revenueRepository.getTotalRevenue(
       startDate,
       endDate
     );
-    const monthlyRevenue = await RevenueRepository.getMonthlyRevenue(
+    const monthlyRevenue = await this.revenueRepository.getMonthlyRevenue(
       startDate,
       endDate
     );
-    const planRevenue = await RevenueRepository.getPlanRevenue(
+    const planRevenue = await this.revenueRepository.getPlanRevenue(
       startDate,
       endDate
     );
-    const transactionTypes = await RevenueRepository.getTransactionTypes(
+    const transactionTypes = await this.revenueRepository.getTransactionTypes(
       startDate,
       endDate
     );
-    const recentTransactions = await RevenueRepository.getRecentTransactions();
+    const recentTransactions = await this.revenueRepository.getRecentTransactions();
 
     return {
       totalRevenue,
@@ -231,4 +239,4 @@ class RevenueService implements IRevenueService {
   }
 }
 
-export default new RevenueService();
+//export default new RevenueService();

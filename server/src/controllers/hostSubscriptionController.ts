@@ -1,5 +1,8 @@
+import 'reflect-metadata';
+import { injectable,inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { Request, Response } from "express";
-import HostSubscriptionService from "../services/hostSubscriptionService";
+import {IHostSubscriptionService } from '../services/interfaces/IHostSubscriptionService'
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { IHostSubscriptionController } from "./interfaces/IHostSubscriptionController";
 
@@ -10,7 +13,12 @@ interface AuthRequest extends Request {
   };
 }
 
-class HostSubscriptionController implements IHostSubscriptionController{
+@injectable()
+export class HostSubscriptionController implements IHostSubscriptionController{
+  constructor(
+    @inject(TYPES.HostSubscriptionService)
+    private hostSubscriptionService:IHostSubscriptionService
+  ){}
   async getHostSubscription(req: AuthRequest, res: Response): Promise<void> {
     try {
       const hostId = req.user?.userId;
@@ -21,7 +29,7 @@ class HostSubscriptionController implements IHostSubscriptionController{
         });
         return;
       }
-      const subscription = await HostSubscriptionService.getHostSubscription(hostId);
+      const subscription = await this.hostSubscriptionService.getHostSubscription(hostId);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         subscription, 
@@ -46,7 +54,7 @@ class HostSubscriptionController implements IHostSubscriptionController{
         });
         return;
       }
-      const plans = await HostSubscriptionService.getAvailableSubscriptions();
+      const plans = await this.hostSubscriptionService.getAvailableSubscriptions();
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         plans,
@@ -71,7 +79,7 @@ class HostSubscriptionController implements IHostSubscriptionController{
         });
         return;
       }
-      const order = await HostSubscriptionService.createOrder(req.user.userId, planId, amount);
+      const order = await this.hostSubscriptionService.createOrder(req.user.userId, planId, amount);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         orderId: order.id,
@@ -95,7 +103,7 @@ class HostSubscriptionController implements IHostSubscriptionController{
         return;
       }
       const paymentData = req.body; 
-      const verified = await HostSubscriptionService.verifyPayment(req.user.userId, paymentData);
+      const verified = await this.hostSubscriptionService.verifyPayment(req.user.userId, paymentData);
       if (verified) {
         res.status(STATUS_CODES.SUCCESS).json({
           success: true,
@@ -136,7 +144,7 @@ async createUpgradeOrder(req: AuthRequest, res: Response): Promise<void> {
       return;
     }
     
-    const order = await HostSubscriptionService.createUpgradeOrder(
+    const order = await this.hostSubscriptionService.createUpgradeOrder(
       req.user.userId,
       planId,
       amount,
@@ -194,7 +202,7 @@ async createUpgradeOrder(req: AuthRequest, res: Response): Promise<void> {
         proratedAmount: prorated
       };
       
-      const result = await HostSubscriptionService.verifyUpgradePayment(req.user.userId, paymentData);
+      const result = await this.hostSubscriptionService.verifyUpgradePayment(req.user.userId, paymentData);
       
       if (result.success) {
         res.status(STATUS_CODES.SUCCESS).json({
@@ -218,4 +226,4 @@ async createUpgradeOrder(req: AuthRequest, res: Response): Promise<void> {
   }
 }
 
-export default new HostSubscriptionController();
+//export default new HostSubscriptionController();

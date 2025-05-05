@@ -1,10 +1,18 @@
-import CouponRepository from "../repositories/couponRepository";
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
+import { ICouponRepository } from '../repositories/interfaces/ICouponRepository';
 import { ICoupon } from "../models/coupon";
 import { ICouponService } from "./interfaces/ICouponService";
 
-class CouponService implements ICouponService {
+@injectable()
+export class CouponService implements ICouponService {
+  constructor(
+    @inject(TYPES.CouponRepository)
+    private couponRepository:ICouponRepository
+  ){}
   async getCoupons(): Promise<ICoupon[]> {
-    return await CouponRepository.getCoupons();
+    return await this.couponRepository.getCoupons();
   }
 
   async createCoupon(payload: {
@@ -15,7 +23,7 @@ class CouponService implements ICouponService {
     endDate: Date;
     couponQuantity: number;
   }): Promise<ICoupon> {
-    return await CouponRepository.createCoupon(payload);
+    return await this.couponRepository.createCoupon(payload);
   }
 
   async updateCoupon(
@@ -28,7 +36,7 @@ class CouponService implements ICouponService {
       couponQuantity: number;
     }>
   ): Promise<ICoupon> {
-    const coupon = await CouponRepository.updateCoupon(id, payload);
+    const coupon = await this.couponRepository.updateCoupon(id, payload);
     if (!coupon) {
       throw new Error("Coupon not found");
     }
@@ -36,15 +44,15 @@ class CouponService implements ICouponService {
   }
 
   async deleteCoupon(id: string): Promise<void> {
-    await CouponRepository.deleteCoupon(id);
+    await this.couponRepository.deleteCoupon(id);
   }
 
   async getAvailableCoupons(
     userId: string,
     minimumAmount?: number
   ): Promise<ICoupon[]> {
-    return await CouponRepository.getAvailableCoupons(userId, minimumAmount);
+    return await this.couponRepository.getAvailableCoupons(userId, minimumAmount);
   }
 }
 
-export default new CouponService();
+//export default new CouponService();

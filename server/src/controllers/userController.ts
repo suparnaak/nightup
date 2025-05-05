@@ -1,10 +1,19 @@
+import "reflect-metadata";
+import { injectable, inject } from "inversify";
+import TYPES from "../config/di/types";
 import { Request, Response } from "express";
-import UserService from "../services/userService";
+import { IUserService } from "../services/interfaces/IUserService";
 import { MESSAGES, STATUS_CODES, PASSWORD_RULES } from "../utils/constants";
 import jwt from "jsonwebtoken";
 import { isRequired, isEmail } from "../utils/validators";
+import { IUserController } from "./interfaces/IUserController";
 
-class UserController {
+@injectable()
+export class UserController implements IUserController{
+  constructor(
+    @inject(TYPES.UserService)
+    private userService:IUserService
+  ){}
   async signup(req: Request, res: Response): Promise<void> {
     try {
       const { name, email, phone, password, confirmPassword } = req.body;
@@ -62,7 +71,7 @@ class UserController {
         return;
       }
 
-      const existingUser = await UserService.findUserByEmail(email);
+      const existingUser = await this.userService.findUserByEmail(email);
       if (existingUser) {
         res
           .status(STATUS_CODES.BAD_REQUEST)
@@ -70,7 +79,7 @@ class UserController {
         return;
       }
 
-      const user = await UserService.signup(name, email, phone, password);
+      const user = await this.userService.signup(name, email, phone, password);
 
       res.status(STATUS_CODES.CREATED).json({
         message: MESSAGES.COMMON.SUCCESS.REGISTERED,
@@ -103,7 +112,7 @@ class UserController {
         return;
       }
 
-      const result = await UserService.verifyOtp(email, otp, verificationType);
+      const result = await this.userService.verifyOtp(email, otp, verificationType);
 
       if (!result.success) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
@@ -141,7 +150,7 @@ class UserController {
           .json({ message: MESSAGES.COMMON.ERROR.MISSING_FIELDS });
         return;
       }
-      const result = await UserService.resendOtp(email, verificationType);
+      const result = await this.userService.resendOtp(email, verificationType);
 
       if (!result.success) {
         res.status(STATUS_CODES.BAD_REQUEST).json({ message: result.message });
@@ -171,7 +180,7 @@ class UserController {
         );
         return;
       }
-      const result = await UserService.processGoogleAuth(profile);
+      const result = await this.userService.processGoogleAuth(profile);
       console.log(result)
       res.cookie("token", result.token, {
         httpOnly: true,
@@ -235,7 +244,7 @@ class UserController {
         return;
       }
 
-      const result = await UserService.login(email, password);
+      const result = await this.userService.login(email, password);
       console.log(result);
       if (!result.success) {
         //console.log(result.otpRequired)
@@ -313,7 +322,7 @@ class UserController {
         });
         return;
       }
-      const result = await UserService.forgotPassword(email);
+      const result = await this.userService.forgotPassword(email);
 
       res
         .status(
@@ -345,7 +354,7 @@ class UserController {
           .json({ message: MESSAGES.COMMON.ERROR.PASSWORD_MISMATCH });
         return;
       }
-      const result = await UserService.resetPassword(email, password);
+      const result = await this.userService.resetPassword(email, password);
       console.log(result);
       res
         .status(
@@ -362,4 +371,4 @@ class UserController {
   }
 }
 
-export default new UserController();
+//export default new UserController();

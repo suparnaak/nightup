@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { useBookingStore } from "../../store/bookingStore";
 import HostLayout from "../../layouts/HostLayout";
 
-// Define extended interface just for this component
 interface ExtendedBooking {
   _id: string;
   eventId: string | { _id: string; title: string; [key: string]: any };
@@ -25,23 +24,21 @@ interface ExtendedBooking {
     cancelledAt: string;
     reason: string;
   };
-  [key: string]: any; // Allow other properties
+  [key: string]: any; 
 }
 
 const HostEventBookingsPage = () => {
   const { eventId } = useParams<{ eventId: string }>();
-  const { bookings, isLoading, fetchBookingsByEvent } = useBookingStore();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedBooking, setSelectedBooking] =
-    useState<ExtendedBooking | null>(null);
+  const { bookings, isLoading, pagination, fetchBookingsByEvent } = useBookingStore();
+  const [selectedBooking, setSelectedBooking] = useState<ExtendedBooking | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const itemsPerPage = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     if (eventId) {
-      fetchBookingsByEvent(eventId);
+      fetchBookingsByEvent(eventId, pagination.page, pageSize);
     }
-  }, [eventId, fetchBookingsByEvent]);
+  }, [eventId, fetchBookingsByEvent, pagination.page, pageSize]);
 
   // Helper function to get user name if available
   const getUserName = (
@@ -72,19 +69,21 @@ const HostEventBookingsPage = () => {
     setShowDetailsModal(true);
   };
 
-  // Calculate pagination
-  const totalPages = Math.ceil(bookings.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentBookings = bookings
-    .slice(indexOfFirstItem, indexOfLastItem)
-    .map((booking) => booking as unknown as ExtendedBooking);
+  // Handle page change
+  const changePage = (newPage: number) => {
+    if (eventId) {
+      fetchBookingsByEvent(eventId, newPage, pageSize);
+    }
+  };
 
-  // Pagination controls
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-  const goToNextPage = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  const goToPrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  // Handle page size change
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSize = parseInt(e.target.value);
+    setPageSize(newSize);
+    if (eventId) {
+      fetchBookingsByEvent(eventId, 1, newSize); // Reset to page 1 when changing page size
+    }
+  };
 
   // Render booking details modal
   const renderDetailsModal = () => {
@@ -291,6 +290,22 @@ const HostEventBookingsPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Bookings for Event</h1>
+          <div className="flex items-center space-x-2">
+            <label htmlFor="pageSize" className="text-sm text-gray-600">
+              Show:
+            </label>
+            <select
+              id="pageSize"
+              value={pageSize}
+              onChange={handlePageSizeChange}
+              className="border border-gray-300 rounded-md text-sm p-1"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
         </div>
 
         {isLoading ? (
@@ -353,7 +368,7 @@ const HostEventBookingsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentBookings.map((booking) => (
+                  {bookings.map((booking: any) => (
                     <tr
                       key={booking._id}
                       className={
@@ -401,14 +416,14 @@ const HostEventBookingsPage = () => {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {pagination.pages > 1 && (
               <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-lg shadow">
                 <div className="flex flex-1 justify-between sm:hidden">
                   <button
-                    onClick={goToPrevPage}
-                    disabled={currentPage === 1}
+                    onClick={() => changePage(pagination.page - 1)}
+                    disabled={pagination.page === 1}
                     className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
-                      currentPage === 1
+                      pagination.page === 1
                         ? "text-gray-300"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
@@ -416,10 +431,10 @@ const HostEventBookingsPage = () => {
                     Previous
                   </button>
                   <button
-                    onClick={goToNextPage}
-                    disabled={currentPage === totalPages}
+                    onClick={() => changePage(pagination.page + 1)}
+                    disabled={pagination.page === pagination.pages}
                     className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
-                      currentPage === totalPages
+                      pagination.page === pagination.pages
                         ? "text-gray-300"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
@@ -432,13 +447,13 @@ const HostEventBookingsPage = () => {
                     <p className="text-sm text-gray-700">
                       Showing{" "}
                       <span className="font-medium">
-                        {indexOfFirstItem + 1}
+                        {(pagination.page - 1) * pageSize + 1}
                       </span>{" "}
                       to{" "}
                       <span className="font-medium">
-                        {Math.min(indexOfLastItem, bookings.length)}
+                        {Math.min(pagination.page * pageSize, pagination.total)}
                       </span>{" "}
-                      of <span className="font-medium">{bookings.length}</span>{" "}
+                      of <span className="font-medium">{pagination.total}</span>{" "}
                       results
                     </p>
                   </div>
@@ -448,10 +463,10 @@ const HostEventBookingsPage = () => {
                       aria-label="Pagination"
                     >
                       <button
-                        onClick={goToPrevPage}
-                        disabled={currentPage === 1}
+                        onClick={() => changePage(pagination.page - 1)}
+                        disabled={pagination.page === 1}
                         className={`relative inline-flex items-center rounded-l-md px-2 py-2 ${
-                          currentPage === 1
+                          pagination.page === 1
                             ? "text-gray-300"
                             : "text-gray-400 hover:bg-gray-50"
                         }`}
@@ -461,25 +476,54 @@ const HostEventBookingsPage = () => {
                       </button>
 
                       {/* Page numbers */}
-                      {[...Array(totalPages)].map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => paginate(index + 1)}
-                          className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                            currentPage === index + 1
-                              ? "bg-indigo-600 text-white"
-                              : "text-gray-900 hover:bg-gray-50"
-                          }`}
-                        >
-                          {index + 1}
-                        </button>
-                      ))}
+                      {Array.from({ length: pagination.pages }).map((_, index) => {
+                        const pageNum = index + 1;
+                        
+                        // Show limited page numbers for better UI
+                        if (
+                          pagination.pages <= 7 ||
+                          pageNum === 1 ||
+                          pageNum === pagination.pages ||
+                          (pageNum >= pagination.page - 1 && pageNum <= pagination.page + 1)
+                        ) {
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => changePage(pageNum)}
+                              className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                                pagination.page === pageNum
+                                  ? "bg-indigo-600 text-white"
+                                  : "text-gray-900 hover:bg-gray-50"
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        }
+                        
+                        // Add ellipsis
+                        if (
+                          (pageNum === 2 && pagination.page > 3) ||
+                          (pageNum === pagination.pages - 1 && pagination.page < pagination.pages - 2)
+                        ) {
+                          return (
+                            <span
+                              key={`ellipsis-${pageNum}`}
+                              className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+                        
+                        return null;
+                      })}
 
                       <button
-                        onClick={goToNextPage}
-                        disabled={currentPage === totalPages}
+                        onClick={() => changePage(pagination.page + 1)}
+                        disabled={pagination.page === pagination.pages}
                         className={`relative inline-flex items-center rounded-r-md px-2 py-2 ${
-                          currentPage === totalPages
+                          pagination.page === pagination.pages
                             ? "text-gray-300"
                             : "text-gray-400 hover:bg-gray-50"
                         }`}

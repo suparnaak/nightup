@@ -1,8 +1,11 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { Request, Response } from "express";
 import { MESSAGES, STATUS_CODES } from "../utils/constants";
 import jwt from "jsonwebtoken";
 import { IUserProfileController } from "./interfaces/IUserProfileController";
-import UserProfileService from "../services/userProfileService";
+import { IUserProfileService } from '../services/interfaces/IUserProfileService';
 import { isPasswordStrong } from "../utils/validators";
 import bcrypt from "bcryptjs/umd/types";
 
@@ -13,8 +16,13 @@ interface AuthRequest extends Request {
   };
 }
 
-class UserProfileController implements IUserProfileController {
+@injectable()
+export class UserProfileController implements IUserProfileController {
 
+  constructor(
+    @inject(TYPES.UserProfileService)
+    private userProfileService: IUserProfileService
+  ){}
   async updateProfile(req: AuthRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.userId;
@@ -24,7 +32,7 @@ class UserProfileController implements IUserProfileController {
             }
       const { name, phone } = req.body;
 
-      const updatedUser = await UserProfileService.updateProfile(userId, { name, phone });
+      const updatedUser = await this.userProfileService.updateProfile(userId, { name, phone });
 
       res.status(STATUS_CODES.SUCCESS).json({
         user: updatedUser,
@@ -48,7 +56,7 @@ class UserProfileController implements IUserProfileController {
   
       const { currentPassword, newPassword, confirmPassword } = req.body;
   console.log(currentPassword)
-      const updatedUser = await UserProfileService.changePassword(userId, { currentPassword, newPassword, confirmPassword });
+      const updatedUser = await this.userProfileService.changePassword(userId, { currentPassword, newPassword, confirmPassword });
   
       res.status(STATUS_CODES.SUCCESS).json({
         user: updatedUser,
@@ -63,4 +71,4 @@ class UserProfileController implements IUserProfileController {
   }
 }
 
-export default new UserProfileController();
+//export default new UserProfileController();

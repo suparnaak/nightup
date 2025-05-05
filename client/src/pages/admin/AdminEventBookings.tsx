@@ -7,28 +7,36 @@ import { User, Ticket, Calendar, Clock, DollarSign, Percent, ChevronLeft, Chevro
 
 const AdminEventBookings: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
-  const { bookings, isLoading, error, fetchBookingsByEventAdmin } = useBookingStore();
+  const { bookings, isLoading, error, pagination, fetchBookingsByEventAdmin } = useBookingStore();
   
-  
+  // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
+  // Fetch bookings when page, itemsPerPage or eventId changes
   useEffect(() => {
-    if (eventId) fetchBookingsByEventAdmin(eventId).catch(err => toast.error(err.message));
-  }, [eventId, fetchBookingsByEventAdmin]);
+    if (eventId) {
+      fetchBookingsByEventAdmin(eventId, currentPage, itemsPerPage)
+        .catch(err => toast.error(err.message));
+    }
+  }, [eventId, fetchBookingsByEventAdmin, currentPage, itemsPerPage]);
 
+  // Pagination handlers
+  const goToNextPage = () => {
+    if (currentPage < pagination.pages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
   
-  const totalPages = Math.ceil(bookings.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentBookings = bookings.slice(indexOfFirstItem, indexOfLastItem);
-
- 
-  const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
-  const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+  
   const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1); 
+    setCurrentPage(1); // Reset to first page when changing items per page
   };
 
   if (isLoading) return (
@@ -64,9 +72,9 @@ const AdminEventBookings: React.FC = () => {
               {/* Pagination controls at top */}
               <div className="bg-white rounded-lg shadow-md p-4 mb-6 flex justify-between items-center">
                 <div className="text-sm text-purple-700">
-                  Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{" "}
-                  <span className="font-medium">{Math.min(indexOfLastItem, bookings.length)}</span> of{" "}
-                  <span className="font-medium">{bookings.length}</span> bookings
+                  Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
+                  <span className="font-medium">{Math.min(currentPage * itemsPerPage, pagination.total)}</span> of{" "}
+                  <span className="font-medium">{pagination.total}</span> bookings
                 </div>
                 <div className="flex items-center space-x-4">
                   <label className="text-sm text-gray-600 flex items-center">
@@ -93,11 +101,11 @@ const AdminEventBookings: React.FC = () => {
                     <div className="px-4 py-2 border-t border-b border-purple-200 flex items-center">
                       <span className="text-purple-800 font-medium">{currentPage}</span>
                       <span className="text-gray-500 mx-1">of</span>
-                      <span className="text-purple-800 font-medium">{totalPages}</span>
+                      <span className="text-purple-800 font-medium">{pagination.pages}</span>
                     </div>
                     <button 
                       onClick={goToNextPage} 
-                      disabled={currentPage === totalPages}
+                      disabled={currentPage === pagination.pages || pagination.pages === 0}
                       className="p-2 rounded-r border border-purple-200 hover:bg-purple-100 disabled:opacity-50 disabled:hover:bg-white"
                     >
                       <ChevronRight size={16} className="text-purple-700" />
@@ -108,8 +116,8 @@ const AdminEventBookings: React.FC = () => {
 
               {/* Booking cards */}
               <div className="space-y-6">
-                {currentBookings.map(booking => {
-                 
+                {bookings.map(booking => {
+                  // Handle user name display
                   let userName: string;
                   if (typeof booking.userId === 'object' && booking.userId !== null && 'name' in booking.userId) {
                     userName = (booking.userId as any).name;
@@ -120,7 +128,7 @@ const AdminEventBookings: React.FC = () => {
                   const totalTickets = booking.tickets.reduce((sum, t) => sum + t.quantity, 0);
                   const bookingDate = new Date(booking.createdAt);
 
-                 
+                  // Determine status styling
                   const status = booking.status?.toLowerCase() || "pending";
                   const statusClasses = {
                     bg: status === "confirmed" ? "bg-green-50" : 
@@ -155,7 +163,7 @@ const AdminEventBookings: React.FC = () => {
                         <div className="flex items-center">
                           <div className={`rounded-full h-3 w-3 mr-2 ${statusClasses.indicator}`}></div>
                           <span className={`text-sm font-medium ${statusClasses.text}`}>
-                            {booking.status ? booking.status.charAt(0) + booking.status.slice(1).toLowerCase() : "Pending"}
+                            {booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1).toLowerCase() : "Pending"}
                           </span>
                         </div>
                       </div>
@@ -231,46 +239,60 @@ const AdminEventBookings: React.FC = () => {
                     Previous
                   </button>
                   
-                  <div className="px-4">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  <div className="px-4 flex">
+                    {/* Generate page buttons */}
+                    {(() => {
+                      const pageButtons = [];
+                      let startPage, endPage;
                       
-                      let pageNum;
-                      if (totalPages <= 5) {
-                        pageNum = i + 1;
+                      if (pagination.pages <= 5) {
+                        // Less than 5 pages, show all
+                        startPage = 1;
+                        endPage = pagination.pages;
                       } else if (currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
+                        // Near start
+                        startPage = 1;
+                        endPage = 5;
+                      } else if (currentPage >= pagination.pages - 2) {
+                        // Near end
+                        startPage = pagination.pages - 4;
+                        endPage = pagination.pages;
                       } else {
-                        pageNum = currentPage - 2 + i;
+                        // Middle
+                        startPage = currentPage - 2;
+                        endPage = currentPage + 2;
                       }
                       
-                      return (
-                        <button
-                          key={i}
-                          onClick={() => setCurrentPage(pageNum)}
-                          className={`w-8 h-8 mx-1 rounded-full ${
-                            currentPage === pageNum 
-                              ? 'bg-purple-600 text-white' 
-                              : 'text-purple-700 hover:bg-purple-100'
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
+                      for (let i = startPage; i <= endPage; i++) {
+                        pageButtons.push(
+                          <button
+                            key={i}
+                            onClick={() => setCurrentPage(i)}
+                            className={`w-8 h-8 mx-1 rounded-full ${
+                              currentPage === i 
+                                ? 'bg-purple-600 text-white' 
+                                : 'text-purple-700 hover:bg-purple-100'
+                            }`}
+                          >
+                            {i}
+                          </button>
+                        );
+                      }
+                      
+                      return pageButtons;
+                    })()}
                   </div>
                   
                   <button 
                     onClick={goToNextPage} 
-                    disabled={currentPage === totalPages}
+                    disabled={currentPage === pagination.pages || pagination.pages === 0}
                     className="px-3 py-1 rounded-r text-sm font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50 disabled:hover:bg-white"
                   >
                     Next
                   </button>
                   <button 
-                    onClick={() => setCurrentPage(totalPages)} 
-                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(pagination.pages)} 
+                    disabled={currentPage === pagination.pages || pagination.pages === 0}
                     className="px-3 py-1 rounded text-sm font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50 disabled:hover:bg-white"
                   >
                     Last

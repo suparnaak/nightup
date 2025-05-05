@@ -1,7 +1,10 @@
+import 'reflect-metadata';
+import { injectable,inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 import { IEventController } from "./interfaces/IEventController";
-import EventService from "../services/eventService";
+import { IEventService } from '../services/interfaces/IEventService';
 import { IEvent } from "../services/interfaces/IEventService";
 import { MESSAGES, STATUS_CODES } from "../utils/constants";
 import NodeGeocoder, { Options as GeocoderOptions } from "node-geocoder";
@@ -19,7 +22,13 @@ interface AuthRequest extends Request {
   };
 }
 
-class EventController implements IEventController {
+@injectable()
+export class EventController implements IEventController {
+  constructor(
+    @inject(TYPES.EventService)
+    private eventService:IEventService
+
+  ){}
   //add an event
   async addEvent(req: AuthRequest, res: Response): Promise<void> {
     try {
@@ -107,7 +116,7 @@ class EventController implements IEventController {
       } else {
         console.error("Geocoding failed for address:", fullAddress);
       }
-      const event = await EventService.addEvent(eventData);
+      const event = await this.eventService.addEvent(eventData);
 
       res.status(STATUS_CODES.CREATED).json({
         success: true,
@@ -134,7 +143,7 @@ class EventController implements IEventController {
       }
 
       const hostId = new Types.ObjectId(hostIdStr);
-      const events = await EventService.getEventsByHostId(hostId);
+      const events = await this.eventService.getEventsByHostId(hostId);
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -164,9 +173,9 @@ class EventController implements IEventController {
 
       let result;
       if (city && typeof city === "string" && city.trim() !== "") {
-        result = await EventService.getEventsByCity(city, query);
+        result = await this.eventService.getEventsByCity(city, query);
       } else {
-        result = await EventService.getAllEvents(query);
+        result = await this.eventService.getAllEvents(query);
       }
 
       res.status(STATUS_CODES.SUCCESS).json({
@@ -199,7 +208,7 @@ class EventController implements IEventController {
         return;
       }
 
-      const event = await EventService.getEventDetails(
+      const event = await this.eventService.getEventDetails(
         new Types.ObjectId(eventId)
       );
 
@@ -240,7 +249,7 @@ class EventController implements IEventController {
         return;
       }
 
-      const updatedEvent = await EventService.editEvent(
+      const updatedEvent = await this.eventService.editEvent(
         new Types.ObjectId(eventId),
         req.body
       );
@@ -291,7 +300,7 @@ class EventController implements IEventController {
         return;
       }
 
-      const updatedEvent = await EventService.deleteEvent(
+      const updatedEvent = await this.eventService.deleteEvent(
         new Types.ObjectId(eventId),
         reason
       );
@@ -313,7 +322,7 @@ async getAllEventsForAdmin(req: Request, res: Response): Promise<void> {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
-    const result = await EventService.getAllEventsForAdmin({ page, limit });
+    const result = await this.eventService.getAllEventsForAdmin({ page, limit });
 console.log("events for admin",result)
     res.status(STATUS_CODES.SUCCESS).json({
       success: true,
@@ -337,4 +346,4 @@ console.log("events for admin",result)
   
 }
 
-export default new EventController();
+//export default new EventController();

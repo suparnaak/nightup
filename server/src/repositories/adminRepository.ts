@@ -1,13 +1,17 @@
 import { Types } from "mongoose";
 import Admin, {IAdmin} from '../models/admin';
 import { IAdminRepository } from "./interfaces/IAdminRepository";
+import { BaseRepository } from "./baseRepository/baseRepository";
 
-class AdminRepository implements IAdminRepository {
+export class AdminRepository extends BaseRepository<IAdmin> implements IAdminRepository {
+  constructor() {
+    super(Admin);
+  }
   async findByEmail(email: string): Promise<IAdmin | null> {
-    return await Admin.findOne({ email });
+    return await this.findOne({ email });
   }
   async updateRefreshToken(adminId: string | Types.ObjectId, refreshToken: string): Promise<IAdmin | null> {
-    return await Admin.findByIdAndUpdate(adminId, { refreshToken }, { new: true });
+    return await this.update(adminId, { refreshToken });
 }
 }
-  export default new AdminRepository();
+  //export default new AdminRepository();

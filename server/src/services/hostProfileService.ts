@@ -1,13 +1,21 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { IHostProfileService, HostProfile, HostProfileResponse } from "./interfaces/IHostProfileService";
-import HostRepository from "../repositories/hostRepository";
+import { IHostRepository } from '../repositories/interfaces/IHostRepository';
 import { IHost } from "../models/host";
 import bcrypt from "bcryptjs";
 import { MESSAGES } from "../utils/constants";
 
-class HostProfileService implements IHostProfileService {
+@injectable()
+export class HostProfileService implements IHostProfileService {
   
+  constructor(
+    @inject(TYPES.HostRepository)
+    private hostRepository:IHostRepository
+  ){}
   async getHostProfile(hostId: string): Promise<HostProfile | null> {
-    const host: IHost | null = await HostRepository.getHostProfile(hostId);
+    const host: IHost | null = await this.hostRepository.getHostProfile(hostId);
     if (!host) return null;
     
     const hostProfile: HostProfile = {
@@ -47,9 +55,9 @@ class HostProfileService implements IHostProfileService {
   
     console.log(updateData);
   
-    const updatedHost = await HostRepository.updateHostProfile(hostId, updateData);
+    const updatedHost = await this.hostRepository.updateHostProfile(hostId, updateData);
     if (!updatedHost) {
-      throw new Error("Failed to update host profile");
+      throw new Error(MESSAGES.COMMON.ERROR.PROFILE_UPDATE_FAILED);
     }
   
     const hostProfile: HostProfile = {
@@ -73,4 +81,4 @@ class HostProfileService implements IHostProfileService {
   
 }
 
-export default new HostProfileService();
+//export default new HostProfileService();

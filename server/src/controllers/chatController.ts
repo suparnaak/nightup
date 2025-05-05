@@ -1,6 +1,10 @@
+import "reflect-metadata";
+import { injectable, inject } from "inversify";
+import TYPES from "../config/di/types";
 import { Request, Response } from 'express';
-import ChatService from '../services/chatService';
+import { IChatService } from "../services/interfaces/IChatService";
 import { IChatController } from './interfaces/IChatController';
+import { MESSAGES, STATUS_CODES } from '../utils/constants';
 
 interface AuthRequest extends Request {
   user?: {
@@ -9,8 +13,10 @@ interface AuthRequest extends Request {
   };
 }
 
-class ChatController implements IChatController {
-  
+@injectable()
+export class ChatController implements IChatController {
+  constructor(@inject(TYPES.ChatService)
+  private chatService: IChatService){}
   async fetchMessages(req: AuthRequest, res: Response): Promise<void> {
     const participantId = req.user?.userId;
     const participantType = req.user?.type;
@@ -18,22 +24,22 @@ class ChatController implements IChatController {
     const eventId = req.params.eventId;
 
     if (!participantId || !participantType) {
-      res.status(401).json({ message: 'Not authenticated' });
+      res.status(STATUS_CODES.UNAUTHORIZED).json({ message: MESSAGES.COMMON.ERROR.UNAUTHENTICATED });
       return;
     }
 
     try {
-      const messages = await ChatService.fetchMessages(
+      const messages = await this.chatService.fetchMessages(
         eventId,
         participantId,
         participantType,
         otherId,
         participantType === 'user' ? 'host' : 'user'
       );
-      res.status(200).json({ messages });
+      res.status(STATUS_CODES.SUCCESS).json({ messages });
     } catch (err) {
       console.error('Error fetching messages:', err);
-      res.status(500).json({ message: 'Failed to fetch messages' });
+      res.status(500).json({ message: MESSAGES.COMMON.ERROR.FETCH_MESSAGE_FAILED });
     }
   }
 
@@ -46,16 +52,16 @@ class ChatController implements IChatController {
     const { content } = req.body;
 
     if (!senderId || !senderType) {
-      res.status(401).json({ message: 'Not authenticated' });
+      res.status(STATUS_CODES.UNAUTHORIZED).json({ message: MESSAGES.COMMON.ERROR.UNAUTHENTICATED });
       return;
     }
     if (!content || !content.trim()) {
-      res.status(400).json({ message: 'Message content is required' });
+      res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.MESSAGE_REQUIRED });
       return;
     }
 
     try {
-      const message = await ChatService.sendMessage(
+      const message = await this.chatService.sendMessage(
         eventId,
         senderId,
         senderType,
@@ -63,10 +69,10 @@ class ChatController implements IChatController {
         senderType === 'user' ? 'host' : 'user',
         content.trim()
       );
-      res.status(201).json({ message });
+      res.status(STATUS_CODES.CREATED).json({ message });
     } catch (err) {
       console.error('Error sending message:', err);
-      res.status(500).json({ message: 'Failed to send message' });
+      res.status(STATUS_CODES.SERVER_ERROR).json({ message: MESSAGES.COMMON.ERROR.CHAT_FAILED });
     }
   }
 
@@ -75,20 +81,20 @@ class ChatController implements IChatController {
     const userType = req.user?.type;
     
     if (!userId || !userType) {
-      res.status(401).json({ message: 'Not authenticated' });
+      res.status(STATUS_CODES.UNAUTHORIZED).json({ message: MESSAGES.COMMON.ERROR.UNAUTHENTICATED });
       return;
     }
     
     try {
-      const convos = await ChatService.listConversations(userId);
+      const convos = await this.chatService.listConversations(userId);
       res.json({ conversations: convos });
     } catch (err) {
       console.error('Error listing conversations:', err);
-      res.status(500).json({ message: 'Failed to list conversations' });
+      res.status(STATUS_CODES.SERVER_ERROR).json({ message: MESSAGES.COMMON.ERROR.CHAT_LIST_FAILED });
     }
   }
 
 
 }
 
-export default new ChatController();
+//export default new ChatController();

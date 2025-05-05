@@ -1,5 +1,8 @@
+import "reflect-metadata";
+import { injectable, inject } from "inversify";
+import TYPES from "../config/di/types";
 import { Request, Response } from "express";
-import BookingService from "../services/bookingService";
+import { IBookingService } from "../services/interfaces/IBookingService";
 import { IBookingController } from "./interfaces/IBookingController";
 import { MESSAGES, STATUS_CODES } from "../utils/constants";
 import crypto from "crypto";
@@ -11,8 +14,12 @@ interface AuthRequest extends Request {
     userId?: string;
   };
 }
-
-class BookingController implements IBookingController {
+@injectable()
+export class BookingController implements IBookingController {
+  constructor(
+    @inject(TYPES.BookingService)
+    private bookingService: IBookingService
+  ) {}
   async createOrder(req: AuthRequest, res: Response): Promise<void> {
     try {
       console.log("controller reached");
@@ -24,7 +31,7 @@ class BookingController implements IBookingController {
         });
         return;
       }
-      const order = await BookingService.createOrder(
+      const order = await this.bookingService.createOrder(
         req.user.userId,
         totalAmount
       );
@@ -59,7 +66,7 @@ class BookingController implements IBookingController {
         ...bookingDetails
       } = req.body;
 
-      const result = await BookingService.verifyPayment(
+      const result = await this.bookingService.verifyPayment(
         req.user.userId,
         {
           razorpay_payment_id,
@@ -111,7 +118,7 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
     };
 
     // Use wallet booking flow for wallet payments
-    const result = await BookingService.walletBooking(bookingData);
+    const result = await this.bookingService.walletBooking(bookingData);
     
     if (result.success) {
       res.status(STATUS_CODES.SUCCESS).json({
@@ -133,7 +140,7 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
     });
   }
 }
-  async getMyBookings(req: AuthRequest, res: Response): Promise<void> {
+  /* async getMyBookings(req: AuthRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.userId;
       if (!userId) {
@@ -144,7 +151,7 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
         return;
       }
 
-      const bookings = await BookingService.getUserBookings(userId);
+      const bookings = await this.bookingService.getUserBookings(userId);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         bookings,
@@ -156,7 +163,42 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
         message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
       });
     }
+  } */
+ // Backend - BookingController class
+async getMyBookings(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(STATUS_CODES.UNAUTHORIZED).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
+      });
+      return;
+    }
+    
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    
+    const { bookings, total, pages } = await this.bookingService.getUserBookings(userId, page, limit);
+    
+    res.status(STATUS_CODES.SUCCESS).json({
+      success: true,
+      bookings,
+      pagination: {
+        total,
+        pages,
+        page,
+        limit
+      }
+    });
+  } catch (error) {
+    console.error("Get My Bookings Error:", error);
+    res.status(STATUS_CODES.SERVER_ERROR).json({
+      success: false,
+      message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+    });
   }
+}
   //cancellation
   async cancelBooking(req: AuthRequest, res: Response): Promise<void> {
     try {
@@ -172,7 +214,7 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
       const { bookingId } = req.params;
       const { reason } = req.body;
 
-      const result = await BookingService.cancelBooking(
+      const result = await this.bookingService.cancelBooking(
         userId,
         bookingId,
         reason
@@ -198,7 +240,7 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
       });
     }
   }
-  async getBookingsByEvent(req: AuthRequest, res: Response): Promise<void> {
+  /* async getBookingsByEvent(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;
       const hostId = req.user?.userId;
@@ -208,7 +250,7 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
           .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
         return;
       }
-      const bookings = await BookingService.getBookingsByEvent(eventId);
+      const bookings = await this.bookingService.getBookingsByEvent(eventId);
       console.log(bookings);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -221,9 +263,48 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
         message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
       });
     }
-  }
+  } */
+    async getBookingsByEvent(req: AuthRequest, res: Response): Promise<void> {
+      try {
+        const { eventId } = req.params;
+        const hostId = req.user?.userId;
+        
+        if (!hostId) {
+          res
+            .status(STATUS_CODES.UNAUTHORIZED)
+            .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
+          return;
+        }
+        
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        
+        const { bookings, total, pages } = await this.bookingService.getBookingsByEvent(
+          eventId, 
+          page, 
+          limit
+        );
+        
+        res.status(STATUS_CODES.SUCCESS).json({
+          success: true,
+          bookings,
+          pagination: {
+            total,
+            pages,
+            page,
+            limit
+          }
+        });
+      } catch (error) {
+        console.error("Get Bookings By Event Error:", error);
+        res.status(STATUS_CODES.SERVER_ERROR).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+        });
+      }
+    }
 
-  async getBookingsByEventAdmin(req: AuthRequest, res: Response): Promise<void> {
+ /*  async getBookingsByEventAdmin(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;
       const adminId = req.user?.userId;
@@ -233,7 +314,7 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
           .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
         return;
       }
-      const bookings = await BookingService.getBookingsByEvent(eventId);
+      const bookings = await this.bookingService.getBookingsByEvent(eventId);
       console.log(bookings);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -246,7 +327,48 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
         message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
       });
     }
+  } */
+    async getBookingsByEventAdmin(req: AuthRequest, res: Response): Promise<void> {
+      try {
+        const { eventId } = req.params;
+        const adminId = req.user?.userId;
+        
+        if (!adminId) {
+          res
+            .status(STATUS_CODES.UNAUTHORIZED)
+            .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
+          return;
+        }
+        
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        
+        const { bookings, total, pages } = await this.bookingService.getBookingsByEvent(
+          eventId,
+          page,
+          limit
+        );
+        
+        res.status(STATUS_CODES.SUCCESS).json({
+          success: true,
+          bookings,
+          pagination: {
+            total,
+            pages,
+            page,
+            limit
+          }
+        });
+      } catch (error) {
+        console.error("Get Bookings By Event Error:", error);
+        res.status(STATUS_CODES.SERVER_ERROR).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+        });
+      }
+    }
   }
-}
+  
 
-export default new BookingController();
+
+//export default new BookingController();

@@ -1,30 +1,39 @@
-import SubscriptionRepository  from "../repositories/subscriptionRepository";
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
+import { ISubscriptionRepository } from '../repositories/interfaces/ISubscriptionRepository';
 import { ISubscriptionService } from "./interfaces/ISubscriptionService";
 import { ISubscriptionPlan } from "../models/subscriptionPlan";
+import { MESSAGES } from "../utils/constants";
 
-class SubscriptionService implements ISubscriptionService {
+@injectable()
+export class SubscriptionService implements ISubscriptionService {
+  constructor(
+    @inject(TYPES.SubscriptionRepository)
+    private subscriptionRepository: ISubscriptionRepository
+  ){}
   async getSubscriptions(): Promise<ISubscriptionPlan[]> {
-    return await SubscriptionRepository.getSubscriptions();
+    return await this.subscriptionRepository.getSubscriptions();
   }
 
   async createSubscription(payload: { name: string; duration: string; price: number }): Promise<ISubscriptionPlan> {
-    return await SubscriptionRepository.createSubscription(payload);
+    return await this.subscriptionRepository.createSubscription(payload);
   }
 
   async updateSubscription(
     id: string,
     payload: { name: string; duration: string; price: number }
   ): Promise<ISubscriptionPlan> {
-    const subscription = await SubscriptionRepository.updateSubscription(id, payload);
+    const subscription = await this.subscriptionRepository.updateSubscription(id, payload);
     if (!subscription) {
-      throw new Error("Subscription not found");
+      throw new Error(MESSAGES.ADMIN.ERROR.NO_SUBSCRIPTION_FOUND);
     }
     return subscription;
   }
 
   async deleteSubscription(id: string): Promise<void> {
-    await SubscriptionRepository.deleteSubscription(id);
+    await this.subscriptionRepository.deleteSubscription(id);
   }
 }
 
-export default new SubscriptionService();
+//export default new SubscriptionService();

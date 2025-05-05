@@ -34,10 +34,33 @@ interface Booking {
   ticketNumber: string
 }
 
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+interface BookingReview {
+  _id:        string;
+  bookingId:  string;
+  eventId:    string;
+  eventTitle: string;                  
+  rating:     number;
+  review:     string;
+  createdAt:  string;
+  user: {
+    _id:   string;
+    name:  string;
+  };
+}
+
 interface BookingStore {
   bookings: Booking[];
   isLoading: boolean;
   error: string | null;
+  pagination: Pagination;
+  reviews: BookingReview[]; 
   createBooking: (data: any) => Promise<void>;
   createOrder: (totalAmount: number) => Promise<string>;
   verifyPayment: (
@@ -49,10 +72,10 @@ interface BookingStore {
     bookingData: Partial<Booking>
   ) => Promise<boolean>;
 
-  fetchMyBookings: () => Promise<void>;
+  fetchMyBookings: (page?: number, limit?: number) => Promise<void>;
   cancelBooking: (bookingId: string, reason: string) => Promise<boolean>;
-  fetchBookingsByEvent: (eventId: string) => Promise<void>;//bookings per event for host
-  fetchBookingsByEventAdmin:  (eventId: string) => Promise<void>;
+  fetchBookingsByEvent: (eventId: string, page?: number, limit?: number) => Promise<void>;
+  fetchBookingsByEventAdmin: (eventId: string, page?: number, limit?: number) => Promise<void>;
   getReviewByBookingId: (bookingId: string) => Promise<{
     rating: number;
     review: string;
@@ -63,13 +86,20 @@ interface BookingStore {
     rating: number,
     review: string
   ) => Promise<void>;
+  fetchReviewsByHost: (hostId: string) => Promise<void>;
 }
 
 export const useBookingStore = create<BookingStore>((set, get) => ({
   bookings: [],
   isLoading: false,
   error: null,
-//normal booking ie, wallet based booking
+  pagination: {
+    page: 1,
+    limit: 5,
+    total: 0,
+    pages: 0,
+  },
+  reviews: [], 
   createBooking: async (data) => {
     try {
       set({ isLoading: true, error: null });
@@ -101,117 +131,143 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
     }
   },
 
-  //razor payment vrification
-verifyPayment: async (paymentData, bookingData) => {
-  console.log("entering verify store")
-  set({ isLoading: true, error: null });
-  try {
-    const success = await bookingRepository.verifyPayment({
-      ...paymentData,
-      ...bookingData,    
-    });
-    if (!success) throw new Error("Payment verification failed");
-    set({ isLoading: false });
-    return success;
-  } catch (err: any) {
-    set({
-      isLoading: false,
-      error: err.response?.data?.message || err.message || "Verification failed.",
-    });
-    throw err;
-  }
-},
-//fetching the bookings by user
-fetchMyBookings: async () => {
-  set({ isLoading: true, error: null });
-  try {
-    const bookings = await bookingRepository.getMyBookings();
-    set({ bookings, isLoading: false });
-  } catch (err: any) {
-    set({
-      isLoading: false,
-      error: err.response?.data?.message || "Failed to fetch bookings",
-    });
-    throw err;
-  }
-},
-//booking cancellation
-cancelBooking: async (bookingId: string, reason: string) => {
-  set({ isLoading: true, error: null });
-  try {
-    const success = await bookingRepository.cancelBooking(bookingId, reason);
-    if (success) {
-      const updatedBookings = get().bookings.map(booking => 
-        booking._id === bookingId 
-          ? { ...booking, status: "cancelled" as "cancelled" } 
-          : booking
-      );
-      set({ bookings: updatedBookings, isLoading: false });
+  //razor payment verification
+  verifyPayment: async (paymentData, bookingData) => {
+    console.log("entering verify store")
+    set({ isLoading: true, error: null });
+    try {
+      const success = await bookingRepository.verifyPayment({
+        ...paymentData,
+        ...bookingData,    
+      });
+      if (!success) throw new Error("Payment verification failed");
+      set({ isLoading: false });
+      return success;
+    } catch (err: any) {
+      set({
+        isLoading: false,
+        error: err.response?.data?.message || err.message || "Verification failed.",
+      });
+      throw err;
     }
-    return success;
-  } catch (err: any) {
-    set({
-      isLoading: false,
-      error: err.response?.data?.message || "Failed to cancel booking",
-    });
-    throw err;
-  }
-},
-//fetch bookings per event(for host)
-fetchBookingsByEvent: async (eventId) => {
-  set({ isLoading: true, error: null });
-  try {
-    const bookings = await bookingRepository.getBookingsByEvent(eventId);
-    console.log("bookings:",bookings)
-    set({ bookings, isLoading: false });
-  } catch (err: any) {
-    set({
-      isLoading: false,
-      error: err.response?.data?.message || "Failed to fetch bookings for event",
-    });
-    throw err;
-  }
-},
-fetchBookingsByEventAdmin: async (eventId: string) => {
-  set({ isLoading: true, error: null });
-  try {
-    const bookings = await bookingRepository.getBookingsByEventForAdmin(eventId);
-    set({ bookings, isLoading: false });
-  } catch (err: any) {
-    set({
-      isLoading: false,
-      error: err.response?.data?.message || "Failed to fetch admin bookings",
-    });
-    throw err;
-  }
-},
-getReviewByBookingId: async (bookingId) => {
-  set({ isLoading: true, error: null });
-  try {
-    const review = await bookingRepository.getReviewByBookingId(bookingId);
-    set({ isLoading: false });
-    return review;
-  } catch (err: any) {
-    set({
-      isLoading: false,
-      error: err.response?.data?.message || "Failed to fetch review",
-    });
-    throw err;
-  }
-},
-submitReview: async (bookingId, rating, review) => {
-  set({ isLoading: true, error: null });
-  try {
-    await bookingRepository.createReview(bookingId, rating, review);
-    // optionally: re‑fetch to get any updated booking‑level review flag
-    await get().fetchMyBookings();
-  } catch (err: any) {
-    set({
-      error: err.response?.data?.message || "Failed to submit review",
-    });
-    throw err;
-  } finally {
-    set({ isLoading: false });
-  }
-},
+  },
+  
+  fetchMyBookings: async (page = 1, limit = 5) => {
+    set({ isLoading: true, error: null });
+    try {
+      const result = await bookingRepository.getMyBookings(page, limit);
+      set({ 
+        bookings: result.bookings, 
+        pagination: result.pagination, 
+        isLoading: false 
+      });
+    } catch (err: any) {
+      set({
+        isLoading: false,
+        error: err.response?.data?.message || "Failed to fetch bookings",
+      });
+      throw err;
+    }
+  },
+  
+  //booking cancellation
+  cancelBooking: async (bookingId: string, reason: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const success = await bookingRepository.cancelBooking(bookingId, reason);
+      if (success) {
+        const updatedBookings = get().bookings.map(booking => 
+          booking._id === bookingId 
+            ? { ...booking, status: "cancelled" as "cancelled" } 
+            : booking
+        );
+        set({ bookings: updatedBookings, isLoading: false });
+      }
+      return success;
+    } catch (err: any) {
+      set({
+        isLoading: false,
+        error: err.response?.data?.message || "Failed to cancel booking",
+      });
+      throw err;
+    }
+  },
+  //fetch bookings per event(for host)
+  
+  fetchBookingsByEvent: async (eventId, page = 1, limit = 10) => {
+    set({ isLoading: true, error: null });
+    try {
+      const result = await bookingRepository.getBookingsByEvent(eventId, page, limit);
+      set({ 
+        bookings: result.bookings, 
+        pagination: result.pagination,
+        isLoading: false 
+      });
+    } catch (err: any) {
+      set({
+        isLoading: false,
+        error: err.response?.data?.message || "Failed to fetch bookings for event",
+      });
+      throw err;
+    }
+  },
+  fetchBookingsByEventAdmin: async (eventId: string, page = 1, limit = 10) => {
+    set({ isLoading: true, error: null });
+    try {
+      const result = await bookingRepository.getBookingsByEventForAdmin(eventId, page, limit);
+      set({ 
+        bookings: result.bookings, 
+        pagination: result.pagination,
+        isLoading: false 
+      });
+    } catch (err: any) {
+      set({
+        isLoading: false,
+        error: err.response?.data?.message || "Failed to fetch admin bookings",
+      });
+      throw err;
+    }
+  },
+  getReviewByBookingId: async (bookingId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const review = await bookingRepository.getReviewByBookingId(bookingId);
+      set({ isLoading: false });
+      return review;
+    } catch (err: any) {
+      set({
+        isLoading: false,
+        error: err.response?.data?.message || "Failed to fetch review",
+      });
+      throw err;
+    }
+  },
+  submitReview: async (bookingId, rating, review) => {
+    set({ isLoading: true, error: null });
+    try {
+      await bookingRepository.createReview(bookingId, rating, review);
+      await get().fetchMyBookings();
+    } catch (err: any) {
+      set({
+        error: err.response?.data?.message || "Failed to submit review",
+      });
+      throw err;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+  fetchReviewsByHost: async (hostId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const reviews = await bookingRepository.getReviewsByHost(hostId);
+      console.log("reviews",reviews)
+      set({ reviews, isLoading: false }); 
+    } catch (err: any) {
+      set({
+        isLoading: false,
+        error: err.response?.data?.message || "Failed to fetch reviews for host",
+      });
+      throw err;
+    }
+  },
 }));

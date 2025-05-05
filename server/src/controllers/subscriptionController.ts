@@ -1,15 +1,23 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { Request, Response } from "express";
 import { ISubscriptionController } from "./interfaces/ISubscriptionController";
-import SubscriptionService from "../services/subscriptionService";
+import { ISubscriptionService } from '../services/interfaces/ISubscriptionService';
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { isRequired,isValidDuration  } from "../utils/validators";
 
 const validDurations = ["Monthly", "6 Months", "Yearly"];
 
-class SubscriptionController implements ISubscriptionController {
+@injectable()
+export class SubscriptionController implements ISubscriptionController {
+  constructor(
+    @inject(TYPES.SubscriptionService)
+    private subscriptionService: ISubscriptionService
+  ){}
   async getSubscriptions(req: Request, res: Response): Promise<void> {
     try {
-      const subscriptions = await SubscriptionService.getSubscriptions();
+      const subscriptions = await this.subscriptionService.getSubscriptions();
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         subscriptions,
@@ -49,7 +57,7 @@ class SubscriptionController implements ISubscriptionController {
         return;
       }
 
-      const subscription = await SubscriptionService.createSubscription({
+      const subscription = await this.subscriptionService.createSubscription({
         name: payload.name,
         duration: payload.duration,
         price: Number(payload.price),
@@ -95,7 +103,7 @@ class SubscriptionController implements ISubscriptionController {
         return;
       }
 
-      const subscription = await SubscriptionService.updateSubscription(id, {
+      const subscription = await this.subscriptionService.updateSubscription(id, {
         name: payload.name,
         duration: payload.duration,
         price: Number(payload.price),
@@ -117,7 +125,7 @@ class SubscriptionController implements ISubscriptionController {
   async deleteSubscription(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      await SubscriptionService.deleteSubscription(id);
+      await this.subscriptionService.deleteSubscription(id);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         message: MESSAGES.ADMIN.SUCCESS.SUBSCRIPTION_DELETED || "Subscription deleted successfully",
@@ -132,4 +140,4 @@ class SubscriptionController implements ISubscriptionController {
   }
 }
 
-export default new SubscriptionController();
+//export default new SubscriptionController();

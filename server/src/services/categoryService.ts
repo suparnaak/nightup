@@ -1,12 +1,21 @@
-import CategoryRepository from "../repositories/categoryRepository";
+import "reflect-metadata";
+import { injectable, inject } from "inversify";
+import TYPES from "../config/di/types";
+import { ICategoryRepository } from "../repositories/interfaces/ICategoryRepository";
 import { Types } from "mongoose";
 import { IEventTypeDocument } from "../models/eventTypes";
 import { ICategoryService } from "./interfaces/ICategoryService";
+import { MESSAGES } from "../utils/constants";
 
-class CategoryService implements ICategoryService{
+@injectable()
+export class CategoryService implements ICategoryService{
+  constructor(
+    @inject(TYPES.CategoryRepository)
+    private categoryRepository: ICategoryRepository
+  ){}
   async getAllCategories(): Promise<IEventTypeDocument[]> {
     try {
-      return await CategoryRepository.findAll();
+      return await this.categoryRepository.findAll();
     } catch (error) {
       console.error("Error in CategoryService.getAllCategories:", error);
       throw error;
@@ -15,14 +24,14 @@ class CategoryService implements ICategoryService{
 
   async createCategory(data: { name: string; description: string }): Promise<IEventTypeDocument> {
     try {
-      const existingCategory = await CategoryRepository.findByName(data.name);
+      const existingCategory = await this.categoryRepository.findByName(data.name);
       if (existingCategory) {
-        const error: any = new Error("Category with this name already exists");
+        const error: any = new Error(MESSAGES.ADMIN.ERROR.NO_DUPLICATE_CATEGORY);
         error.code = "DUPLICATE_NAME";
         throw error;
       }
 
-      return await CategoryRepository.create(data);
+      return await this.categoryRepository.create(data);
     } catch (error) {
       console.error("Error in CategoryService.createCategory:", error);
       throw error;
@@ -36,26 +45,26 @@ class CategoryService implements ICategoryService{
     try {
       console.log(id);
       if (!Types.ObjectId.isValid(id)) {
-        throw new Error("Invalid category ID");
+        throw new Error(MESSAGES.ADMIN.ERROR.INVALID_CATEGORY);
       }
 
-      const existingCategory = await CategoryRepository.findById(id);
+      const existingCategory = await this.categoryRepository.findById(id);
       if (!existingCategory) {
-        const error: any = new Error("Category not found");
+        const error: any = new Error(MESSAGES.ADMIN.ERROR.NO_CATEGORY);
         error.code = "NOT_FOUND";
         throw error;
       }
 
       if (existingCategory.name !== data.name) {
-        const nameExists = await CategoryRepository.findByName(data.name);
+        const nameExists = await this.categoryRepository.findByName(data.name);
         if (nameExists) {
-          const error: any = new Error("Category with this name already exists");
+          const error: any = new Error(MESSAGES.ADMIN.ERROR.NO_DUPLICATE_CATEGORY);
           error.code = "DUPLICATE_NAME";
           throw error;
         }
       }
 
-      return await CategoryRepository.update(id, data);
+      return await this.categoryRepository.update(id, data);
     } catch (error) {
       console.error("Error in CategoryService.updateCategory:", error);
       throw error;
@@ -63,4 +72,4 @@ class CategoryService implements ICategoryService{
   }
 }
 
-export default new CategoryService();
+//export default new CategoryService();

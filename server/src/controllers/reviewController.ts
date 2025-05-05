@@ -1,7 +1,9 @@
-// controllers/reviewController.ts
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import TYPES from '../config/di/types';
 import { Request, Response } from "express";
-//import { IReviewController } from "./interfaces/IReviewController";
-import ReviewService from "../services/reviewService"
+import { IReviewController } from "./interfaces/IReviewController";
+import { IReviewService } from '../services/interfaces/IReviewService';
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 
 interface AuthRequest extends Request {
@@ -11,8 +13,12 @@ interface AuthRequest extends Request {
   };
 }
 
-class ReviewController /* implements IReviewController */ {
-  /** POST /bookings/:bookingId/review */
+@injectable()
+export class ReviewController implements IReviewController {
+  constructor(
+    @inject(TYPES.ReviewService)
+    private reviewService: IReviewService
+  ){}
   async createReview(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { bookingId } = req.params;
@@ -26,24 +32,24 @@ class ReviewController /* implements IReviewController */ {
       if (typeof rating !== "number" || rating < 1 || rating > 5) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: /* MESSAGES.COMMON.ERROR.INVALID_INPUT || */ "Rating must be between 1 and 5",
+          message:  MESSAGES.USER.ERROR.INVALID_RATING,
         });
         return;
       }
       if (!review || !review.trim()) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message:/*  MESSAGES.COMMON.ERROR.INVALID_INPUT || */ "Review text is required",
+          message:MESSAGES.USER.ERROR.REVIEW_REQUIRED,
         });
         return;
       }
 
-      const newReview = await ReviewService.createReview(userId, bookingId, rating, review.trim());
+      const newReview = await this.reviewService.createReview(userId, bookingId, rating, review.trim());
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         review: {
-          id: /* newReview._id.toString(), */newReview.id.toString(),
+          id: newReview.id.toString(),
           bookingId: newReview.bookingId.toString(),
           userId: newReview.userId.toString(),
           eventId: newReview.eventId.toString(),
@@ -69,12 +75,12 @@ class ReviewController /* implements IReviewController */ {
         return;
       }
       const { bookingId } = req.params;
-      const review = await ReviewService.getReviewByBookingId(bookingId);
+      const review = await this.reviewService.getReviewByBookingId(bookingId);
   
       if (!review) {
         res.status(STATUS_CODES.NOT_FOUND).json({
           success: false,
-          message: "No review found for this booking",
+          message: MESSAGES.USER.ERROR.NO_REVIEW,
         });
         return;
       }
@@ -100,14 +106,13 @@ class ReviewController /* implements IReviewController */ {
     }
   }
 
-  /** GET /events/:eventId/reviews */
   async getReviewsByEvent(req: Request, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;
-      const reviews = await ReviewService.getReviewsByEvent(eventId);
+      const reviews = await this.reviewService.getReviewsByEvent(eventId);
 
       const transformed = reviews.map(r => ({
-        id: /* r._id.toString(), */r.id.toString(),
+        id: r.id.toString(),
         bookingId: r.bookingId.toString(),
         userId: r.userId.toString(),
         rating: r.rating,
@@ -127,6 +132,20 @@ class ReviewController /* implements IReviewController */ {
       });
     }
   }
+  async getReviewsByHost(req: Request, res: Response): Promise<void> {
+    try {
+      const { hostId } = req.params;
+      const reviews = await this.reviewService.getReviewsByHost(hostId);
+      console.log("reviews",reviews)
+      res.status(STATUS_CODES.SUCCESS).json({ success: true, reviews });
+    } catch (err: any) {
+      console.error(err);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: err.message || "Internal server error",
+      });
+    }
+  }
 }
 
-export default new ReviewController();
+//export default new ReviewController();

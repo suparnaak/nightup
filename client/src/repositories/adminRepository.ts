@@ -2,9 +2,17 @@ import axiosAdminClient from "../api/axiosAdminClient";
 
 export const adminRepository = {
   // list all the hosts
-  getHosts: async () => {
-    const response = await axiosAdminClient.get("/hosts");
-    return response.data;
+  /* getHosts: async (page = 1, limit = 10) => {
+    const response = await axiosAdminClient.get("/hosts", {
+      params: { page, limit }
+    });
+    return response.data; // { hosts: [...], pagination: { total, page, pages, limit } }
+  }, */
+  getHosts: async (page = 1, limit = 10) => {
+    const response = await axiosAdminClient.get("/hosts", {
+      params: { page, limit }
+    });
+    return response.data; // { hosts: [...], pagination: { total, page, totalPages, limit } }
   },
   // document verification
   verifyDocument: async ({
@@ -38,8 +46,14 @@ export const adminRepository = {
     return response.data;
   },
   // get all users
-  getUsers: async () => {
+  /* getUsers: async () => {
     const response = await axiosAdminClient.get("/users");
+    return response.data;
+  }, */
+  getUsers: async (page: number = 1, limit: number = 10) => {
+    const response = await axiosAdminClient.get("/users", {
+      params: { page, limit }
+    });
     return response.data;
   },
   // block or unblock users

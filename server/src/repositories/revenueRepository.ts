@@ -1,8 +1,13 @@
-import Subscription from "../models/subscription";
-import { IRevenueRepository } from "./interfaces/IRevenueRepository"
+import { BaseRepository } from "./baseRepository/baseRepository";
+import Subscription, { ISubscription } from "../models/subscription";
+import { IRevenueRepository } from "./interfaces/IRevenueRepository";
 
-const RevenueRepository: IRevenueRepository = {
-  getTotalRevenue: async (startDate: Date, endDate: Date): Promise<number> => {
+export class RevenueRepository extends BaseRepository<ISubscription> implements IRevenueRepository {
+  constructor() {
+    super(Subscription);
+  }
+
+  async getTotalRevenue(startDate: Date, endDate: Date): Promise<number> {
     const result = await Subscription.aggregate([
       {
         $match: {
@@ -31,9 +36,9 @@ const RevenueRepository: IRevenueRepository = {
     ]);
 
     return result.length > 0 ? result[0].total : 0;
-  },
+  }
 
-  getMonthlyRevenue: async (startDate: Date, endDate: Date): Promise<any[]> => {
+  async getMonthlyRevenue(startDate: Date, endDate: Date): Promise<any[]> {
     const monthsDiff = 
       (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
       (endDate.getMonth() - startDate.getMonth());
@@ -82,9 +87,9 @@ const RevenueRepository: IRevenueRepository = {
     }
     
     return monthlyRevenueData;
-  },
+  }
 
-  getPlanRevenue: async (startDate: Date, endDate: Date): Promise<any[]> => {
+  async getPlanRevenue(startDate: Date, endDate: Date): Promise<any[]> {
     const planRevenue = await Subscription.aggregate([
       {
         $match: {
@@ -120,9 +125,9 @@ const RevenueRepository: IRevenueRepository = {
     ]);
 
     return planRevenue;
-  },
+  }
 
-  getTransactionTypes: async (startDate: Date, endDate: Date): Promise<any[]> => {
+  async getTransactionTypes(startDate: Date, endDate: Date): Promise<any[]> {
     const transactionTypes = await Subscription.aggregate([
       {
         $match: {
@@ -166,10 +171,10 @@ const RevenueRepository: IRevenueRepository = {
     });
 
     return result;
-  },
+  }
 
-  getRecentTransactions: async (): Promise<any[]> => {
-    const recentTransactions = await Subscription.find()
+  async getRecentTransactions(): Promise<any[]> {
+    const recentTransactions = await this.model.find()
       .sort({ createdAt: -1 })
       .limit(10)
       .populate("subscriptionPlan")
@@ -189,6 +194,6 @@ const RevenueRepository: IRevenueRepository = {
       };
     }));
   }
-};
+}
 
 export default RevenueRepository;

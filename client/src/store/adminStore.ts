@@ -31,16 +31,23 @@ interface AdminState {
   hosts: Host[];
   users: User[];
   //subscriptions: SubscriptionPlan[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
   isLoading: boolean;
   error: string | null;
-  getHosts: () => Promise<Host[]>;
+  //getHosts: () => Promise<Host[]>;
+  getHosts: (page?: number, limit?: number) => Promise<{ hosts: Host[], pagination: any }>;
   clearHosts: () => void;
   verifyDocument: (payload: {
     hostId: string;
     action: "approve" | "reject";
   }) => Promise<any>;
   hostToggleStatus: (hostId: string, newStatus: boolean) => Promise<any>;
-  getUsers: () => Promise<User[]>;
+  getUsers: (page?: number, limit?: number) => Promise<{ users: User[], pagination: any }>;
   userToggleStatus: (userId: string, newStatus: boolean) => Promise<any>;
   /* getSubscriptions: () => Promise<SubscriptionPlan[]>;
   createSubscription: (payload: { name: string; duration: string; price: number }) => Promise<any>;
@@ -54,8 +61,14 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   subscriptions: [],
   isLoading: false,
   error: null,
+  pagination: {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0
+  },
 
-  getHosts: async () => {
+  /* getHosts: async () => {
     set({ isLoading: true, error: null });
     try {
       const data = await adminRepository.getHosts();
@@ -73,7 +86,29 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       throw error;
     }
   },
-
+ */
+  getHosts: async (page: number = 1, limit: number = 10) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await adminRepository.getHosts(page, limit);
+      const transformedHosts = data.hosts.map((host: any) => ({
+        id: host._id.toString(),
+        ...host,
+      }));
+      set({ 
+        hosts: transformedHosts, 
+        isLoading: false,
+        pagination: data.pagination
+      });
+      return { hosts: transformedHosts, pagination: data.pagination };
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to load hosts",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
   clearHosts: () => set({ hosts: [] }),
 
  verifyDocument: async (payload: {
@@ -84,7 +119,17 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   set({ isLoading: true, error: null });
   try {
     const response = await adminRepository.verifyDocument(payload);
-    set({ isLoading: false });
+    set((state) => ({
+      isLoading: false,
+      hosts: state.hosts.map((h) => {
+        if (h.id !== payload.hostId) return h;
+        return {
+          ...h,
+          documentStatus: payload.action === "approve" ? "approved" : "rejected",
+          ...(payload.rejectionReason && { rejectionReason: payload.rejectionReason }),
+        };
+      }),
+    }));
     return response;
   } catch (error: any) {
     set({
@@ -102,8 +147,15 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         hostId,
         newStatus,
       });
-      await get().getHosts();
-      set({ isLoading: false });
+      //await get().getHosts();
+      set((state) => ({
+        isLoading: false,
+        hosts: state.hosts.map((h) =>
+          h.id === hostId
+            ? { ...h, isBlocked: newStatus }
+            : h
+        ),
+      }));
       return response;
     } catch (error: any) {
       set({
@@ -114,7 +166,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }
   },
 
-  getUsers: async () => {
+  /* getUsers: async () => {
     set({ isLoading: true, error: null });
     try {
       const data = await adminRepository.getUsers();
@@ -131,7 +183,30 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       });
       throw error;
     }
+  }, */
+  getUsers: async (page: number = 1, limit: number = 10) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await adminRepository.getUsers(page, limit);
+      const transformedUsers = data.users.map((user: any) => ({
+        id: user._id.toString(),
+        ...user,
+      }));
+      set({ 
+        users: transformedUsers, 
+        isLoading: false,
+        pagination: data.pagination
+      });
+      return { users: transformedUsers, pagination: data.pagination };
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to load users",
+        isLoading: false,
+      });
+      throw error;
+    }
   },
+  
 
   userToggleStatus: async (userId: string, newStatus: boolean) => {
     set({ isLoading: true, error: null });
@@ -140,8 +215,15 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         userId,
         newStatus,
       });
-      await get().getUsers();
-      set({ isLoading: false });
+      //await get().getUsers();
+      set((state) => ({
+        isLoading: false,
+        users: state.users.map((u) =>
+          u.id === userId
+            ? { ...u, isBlocked: newStatus }
+            : u
+        ),
+      }));
       return response;
     } catch (error: any) {
       set({

@@ -9,6 +9,7 @@ import { useEventStore } from "../store/eventStore";
 import { useAuthStore } from "../store/authStore";
 import { useUserStore } from "../store/userStore";
 import { useChatStore } from "../store/chatStore";
+import { useBookingStore } from "../store/bookingStore"; 
 import {
   Calendar,
   Clock,
@@ -24,9 +25,10 @@ import {
   X,
   Minimize2,
   Maximize2,
+  Star,
 } from "lucide-react";
 
-type TabOption = "Description" | "Artist" | "Additional Details" | "Event By";
+type TabOption = "Description" | "Artist" | "Additional Details" | "Event By" | "Host Reviews";
 
 const DetailedEventPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +36,8 @@ const DetailedEventPage: React.FC = () => {
   const { fetchEventDetails } = useEventStore();
   const { isAuthenticated, user } = useAuthStore();
   const { savedEvents, fetchSavedEvents, saveEvent, removeSavedEvent } = useUserStore();
+  // Use the bookingStore for reviews
+  const { reviews, fetchReviewsByHost } = useBookingStore();
 
   const { messages, isLoading: chatLoading, error: chatError, fetchMessages, sendMessage } = useChatStore();
 
@@ -43,6 +47,8 @@ const DetailedEventPage: React.FC = () => {
   const messageEndRef = useRef<HTMLDivElement>(null);
 
   const [event, setEvent] = useState<any>(null);
+  const [hostReviews, setHostReviews] = useState<any[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<TabOption>("Description");
@@ -78,6 +84,17 @@ const DetailedEventPage: React.FC = () => {
           setTicketQuantities(initQ);
           setAvailableQuantities(availQ);
         }
+        
+        // If event has a host ID, fetch reviews for that host
+        // Handle both string ID and object with _id property
+        const hostId = typeof fetchedEvent.hostId === 'string' 
+          ? fetchedEvent.hostId 
+          : fetchedEvent.hostId?._id;
+          console.log("hostid",hostId)
+        if (hostId) {
+          // Use the fetchReviewsByHost from our booking store instead
+          fetchHostReviews(hostId);
+        }
       } catch (err) {
         console.error(err);
         setError("Failed to load event details.");
@@ -89,6 +106,20 @@ const DetailedEventPage: React.FC = () => {
     fetchEvent();
   }, [id, fetchEventDetails]);
 
+  // Updated function to fetch host reviews using bookingStore
+  const fetchHostReviews = async (hostId: string) => {
+    setLoadingReviews(true);
+    try {
+      await fetchReviewsByHost(hostId);
+      // No need to set hostReviews state, we'll use the reviews from the store
+    } catch (err) {
+      console.error("Failed to fetch host reviews:", err);
+      // We don't set error state or show toast here to avoid disrupting the main page experience
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
   // Scroll to bottom of messages when new messages arrive or chat opens
   useEffect(() => {
     if (showChat && !minimizedChat) {
@@ -96,7 +127,7 @@ const DetailedEventPage: React.FC = () => {
     }
   }, [messages, showChat, minimizedChat]);
 
-  const isLiked = Boolean(event && savedEvents.some(se => se.event._id === event._id));
+  const isLiked = Boolean(event && savedEvents.some(se => se.event?._id === event._id));
 
   const handleTicketQuantityChange = (ticketType: string, change: number) => {
     if (ticketType !== selectedTicketType) return;
@@ -194,6 +225,11 @@ const DetailedEventPage: React.FC = () => {
     setMinimizedChat(!minimizedChat);
   };
 
+  // Calculate average rating from reviews
+  const averageRating = reviews && reviews.length 
+    ? (reviews.reduce((acc, review) => acc + (review.rating || 0), 0) / reviews.length).toFixed(1)
+    : null;
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50"><Spinner /></div>;
   if (error) return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50"><div className="text-red-600 text-lg bg-white p-6 rounded-lg shadow-lg">{error}</div></div>;
   if (!event) return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-slate-50"><div className="text-gray-600 text-lg bg-white p-6 rounded-lg shadow-lg">No event details available.</div></div>;
@@ -202,12 +238,78 @@ const DetailedEventPage: React.FC = () => {
   const now = new Date();
   const isPast = eventDate < now;
 
+  // Render stars for ratings
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }).map((_, i) => (
+      <Star 
+        key={i} 
+        className={`h-4 w-4 ${i < Math.round(rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`} 
+      />
+    ));
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "Description": return <div className="prose max-w-none"><p>{event.description}</p></div>;
       case "Artist": return <div><p>{event.artist || "No artist info."}</p></div>;
       case "Additional Details": return <div><p>{event.additionalDetails || "No additional details."}</p></div>;
-      case "Event By": return <div className="bg-white rounded-lg p-6">{event.hostId ? <><div><User /> {event.hostId.name}</div><div><Mail /> {event.hostId.email}</div></> : <p>Host info not available.</p>}</div>;
+      case "Event By": return (
+        <div className="bg-white rounded-lg">
+          {event.hostId ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-purple-600" /> 
+                <span>{typeof event.hostId === 'string' ? 'Host' : event.hostId.name}</span>
+              </div>
+              {typeof event.hostId !== 'string' && event.hostId.email && (
+                <div className="flex items-center gap-2">
+                  <Mail className="h-5 w-5 text-purple-600" /> 
+                  <span>{event.hostId.email}</span>
+                </div>
+              )}
+              {averageRating && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex">{renderStars(Number(averageRating))}</div>
+                  <span className="text-sm font-medium">{averageRating}/5</span> 
+                  <span className="text-sm text-gray-500">({reviews.length} reviews)</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p>Host info not available.</p>
+          )}
+        </div>
+      );
+      case "Host Reviews": return (
+        <div className="space-y-6">
+          {loadingReviews ? (
+            <div className="flex justify-center py-4"><Spinner /></div>
+          ) : reviews && reviews.length > 0 ? (
+            reviews.map((review) => (
+              <div key={review._id} className="border-b pb-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-medium mb-1">{review.user?.name || "Anonymous"}</div>
+                    <div className="flex mb-2">{renderStars(review.rating)}</div>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {new Date(review.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+                <p className="text-gray-700">{review.review}</p>
+                {/* Display the event title for each review */}
+                <div className="mt-2 text-sm text-gray-500">
+                  Event: {review.eventTitle || "Unknown Event"}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-6 text-gray-500">
+              <p>No reviews yet for this host.</p>
+            </div>
+          )}
+        </div>
+      );
       default: return null;
     }
   };
@@ -236,6 +338,27 @@ const DetailedEventPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Host Info Card with Rating */}
+              {event.hostId && (
+                <div className="bg-white rounded-2xl p-6 shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-purple-100 rounded-xl">
+                      <User className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Hosted by {typeof event.hostId === 'string' ? 'Host' : event.hostId.name}</h3>
+                      {averageRating && (
+                        <div className="flex items-center gap-1">
+                          <div className="flex">{renderStars(Number(averageRating))}</div>
+                          <span className="text-sm">{averageRating}</span>
+                          <span className="text-sm text-gray-500">({reviews.length} reviews)</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -276,12 +399,12 @@ const DetailedEventPage: React.FC = () => {
 
               {/* Tabs */}
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div className="flex space-x-1 p-4 bg-gray-50">
-                  {(["Description","Artist","Additional Details","Event By"] as TabOption[]).map(tab => (
+                <div className="flex flex-wrap p-4 bg-gray-50">
+                  {(["Description", "Artist", "Additional Details", "Event By", "Host Reviews"] as TabOption[]).map(tab => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`px-6 py-3 text-sm font-medium rounded-xl ${activeTab===tab ? "bg-purple-600 text-white" : "text-gray-600 hover:bg-purple-50"}`}
+                      className={`px-4 py-3 text-sm font-medium rounded-xl mr-1 mb-1 ${activeTab===tab ? "bg-purple-600 text-white" : "text-gray-600 hover:bg-purple-50"}`}
                     >
                       {tab}
                     </button>

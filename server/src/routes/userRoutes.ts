@@ -1,81 +1,99 @@
 import { Router } from "express";
+import container from "../config/di/inversifyConfig";
+import TYPES from "../config/di/types";
 import passport from "passport";
-import UserController from "../controllers/userController";
-import EventController from "../controllers/eventController";
-import UserProfileController from "../controllers/userProfileController"
-import WalletController from "../controllers/walletController";
-import SavedEventController from "../controllers/savedEventController";
-import BookingController from "../controllers/bookingController";
+import {UserController} from "../controllers/userController";
+import {EventController} from "../controllers/eventController";
+import {UserProfileController} from "../controllers/userProfileController"
+import {WalletController} from "../controllers/walletController";
+import {SavedEventController} from "../controllers/savedEventController";
+import {BookingController} from "../controllers/bookingController";
+import {CouponController} from "../controllers/CouponController";
+import {CategoryController} from "../controllers/categoryController";
+import {ReviewController} from "../controllers/reviewController";
+import {ChatController} from "../controllers/chatController";
 import { authMiddleware } from "../middlewares/authMiddleware";
-import CouponController from "../controllers/CouponController";
-import categoryController from "../controllers/categoryController";
-import ReviewController from "../controllers/reviewController";
-import ChatController from "../controllers/chatController";
+import { blockCheckMiddleware } from "../middlewares/blockCheckMiddleware";
 
 const router: Router = Router();
 
-// User endpoints -auth
-router.post("/signup", UserController.signup);
-router.post("/verify-otp", UserController.verifyOtp);
-router.post("/resend-otp", UserController.resendOtp);
-router.post("/login", UserController.login);
-router.post("/logout", UserController.logout);
+const userCtr = container.get<UserController>(TYPES.UserController);
+const userProfCtr = container.get<UserProfileController>(TYPES.UserProfileController);
+const eveCtr = container.get<EventController>(TYPES.EventController);
+const catCtr = container.get<CategoryController>(TYPES.CategoryController);
+const bookCtr = container.get<BookingController>(TYPES.BookingController);
+const walCtr = container.get<WalletController>(TYPES.WalletController);
+const chatCtr = container.get<ChatController>(TYPES.ChatController);
+const saveEveCtr = container.get<SavedEventController>(TYPES.SavedEventController);
+const coupCtr = container.get<CouponController>(TYPES.CouponController);
+const revCtr = container.get<ReviewController>(TYPES.ReviewController);
 
-router.post("/forgot-password", UserController.forgotPassword);
-router.post("/reset-password", UserController.resetPassword);
+
+
+// User endpoints -auth
+router.post("/signup", userCtr.signup.bind(userCtr));
+router.post("/verify-otp", userCtr.verifyOtp.bind(userCtr));
+router.post("/resend-otp", userCtr.resendOtp.bind(userCtr));
+router.post("/login", userCtr.login.bind(userCtr));
+router.post("/logout", userCtr.logout.bind(userCtr));
+
+router.post("/forgot-password", userCtr.forgotPassword.bind(userCtr));
+router.post("/reset-password", userCtr.resetPassword.bind(userCtr));
 
 // Google authentication endpoints
 router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 // Google callback route
 router.get("/auth/google/callback", 
   passport.authenticate("google", { session: false, failureRedirect: "/login" }),
-  UserController.googleCallback
+  userCtr.googleCallback.bind(userCtr)
 );
 
 //user profile
-router.patch("/profile/update", authMiddleware(["user"]), UserProfileController.updateProfile);
-router.post("/change-password", authMiddleware(["user"]), UserProfileController.changePassword);
+router.patch("/profile/update", authMiddleware(["user"]),blockCheckMiddleware, userProfCtr.updateProfile.bind(userProfCtr));
+router.post("/change-password", authMiddleware(["user"]), userProfCtr.changePassword.bind(userProfCtr));
 //wallet end points
-router.get("/wallet", authMiddleware(["user"]), WalletController.getWallet);
-router.post("/wallet/create-order", authMiddleware(["user"]), WalletController.createOrder);
-router.post("/wallet/verify-payment", authMiddleware(["user"]), WalletController.verifyPayment);
+router.get("/wallet", authMiddleware(["user"]), blockCheckMiddleware, walCtr.getWallet.bind(walCtr));
+router.post("/wallet/create-order", authMiddleware(["user"]), blockCheckMiddleware, walCtr.createOrder.bind(walCtr));
+router.post("/wallet/verify-payment", authMiddleware(["user"]), blockCheckMiddleware, walCtr.verifyPayment.bind(walCtr));
+
 // Public events endpoint
-router.get("/events", EventController.getAllEvents);
-router.get("/event/:eventId", EventController.getEventDetails);
-router.get("/event-types", categoryController.getAllCategories)
+router.get("/events", eveCtr.getAllEvents.bind(eveCtr));
+router.get("/:hostId/reviews", revCtr.getReviewsByHost.bind(revCtr));
+router.get("/event/:eventId", eveCtr.getEventDetails.bind(eveCtr));
+router.get("/event-types", catCtr.getAllCategories.bind(catCtr))
 
 //saved events
-router.get('/saved-events', authMiddleware(["user"]), SavedEventController.getSavedEvents);
-router.post('/saved-events', authMiddleware(["user"]), SavedEventController.saveEvent);
-router.delete('/saved-events/:eventId', authMiddleware(["user"]), SavedEventController.removeSavedEvent);
+router.get('/saved-events', authMiddleware(["user"]), blockCheckMiddleware, saveEveCtr.getSavedEvents.bind(saveEveCtr));
+router.post('/saved-events', authMiddleware(["user"]), blockCheckMiddleware, saveEveCtr.saveEvent.bind(saveEveCtr));
+router.delete('/saved-events/:eventId', authMiddleware(["user"]), blockCheckMiddleware, saveEveCtr.removeSavedEvent.bind(saveEveCtr));
 
-router.get('/coupons', authMiddleware(["user"]), CouponController.getAvailableCoupons);
+router.get('/coupons', authMiddleware(["user"]),blockCheckMiddleware, coupCtr.getAvailableCoupons.bind(coupCtr));
 
-router.get('/bookings', authMiddleware(["user"]), BookingController.getMyBookings);
-router.post('/bookings/create', authMiddleware(["user"]), BookingController.createBooking);
-router.post('/bookings/create-order', authMiddleware(["user"]), BookingController.createOrder);
-router.post('/bookings/verify', authMiddleware(["user"]), BookingController.verifyPayment);
-router.post('/bookings/:bookingId/cancel', authMiddleware(["user"]), BookingController.cancelBooking);
+router.get('/bookings', authMiddleware(["user"]), blockCheckMiddleware, bookCtr.getMyBookings.bind(bookCtr));
+router.post('/bookings/create', authMiddleware(["user"]), blockCheckMiddleware, bookCtr.createBooking.bind(bookCtr));
+router.post('/bookings/create-order', authMiddleware(["user"]), blockCheckMiddleware, bookCtr.createOrder.bind(bookCtr));
+router.post('/bookings/verify', authMiddleware(["user"]), blockCheckMiddleware, bookCtr.verifyPayment.bind(bookCtr));
+router.post('/bookings/:bookingId/cancel', authMiddleware(["user"]), blockCheckMiddleware, bookCtr.cancelBooking.bind(bookCtr));
 
 router.post(
   "/bookings/:bookingId/review",
-  authMiddleware(["user"]),
-  ReviewController.createReview
+  authMiddleware(["user"]), blockCheckMiddleware,
+  revCtr.createReview.bind(revCtr)
 );
 
 router.get(
   "/bookings/:bookingId/review",
-  authMiddleware(["user"]),
-  ReviewController.getReviewByBookingId
+  authMiddleware(["user"]), blockCheckMiddleware,
+  revCtr.getReviewByBookingId.bind(revCtr)
 );
 
 
 router.get(
   "/events/:eventId/reviews",
-  ReviewController.getReviewsByEvent
+  revCtr.getReviewsByEvent.bind(revCtr)
 );
-router.get("/conversations", authMiddleware(["user"]), ChatController.listConversations);
-router.get("/chat/:otherId/event/:eventId",authMiddleware(["user"]), ChatController.fetchMessages);
-router.post("/chat/:otherId/event/:eventId",authMiddleware(["user"]), ChatController.sendMessage);
+router.get("/conversations", authMiddleware(["user"]), blockCheckMiddleware, chatCtr.listConversations.bind(chatCtr));
+router.get("/chat/:otherId/event/:eventId",authMiddleware(["user"]), blockCheckMiddleware, chatCtr.fetchMessages.bind(chatCtr));
+router.post("/chat/:otherId/event/:eventId",authMiddleware(["user"]), blockCheckMiddleware, chatCtr.sendMessage.bind(chatCtr));
 
 export default router;

@@ -1,10 +1,19 @@
+import "reflect-metadata";
+import { injectable, inject } from "inversify";
+import TYPES from "../config/di/types";
 import { io } from '../config/SocketServer';
 import { IChatMessage } from '../models/chatMessage';
-import ChatRepository from '../repositories/chatRepository';
+import { IChatRepository } from "../repositories/interfaces/IChatRepository";
 import { IChatService, IConversationResult } from './interfaces/IChatService';
 
-class ChatService implements IChatService {
+@injectable()
+export class ChatService implements IChatService {
  
+  constructor(
+    @inject(TYPES.ChatRepository)
+    private chatRepository:IChatRepository,
+
+  ){}
   async fetchMessages(
       eventId: string,
       userId: string,
@@ -13,7 +22,7 @@ class ChatService implements IChatService {
       otherType: string
     ): Promise<IChatMessage[]> {
     
-    return ChatRepository.fetchMessages(eventId, userId, otherId);
+    return this.chatRepository.fetchMessages(eventId, userId, otherId);
   }
 
   async sendMessage(
@@ -24,7 +33,7 @@ class ChatService implements IChatService {
     receiverType: string,
     content: string
   ): Promise<IChatMessage> {
-    const msg = await ChatRepository.saveMessage(
+    const msg = await this.chatRepository.saveMessage(
       eventId,
       senderId,
       senderType,
@@ -41,9 +50,9 @@ class ChatService implements IChatService {
   }
 
   async listConversations(participantId: string): Promise<IConversationResult[]> {
-    return ChatRepository.listConversations(participantId);
+    return this.chatRepository.listConversations(participantId);
   }
 
 }
 
-export default new ChatService();
+//export default new ChatService();

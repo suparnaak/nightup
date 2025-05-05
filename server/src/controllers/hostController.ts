@@ -1,18 +1,19 @@
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
 import { Request, Response } from "express";
-import HostService from "../services/hostService";
+import { IHostService } from '../services/interfaces/IHostService';
 import { IHostController } from "./interfaces/IHostController";
 import { MESSAGES, STATUS_CODES } from "../utils/constants";
+import TYPES from '../config/di/types';
 
-class HostController implements IHostController {
-  private hostService: HostService;
-
-  constructor() {
-    this.hostService = new HostService();
-    this.signup = this.signup.bind(this);
-    this.login = this.login.bind(this);
-    this.verifyOtp = this.verifyOtp.bind(this);
-    this.resendOtp = this.resendOtp.bind(this);
-  }
+@injectable()
+export class HostController implements IHostController {
+  constructor(
+    @inject(TYPES.HostService)
+    private hostService: IHostService
+  ){}
+  
+  
 
   async signup(req: Request, res: Response): Promise<void> {
     try {
@@ -150,4 +151,4 @@ class HostController implements IHostController {
   }
 }
 
-export default new HostController();
+//export default new HostController();

@@ -1,9 +1,9 @@
-import { Types } from "mongoose";
+/* import { Types } from "mongoose";
 import Coupon, { ICoupon } from "../models/coupon";
 import { ICouponRepository } from "./interfaces/ICouponRepository";
 import Booking from "../models/booking";
 
-class CouponRepository implements ICouponRepository {
+export class CouponRepository implements ICouponRepository {
   async getCoupons(): Promise<ICoupon[]> {
     return await Coupon.find().sort({ createdAt: -1 });
   }
@@ -69,4 +69,84 @@ class CouponRepository implements ICouponRepository {
   }
 }
 
-export default new CouponRepository();
+//export default new CouponRepository();
+ */
+import { Types } from "mongoose";
+import Coupon, { ICoupon } from "../models/coupon";
+import Booking from "../models/booking";
+import { ICouponRepository } from "./interfaces/ICouponRepository";
+import { BaseRepository } from "./baseRepository/baseRepository";
+
+export class CouponRepository
+  extends BaseRepository<ICoupon>
+  implements ICouponRepository
+{
+  constructor() {
+    super(Coupon);
+  }
+
+  async getCoupons(): Promise<ICoupon[]> {
+    return this.model.find().sort({ createdAt: -1 });
+  }
+
+  async createCoupon(
+    payload: {
+      couponCode: string;
+      couponAmount: number;
+      minimumAmount: number;
+      startDate: Date;
+      endDate: Date;
+      couponQuantity: number;
+    }
+  ): Promise<ICoupon> {
+    return this.create(payload);
+  }
+
+  async updateCoupon(
+    id: string,
+    payload: Partial<{
+      couponAmount: number;
+      minimumAmount: number;
+      startDate: Date;
+      endDate: Date;
+      couponQuantity: number;
+    }>
+  ): Promise<ICoupon | null> {
+    return this.update(id, payload);
+  }
+
+  async deleteCoupon(id: string): Promise<void> {
+    await this.delete(id);
+  }
+
+  async getAvailableCoupons(
+    userId: string,
+    minimumAmount?: number
+  ): Promise<ICoupon[]> {
+    const now = new Date();
+    const filter: any = {
+      status: "active",
+      isBlocked: false,
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+      $expr: { $gt: ["$couponQuantity", "$usedCount"] }
+    };
+    if (minimumAmount !== undefined) {
+      filter.minimumAmount = { $lte: minimumAmount };
+    }
+
+    const coupons = await this.model.find(filter).sort({ createdAt: -1 });
+    const available: ICoupon[] = [];
+    for (const coupon of coupons) {
+      const used = await Booking.exists({
+        userId: new Types.ObjectId(userId),
+        couponId: coupon._id,
+        status: { $in: ["pending", "confirmed"] }
+      });
+      if (!used) available.push(coupon);
+    }
+    return available;
+  }
+}
+
+
