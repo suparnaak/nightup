@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { chatRepository } from "../repositories/chatRepository";
+import { chatRepository } from "../services/chatService";
 import { useAuthStore } from "./authStore";
 
 type ChatRole = "user" | "host";
@@ -55,7 +55,6 @@ export const useChatStore = create<ChatStore>((set) => ({
   fetchMessages: async (receiverId, eventId) => {
     const { user } = useAuthStore.getState();
     const roleRaw = user?.role;
-    // Map admin to host context for chat
     console.log(receiverId);
     const chatRole: ChatRole = roleRaw === "host" || roleRaw === "admin" ? "host" : "user";
     set({ isLoading: true, error: null });

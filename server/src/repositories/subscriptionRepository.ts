@@ -44,8 +44,33 @@ export class SubscriptionRepository extends BaseRepository<ISubscriptionPlan> im
   }
 
   
-  async getSubscriptions(): Promise<ISubscriptionPlan[]> {
+  /* async getSubscriptions(): Promise<ISubscriptionPlan[]> {
     return await SubscriptionPlan.find().sort({ createdAt: -1 });
+  } */
+  async getSubscriptions(page: number = 1, limit: number = 10): Promise<{
+    subscriptions: ISubscriptionPlan[];
+    pagination: {
+      total: number;
+      page: number;
+      totalPages: number;
+      limit: number;
+    };
+  }> {
+    const skip = (page - 1) * limit;
+    const [subscriptions, total] = await Promise.all([
+      SubscriptionPlan.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+      SubscriptionPlan.countDocuments()
+    ]);
+    
+    return {
+      subscriptions,
+      pagination: {
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+        limit
+      }
+    };
   }
 
  

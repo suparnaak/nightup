@@ -35,6 +35,7 @@ router.post("/signup", userCtr.signup.bind(userCtr));
 router.post("/verify-otp", userCtr.verifyOtp.bind(userCtr));
 router.post("/resend-otp", userCtr.resendOtp.bind(userCtr));
 router.post("/login", userCtr.login.bind(userCtr));
+router.post("/refresh-token", userCtr.refreshToken.bind(userCtr));
 router.post("/logout", userCtr.logout.bind(userCtr));
 
 router.post("/forgot-password", userCtr.forgotPassword.bind(userCtr));

@@ -60,9 +60,38 @@ export class CategoryRepository
     super(EventType);
   }
 
-  async findAll(): Promise<IEventTypeDocument[]> {
+  /* async findAll(): Promise<IEventTypeDocument[]> {
     return this.model.find({}).sort({ name: 1 }).lean();
-  }
+  } */
+ async findAll(page: number = 1, limit: number = 10): Promise<{
+  categories: IEventTypeDocument[];
+  pagination: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+  };
+}> {
+  const skip = (page - 1) * limit;
+  const [categories, total] = await Promise.all([
+    this.model.find()
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    this.model.countDocuments()
+  ]);
+
+  return {
+    categories,
+    pagination: {
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      limit
+    }
+  };
+}
 
   async findByName(name: string): Promise<IEventTypeDocument | null> {
     return this.model.findOne({ name }).lean();

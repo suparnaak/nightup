@@ -12,8 +12,19 @@ export class SubscriptionService implements ISubscriptionService {
     @inject(TYPES.SubscriptionRepository)
     private subscriptionRepository: ISubscriptionRepository
   ){}
-  async getSubscriptions(): Promise<ISubscriptionPlan[]> {
+  /* async getSubscriptions(): Promise<ISubscriptionPlan[]> {
     return await this.subscriptionRepository.getSubscriptions();
+  } */
+ async getSubscriptions(page?: number, limit?: number): Promise<{
+    subscriptions: ISubscriptionPlan[];
+    pagination: {
+      total: number;
+      page: number;
+      totalPages: number;
+      limit: number;
+    };
+  }> {
+    return await this.subscriptionRepository.getSubscriptions(page, limit);
   }
 
   async createSubscription(payload: { name: string; duration: string; price: number }): Promise<ISubscriptionPlan> {

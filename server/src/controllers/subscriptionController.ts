@@ -15,12 +15,32 @@ export class SubscriptionController implements ISubscriptionController {
     @inject(TYPES.SubscriptionService)
     private subscriptionService: ISubscriptionService
   ){}
-  async getSubscriptions(req: Request, res: Response): Promise<void> {
+  /* async getSubscriptions(req: Request, res: Response): Promise<void> {
     try {
       const subscriptions = await this.subscriptionService.getSubscriptions();
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         subscriptions,
+      });
+    } catch (error) {
+      console.error("Get Subscriptions Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  } */
+ async getSubscriptions(req: Request, res: Response): Promise<void> {
+    try {
+      const page = req.query.page ? parseInt(req.query.page as string) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      
+      const result = await this.subscriptionService.getSubscriptions(page, limit);
+      
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        subscriptions: result.subscriptions,
+        pagination: result.pagination
       });
     } catch (error) {
       console.error("Get Subscriptions Error:", error);

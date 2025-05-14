@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { bookingRepository } from "../repositories/bookingRepository";
+import { bookingRepository } from "../services/bookingService";
 
 interface Booking {
   _id: string;
@@ -215,6 +215,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const result = await bookingRepository.getBookingsByEventForAdmin(eventId, page, limit);
+      //console.log("bookings at admin",result)
       set({ 
         bookings: result.bookings, 
         pagination: result.pagination,
@@ -270,4 +271,5 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       throw err;
     }
   },
-}));
+})); 
+

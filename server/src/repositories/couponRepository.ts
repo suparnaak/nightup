@@ -85,8 +85,33 @@ export class CouponRepository
     super(Coupon);
   }
 
-  async getCoupons(): Promise<ICoupon[]> {
+  /* async getCoupons(): Promise<ICoupon[]> {
     return this.model.find().sort({ createdAt: -1 });
+  } */
+ async getCoupons(page: number = 1, limit: number = 10): Promise<{
+    coupons: ICoupon[];
+    pagination: {
+      total: number;
+      page: number;
+      totalPages: number;
+      limit: number;
+    };
+  }> {
+    const skip = (page - 1) * limit;
+    const [coupons, total] = await Promise.all([
+      this.model.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+      this.model.countDocuments()
+    ]);
+
+    return {
+      coupons,
+      pagination: {
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+        limit
+      }
+    };
   }
 
   async createCoupon(

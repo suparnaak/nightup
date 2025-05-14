@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { authRepository } from '../repositories/authRepository';
+import { authRepository } from '../services/authService';
 import {jwtDecode} from 'jwt-decode';
 interface User {
   id: string;

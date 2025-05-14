@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { adminRepository } from "../repositories/adminRepository";
-import { userRepository } from "../repositories/userRepository";
+import { adminRepository } from "../services/adminService";
+import { userRepository } from "../services/userService";
 
 export interface Coupon {
   id: string;
@@ -18,7 +18,14 @@ interface CouponState {
   coupons: Coupon[];
   isLoading: boolean;
   error: string | null;
-  getCoupons: () => Promise<Coupon[]>;
+  pagination: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+  };
+  //getCoupons: () => Promise<Coupon[]>;
+  getCoupons: (page?: number, limit?: number) => Promise<Coupon[]>;
   getAvailableCoupons: (totalAmount?: number) => Promise<Coupon[]>; // for users while booking
   createCoupon: (payload: {
     couponAmount: number;
@@ -45,8 +52,14 @@ export const useCouponStore = create<CouponState>((set, get) => ({
   coupons: [],
   isLoading: false,
   error: null,
+  pagination: {
+    total: 0,
+    page: 1,
+    totalPages: 0,
+    limit: 10
+  },
 
-  getCoupons: async () => {
+  /* getCoupons: async () => {
     set({ isLoading: true, error: null });
     try {
       const data = await adminRepository.getCoupons();
@@ -54,6 +67,31 @@ export const useCouponStore = create<CouponState>((set, get) => ({
       
       if (data.success && Array.isArray(data.coupons)) {
         set({ coupons: data.coupons, isLoading: false });
+        return data.coupons;
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error: any) {
+      console.error("getCoupons error details:", error);
+      set({
+        error: error.message || "Failed to load coupons",
+        isLoading: false,
+      });
+      throw error;
+    }
+  }, */
+  getCoupons: async (page = 1, limit = 10) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await adminRepository.getCoupons(page, limit);
+      console.log("Raw API response:", data);
+      
+      if (data.success && Array.isArray(data.coupons)) {
+        set({ 
+          coupons: data.coupons, 
+          pagination: data.pagination,
+          isLoading: false 
+        });
         return data.coupons;
       } else {
         throw new Error("Invalid response format");

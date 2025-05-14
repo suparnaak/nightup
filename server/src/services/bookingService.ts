@@ -171,11 +171,12 @@ export class BookingService implements IBookingService {
         };
       }
     }
-  
-    const wallet = await this.walletRepository.getWallet(userId);
-    if (!wallet || wallet.balance < totalAmount) {
-      return { success: false, message: MESSAGES.USER.ERROR.INSUFFICIENT_WALLET };
-    }
+
+      const walletData = await this.walletRepository.getWallet(userId);
+      if (!walletData.wallet || walletData.wallet.balance < totalAmount) {
+        return { success: false, message: MESSAGES.USER.ERROR.INSUFFICIENT_WALLET };
+      }
+    
   
     const bookingData: Partial<IBooking> = {
       userId: new Types.ObjectId(userId),
@@ -228,10 +229,7 @@ export class BookingService implements IBookingService {
     };
   }
 
-  //fetching bookings of user
- /*  async getUserBookings(userId: string): Promise<IBooking[]> {
-    return await this.bookingRepository.findByUserId(userId);
-  } */
+
  
 async getUserBookings(userId: string, page: number = 1, limit: number = 10): Promise<{ bookings: IBooking[], total: number, pages: number }> {
   return await this.bookingRepository.findByUserId(userId, page, limit);
@@ -330,15 +328,7 @@ async getUserBookings(userId: string, page: number = 1, limit: number = 10): Pro
       };
     }
   }
-  /* async getBookingsByEvent(eventId: string): Promise<IBooking[]> {
-    try {
-      const bookings = await this.bookingRepository.getBookingsByEvent(eventId);
-      return bookings;
-    } catch (error) {
-      console.error("Error fetching bookings by event:", error);
-      throw new Error(MESSAGES.USER.ERROR.FETCH_BOOKING_FAILED);
-    }
-  } */
+
     async getBookingsByEvent(eventId: string, page: number = 1, limit: number = 10): Promise<{ 
       bookings: IBooking[], 
       total: number, 

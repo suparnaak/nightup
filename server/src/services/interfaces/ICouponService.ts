@@ -1,6 +1,15 @@
 import { ICoupon } from "../../models/coupon";
 export interface ICouponService {
-    getCoupons(): Promise<ICoupon[]>
+    //getCoupons(): Promise<ICoupon[]>
+     getCoupons(page?: number, limit?: number): Promise<{
+    coupons: ICoupon[];
+    pagination: {
+      total: number;
+      page: number;
+      totalPages: number;
+      limit: number;
+    };
+  }>;
     createCoupon(payload: {
         couponCode: string;
         couponAmount: number;

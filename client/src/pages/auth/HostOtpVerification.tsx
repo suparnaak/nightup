@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useOtpTimer from '../../hooks/useOtpTimer';
-import { authRepository } from '../../repositories/authRepository';
+import { authRepository } from '../../services/authService';
 import toast from 'react-hot-toast';
 
 interface LocationState {

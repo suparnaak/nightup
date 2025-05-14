@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { eventRepository } from "../repositories/eventRepository";
+import { eventRepository } from "../services/eventService";
 
 interface Ticket {
   _id: string;
@@ -54,7 +54,6 @@ interface EventStore {
   error: string | null;
   selectedCity: string | null;
 
-  //for pagination
   currentPage: number;
   limit: number;
   totalEvents: number;
@@ -62,7 +61,6 @@ interface EventStore {
   searchTerm: string;
   filters: EventFilters;
 
-  // pagination and search
   setPage: (page: number) => void;
   setLimit: (limit: number) => void;
   setSearchTerm: (term: string) => void;

@@ -20,7 +20,7 @@ export class CouponController implements ICouponController {
   private couponService: ICouponService
 ){}
 
-  async getCoupons(req: Request, res: Response): Promise<void> {
+  /* async getCoupons(req: Request, res: Response): Promise<void> {
     try {
       const coupons = await this.couponService.getCoupons();
       console.log("coupons")
@@ -41,6 +41,38 @@ export class CouponController implements ICouponController {
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         coupons: transformedCoupons,
+      });
+    } catch (error) {
+      console.error("Get Coupons Error:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
+  } */
+ async getCoupons(req: Request, res: Response): Promise<void> {
+    try {
+      const page = req.query.page ? parseInt(req.query.page as string) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      
+      const result = await this.couponService.getCoupons(page, limit);
+      
+      const transformedCoupons = result.coupons.map(coupon => ({
+        id: coupon._id.toString(),
+        couponCode: coupon.couponCode,
+        couponAmount: coupon.couponAmount,
+        minimumAmount: coupon.minimumAmount,
+        startDate: coupon.startDate,
+        endDate: coupon.endDate,
+        couponQuantity: coupon.couponQuantity,
+        usedCount: coupon.usedCount,
+        status: coupon.status,
+      }));
+      
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        coupons: transformedCoupons,
+        pagination: result.pagination
       });
     } catch (error) {
       console.error("Get Coupons Error:", error);

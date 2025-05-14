@@ -103,30 +103,14 @@ export class AdminController implements IAdminController {
   }
 
   //get all hosts
-  /* async getHosts(req: Request, res: Response): Promise<void> {
-    try {
-      const hosts = await this.adminService.getHosts();
-      //console.log(hosts)
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        message: MESSAGES.ADMIN.SUCCESS.HOSTS_FETCHED,
-        hosts,
-      });
-    } catch (error) {
-      console.error("Error fetching hosts:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({
-        success: false,
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-      });
-    }
-  } */
+  
     async getHosts(req: Request, res: Response): Promise<void> {
       try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         
         const { hosts, total } = await this.adminService.getHosts(page, limit);
-        
+        console.log(hosts)
         res.status(STATUS_CODES.SUCCESS).json({
           success: true,
           message: MESSAGES.ADMIN.SUCCESS.HOSTS_FETCHED,
@@ -207,23 +191,7 @@ export class AdminController implements IAdminController {
       });
     }
   }
-/*   async getUsers(req: Request, res: Response): Promise<void> {
-    try {
-      const users = await this.adminService.getUsers();
-      //console.log(hosts)
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        message: MESSAGES.ADMIN.SUCCESS.USERS_FETCHED,
-        users,
-      });
-    } catch (error) {
-      console.error("Error fetching hosts:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({
-        success: false,
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-      });
-    }
-  } */
+
     async getUsers(req: Request, res: Response): Promise<void> {
       try {
         const page = parseInt(req.query.page as string) || 1;

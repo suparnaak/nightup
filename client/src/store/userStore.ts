@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { userRepository } from "../repositories/userRepository";
+import { userRepository } from "../services/userService";
 
 export interface UserProfile {
   id: string;

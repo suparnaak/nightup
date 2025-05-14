@@ -13,14 +13,32 @@ export class CategoryService implements ICategoryService{
     @inject(TYPES.CategoryRepository)
     private categoryRepository: ICategoryRepository
   ){}
-  async getAllCategories(): Promise<IEventTypeDocument[]> {
+ /*  async getAllCategories(): Promise<IEventTypeDocument[]> {
     try {
       return await this.categoryRepository.findAll();
     } catch (error) {
       console.error("Error in CategoryService.getAllCategories:", error);
       throw error;
     }
+  } */
+ async getAllCategories(page: number = 1, limit: number = 10): Promise<{
+  categories: IEventTypeDocument[],
+  pagination: {
+    total: number,
+    page: number, 
+    totalPages: number,
+    limit: number
   }
+}> {
+  try {
+    return await this.categoryRepository.findAll(page, limit);
+  } catch (error) {
+    console.error("Error in CategoryService.getAllCategories:", error);
+    throw error;
+  }
+}
+
+
 
   async createCategory(data: { name: string; description: string }): Promise<IEventTypeDocument> {
     try {

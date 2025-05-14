@@ -65,15 +65,57 @@ import Wallet, { IWallet } from "../models/wallet";
 import { MESSAGES } from "../utils/constants";
 import { IWalletRepository } from "./interfaces/IWalletRepository";
 import { BaseRepository } from "./baseRepository/baseRepository";
-
+interface PaginationResult {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 export class WalletRepository extends BaseRepository<IWallet> implements IWalletRepository {
   constructor() {
     super(Wallet);
   }
 
-  async getWallet(userId: string): Promise<IWallet | null> {
+  /* async getWallet(userId: string): Promise<IWallet | null> {
     return await this.findOne({ user: new Types.ObjectId(userId) });
-  }
+  } */
+    async getWallet(userId: string, page: number = 1, limit: number = 10): Promise<{ wallet: IWallet | null, pagination: PaginationResult }> {
+      // Find the wallet document
+      const walletDoc = await this.findOne({ user: new Types.ObjectId(userId) });
+      
+      if (!walletDoc) {
+        return { 
+          wallet: null, 
+          pagination: { total: 0, page, limit, totalPages: 0 } 
+        };
+      }
+      
+      // Get total count of transactions
+      const totalTransactions = walletDoc.transactions.length;
+      
+      // Calculate pagination
+      const totalPages = Math.ceil(totalTransactions / limit);
+      const startIndex = (page - 1) * limit;
+      const endIndex = Math.min(startIndex + limit, totalTransactions);
+      
+      // Create a copy of the wallet with paginated transactions
+      const wallet = {
+        ...walletDoc.toObject(),
+        transactions: walletDoc.transactions
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(startIndex, endIndex)
+      };
+      
+      return {
+        wallet,
+        pagination: {
+          total: totalTransactions,
+          page,
+          limit,
+          totalPages
+        }
+      };
+    }
 
   async updateWalletBalance(
     userId: string, 
@@ -85,7 +127,7 @@ export class WalletRepository extends BaseRepository<IWallet> implements IWallet
     let wallet = await this.findOne({ user: new Types.ObjectId(userId) });
     
     if (!wallet) {
-      // Create a new wallet
+   //creates wallet if no wallet is there for user
       wallet = await this.create({ 
         user: new Types.ObjectId(userId), 
         balance: rechargeAmount, 
@@ -98,7 +140,7 @@ export class WalletRepository extends BaseRepository<IWallet> implements IWallet
         }] 
       });
     } else {
-      // Update existing wallet
+      //it updates the wallet
       wallet.balance += rechargeAmount;
       wallet.transactions.push({
         amount: rechargeAmount,

@@ -29,6 +29,7 @@ router.post("/signup", hostCtr.signup.bind(hostCtr));
 router.post("/login", hostCtr.login.bind(hostCtr));
 router.post("/verify-otp", hostCtr.verifyOtp.bind(hostCtr));
 router.post("/resend-otp", hostCtr.resendOtp.bind(hostCtr));
+router.post("/refresh-token", hostCtr.refreshToken.bind(hostCtr));
 
 router.get("/profile", authMiddleware(["host"]), blockCheckMiddleware, hostProfCtr.getHostProfile.bind(hostProfCtr));
 router.patch("/profile/update", authMiddleware(["host"]), blockCheckMiddleware, hostProfCtr.updateHostProfile.bind(hostProfCtr));

@@ -32,13 +32,18 @@ import { ICoupon } from "../../models/coupon";
 import { IBaseRepository } from "../baseRepository/IBaseRepository";
 
 export interface ICouponRepository extends IBaseRepository<ICoupon> {
-  /** Get all coupons, newest-first */
-  getCoupons(): Promise<ICoupon[]>;
 
-  /**
-   * Create a new coupon.
-   * Override generic create to require full payload.
-   */
+  //getCoupons(): Promise<ICoupon[]>;
+  getCoupons(page?: number, limit?: number): Promise<{
+    coupons: ICoupon[];
+    pagination: {
+      total: number;
+      page: number;
+      totalPages: number;
+      limit: number;
+    };
+  }>;
+
   createCoupon(payload: {
     couponCode: string;
     couponAmount: number;
@@ -48,7 +53,6 @@ export interface ICouponRepository extends IBaseRepository<ICoupon> {
     couponQuantity: number;
   }): Promise<ICoupon>;
 
-  /** Update an existing coupon */
   updateCoupon(
     id: string,
     payload: Partial<{
@@ -60,13 +64,8 @@ export interface ICouponRepository extends IBaseRepository<ICoupon> {
     }>
   ): Promise<ICoupon | null>;
 
-  /** Delete a coupon */
   deleteCoupon(id: string): Promise<void>;
 
-  /**
-   * Only coupons that are active, unblocked, not expired,
-   * still have quantity left, and not used by the user.
-   */
   getAvailableCoupons(
     userId: string,
     minimumAmount?: number

@@ -11,8 +11,19 @@ export class CouponService implements ICouponService {
     @inject(TYPES.CouponRepository)
     private couponRepository:ICouponRepository
   ){}
-  async getCoupons(): Promise<ICoupon[]> {
+ /*  async getCoupons(): Promise<ICoupon[]> {
     return await this.couponRepository.getCoupons();
+  } */
+ async getCoupons(page?: number, limit?: number): Promise<{
+    coupons: ICoupon[];
+    pagination: {
+      total: number;
+      page: number;
+      totalPages: number;
+      limit: number;
+    };
+  }> {
+    return await this.couponRepository.getCoupons(page, limit);
   }
 
   async createCoupon(payload: {

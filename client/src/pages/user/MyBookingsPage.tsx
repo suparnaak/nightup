@@ -11,8 +11,6 @@ import {
   Star,
   X,
   QrCode,
-  ChevronLeft,
-  ChevronRight,
   Eye,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -20,6 +18,7 @@ import UserLayout from "../../layouts/UserLayout";
 import { useBookingStore } from "../../store/bookingStore";
 import Spinner from "../../components/common/Spinner";
 import toast from "react-hot-toast";
+import Pagination from "../../components/common/Pagination";
 
 const StatusBadge = ({ status }: { status: string }) => {
   const statusConfig = {
@@ -194,52 +193,6 @@ const CancelBookingModal: React.FC<CancelModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
-  );
-};
-
-const Pagination = ({ 
-  currentPage, 
-  totalPages, 
-  onPageChange 
-}: { 
-  currentPage: number; 
-  totalPages: number; 
-  onPageChange: (page: number) => void 
-}) => {
-  return (
-    <div className="flex justify-center items-center mt-8 space-x-2">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage <= 1}
-        className="p-2 rounded-md bg-purple-100 text-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <ChevronLeft size={20} />
-      </button>
-      
-      <div className="flex space-x-1">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={`w-10 h-10 rounded-md flex items-center justify-center ${
-              currentPage === page
-                ? "bg-purple-600 text-white"
-                : "bg-purple-100 text-purple-700 hover:bg-purple-200"
-            }`}
-          >
-            {page}
-          </button>
-        ))}
-      </div>
-      
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage >= totalPages}
-        className="p-2 rounded-md bg-purple-100 text-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <ChevronRight size={20} />
-      </button>
     </div>
   );
 };
@@ -594,11 +547,12 @@ const MyBookingsPage: React.FC = () => {
           </div>
         )}
         
-        {pagination && pagination.pages > 1 && (
+        {pagination && (
           <Pagination 
             currentPage={currentPage} 
             totalPages={pagination.pages} 
-            onPageChange={handlePageChange} 
+            onPageChange={handlePageChange}
+            className="mt-8" 
           />
         )}
 

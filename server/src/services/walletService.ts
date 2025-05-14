@@ -5,7 +5,12 @@ import { IWalletRepository } from '../repositories/interfaces/IWalletRepository'
 import { IPaymentService } from './interfaces/IPaymentService';
 import { IWalletService } from "./interfaces/IWalletSevice";
 import { IWallet } from "../models/wallet";
-
+interface PaginationResult {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 @injectable()
 export class WalletService implements IWalletService {
   constructor(
@@ -14,8 +19,11 @@ export class WalletService implements IWalletService {
     @inject(TYPES.PaymentService)
     private paymentService: IPaymentService
   ){}
-  async getWallet(userId: string):Promise<IWallet | null> {
-    return await this.walletRepository.getWallet(userId);
+  //async getWallet(userId: string):Promise<IWallet | null> {
+    async getWallet(userId: string, page: number = 1, limit: number = 10): Promise<{ wallet: IWallet | null, pagination: PaginationResult }> {
+      const result = await this.walletRepository.getWallet(userId, page, limit);
+      return result;
+    
   }
 
   async createOrder(userId: string, amount: number): Promise<{ id: string }> {

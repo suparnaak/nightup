@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { adminRepository } from "../repositories/adminRepository";
-import hostRepository from "../repositories/hostRepository";
-import { userRepository } from "../repositories/userRepository";
+import { adminRepository } from "../services/adminService";
+import hostRepository from "../services/hostService";
+import { userRepository } from "../services/userService";
 
 
 export interface Category {
@@ -16,8 +16,23 @@ interface CategoryState {
   categories: Category[];
   isLoading: boolean;
   error: string | null;
+  pagination: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+  };
 
-  getCategories: () => Promise<Category[]>;
+  //getCategories: () => Promise<Category[]>;
+  getCategories: (page?: number, limit?: number) => Promise<{
+    categories: Category[];
+    pagination: {
+      total: number;
+      page: number;
+      totalPages: number;
+      limit: number;
+    };
+  }>;
   getHostCategories: () => Promise<Category[]>;
   getUserCategories: () => Promise<Category[]>;
   createCategory: (payload: {
@@ -35,14 +50,37 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
   categories: [],
   isLoading: false,
   error: null,
+  pagination: {
+    total: 0,
+    page: 1,
+    totalPages: 0,
+    limit: 10
+  },
 //getting all the categoris for admin
-  getCategories: async () => {
+  getCategories: async (page = 1, limit = 10) => {
     set({ isLoading: true, error: null });
     try {
-      const data = await adminRepository.getCategories();
+      const data = await adminRepository.getCategories(page, limit);
       if (data.success && Array.isArray(data.categories)) {
-        set({ categories: data.categories, isLoading: false });
-        return data.categories;
+        set({ 
+          categories: data.categories, 
+          pagination: data.pagination || {
+            total: data.categories.length,
+            page,
+            totalPages: 1,
+            limit
+          },
+          isLoading: false 
+        });
+        return {
+          categories: data.categories,
+          pagination: data.pagination || {
+            total: data.categories.length,
+            page,
+            totalPages: 1, 
+            limit
+          }
+        };
       } else {
         throw new Error("Invalid response format");
       }

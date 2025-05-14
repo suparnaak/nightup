@@ -1,6 +1,5 @@
-// src/store/walletStore.ts
 import { create } from "zustand";
-import { walletRepository } from "../repositories/walletRepository";
+import { walletRepository } from "../services/walletService";
 
 export interface Transaction {
   _id: string;
@@ -20,7 +19,13 @@ interface WalletState {
   wallet: Wallet | null;
   isLoading: boolean;
   error: string | null;
-  getWallet: () => Promise<Wallet | null>;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  getWallet: (page?: number, limit?: number) => Promise<Wallet | null>;
   createWalletOrder: (amount: number) => Promise<string>;
   verifyWalletPayment: (paymentData: {
     razorpay_payment_id: string;
@@ -30,16 +35,64 @@ interface WalletState {
   }) => Promise<boolean>;
 }
 
-export const useWalletStore = create<WalletState>((set) => ({
+export const useWalletStore = create<WalletState>((set,get) => ({
   wallet: null,
   isLoading: false,
   error: null,
-
-  getWallet: async () => {
+  pagination: {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0
+  },
+  /* getWallet: async () => {
     set({ isLoading: true, error: null });
     try {
       const data = await walletRepository.getWallet();
       set({ wallet: data.wallet, isLoading: false });
+      return data.wallet;
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to load wallet details",
+        isLoading: false,
+      });
+      return null;
+    }
+  }, */
+  setPage: (page: number) => {
+    set(state => ({
+      pagination: {
+        ...state.pagination,
+        page
+      }
+    }));
+    get().getWallet(page, get().pagination.limit);
+  },
+  
+  setLimit: (limit: number) => {
+    set(state => ({
+      pagination: {
+        ...state.pagination,
+        limit
+      }
+    }));
+    get().getWallet(1, limit); // Reset to first page when changing limit
+  },
+
+  getWallet: async (page = 1, limit = 10) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await walletRepository.getWallet(page, limit);
+      set({ 
+        wallet: data.wallet, 
+        isLoading: false,
+        pagination: {
+          total: data.pagination.total,
+          page: data.pagination.page,
+          limit: data.pagination.limit,
+          totalPages: data.pagination.totalPages
+        }
+      });
       return data.wallet;
     } catch (error: any) {
       set({

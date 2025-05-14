@@ -4,8 +4,9 @@ import toast from "react-hot-toast";
 import Spinner from "../../components/common/Spinner";
 import { useWalletStore } from "../../store/walletStore";
 import { useRazorpay } from "../../hooks/useRazorpay";
-import Swal from "sweetalert2"; // Import SweetAlert2
-import { Wallet, ArrowUpCircle, ArrowDownCircle, Clock, CreditCard, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import Swal from "sweetalert2";
+import { Wallet, ArrowUpCircle, ArrowDownCircle, Clock, CreditCard, AlertCircle } from 'lucide-react';
+import Pagination from "../../components/common/Pagination";
 
 const WalletPage: React.FC = () => {
   const { wallet, isLoading, error, getWallet, createWalletOrder, verifyWalletPayment } = useWalletStore();
@@ -194,36 +195,12 @@ const WalletPage: React.FC = () => {
                     </div>
                   )}
 
-                  {totalPages > 1 && (
-                    <div className="mt-6 flex items-center justify-center space-x-2">
-                      <button
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        disabled={currentPage === 1}
-                        className="p-2 rounded-lg hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronLeft className="h-5 w-5 text-purple-600" />
-                      </button>
-                      {Array.from({ length: totalPages }, (_, i) => (
-                        <button
-                          key={i + 1}
-                          onClick={() => setCurrentPage(i + 1)}
-                          className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                            currentPage === i + 1
-                              ? 'bg-purple-600 text-white'
-                              : 'text-purple-600 hover:bg-purple-50'
-                          }`}
-                        >
-                          {i + 1}
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
-                        className="p-2 rounded-lg hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronRight className="h-5 w-5 text-purple-600" />
-                      </button>
-                    </div>
+                  {totalPages >= 1 && (
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={setCurrentPage}
+                    />
                   )}
                 </div>
               )}

@@ -140,30 +140,6 @@ async createBooking(req: AuthRequest, res: Response): Promise<void> {
     });
   }
 }
-  /* async getMyBookings(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        res.status(STATUS_CODES.UNAUTHORIZED).json({
-          success: false,
-          message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
-        });
-        return;
-      }
-
-      const bookings = await this.bookingService.getUserBookings(userId);
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        bookings,
-      });
-    } catch (error) {
-      console.error("Get My Bookings Error:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({
-        success: false,
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-      });
-    }
-  } */
  // Backend - BookingController class
 async getMyBookings(req: AuthRequest, res: Response): Promise<void> {
   try {
@@ -240,30 +216,7 @@ async getMyBookings(req: AuthRequest, res: Response): Promise<void> {
       });
     }
   }
-  /* async getBookingsByEvent(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { eventId } = req.params;
-      const hostId = req.user?.userId;
-      if (!hostId) {
-        res
-          .status(STATUS_CODES.UNAUTHORIZED)
-          .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
-        return;
-      }
-      const bookings = await this.bookingService.getBookingsByEvent(eventId);
-      console.log(bookings);
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        bookings,
-      });
-    } catch (error) {
-      console.error("Get Bookings By Event Error:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({
-        success: false,
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-      });
-    }
-  } */
+  
     async getBookingsByEvent(req: AuthRequest, res: Response): Promise<void> {
       try {
         const { eventId } = req.params;
@@ -304,30 +257,7 @@ async getMyBookings(req: AuthRequest, res: Response): Promise<void> {
       }
     }
 
- /*  async getBookingsByEventAdmin(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { eventId } = req.params;
-      const adminId = req.user?.userId;
-      if (!adminId) {
-        res
-          .status(STATUS_CODES.UNAUTHORIZED)
-          .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
-        return;
-      }
-      const bookings = await this.bookingService.getBookingsByEvent(eventId);
-      console.log(bookings);
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        bookings,
-      });
-    } catch (error) {
-      console.error("Get Bookings By Event Error:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({
-        success: false,
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-      });
-    }
-  } */
+
     async getBookingsByEventAdmin(req: AuthRequest, res: Response): Promise<void> {
       try {
         const { eventId } = req.params;

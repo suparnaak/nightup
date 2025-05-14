@@ -20,22 +20,22 @@ import { IEventTypeDocument } from "../../models/eventTypes";
 import { IBaseRepository } from "../baseRepository/IBaseRepository";
 
 export interface ICategoryRepository extends IBaseRepository<IEventTypeDocument> {
-  /** List all categories, sorted by name */
-  findAll(): Promise<IEventTypeDocument[]>;
+  
+  //findAll(): Promise<IEventTypeDocument[]>;
+  findAll(page?: number, limit?: number): Promise<{
+    categories: IEventTypeDocument[];
+    pagination: {
+      total: number;
+      page: number;
+      totalPages: number;
+      limit: number;
+    };
+  }>;
 
-  /** Lookup a category by its unique name */
   findByName(name: string): Promise<IEventTypeDocument | null>;
 
-  /**
-   * Create a new category.
-   * Override generic create to require name + description.
-   */
   create(data: { name: string; description: string }): Promise<IEventTypeDocument>;
 
-  /**
-   * Update an existing category.
-   * Override generic update to require name + description.
-   */
   update(
     id: string,
     data: { name: string; description: string }

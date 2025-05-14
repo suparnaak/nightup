@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useEventStore } from "../../store/eventStore";
 import AdminLayout from "../../layouts/AdminLayout";
 import {
@@ -9,11 +9,11 @@ import {
   User,
   Ticket,
   Eye,
-  Info,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import Pagination from "../../components/common/Pagination";
 
-const AdminEvents = () => {
+const AdminEvents: React.FC = () => {
   const {
     fetchEventsForAdmin,
     events,
@@ -26,7 +26,7 @@ const AdminEvents = () => {
 
   useEffect(() => {
     fetchEventsForAdmin();
-  }, [currentPage]);
+  }, [fetchEventsForAdmin, currentPage]);
 
   const formatDate = (dateString: string | number | Date) => {
     const date = new Date(dateString);
@@ -130,8 +130,7 @@ const AdminEvents = () => {
                       <div className="flex items-center text-gray-600">
                         <Clock size={18} className="text-purple-600 mr-2" />
                         <span>
-                          {formatTime(event.startTime)} -{" "}
-                          {formatTime(event.endTime)}
+                          {formatTime(event.startTime)} - {formatTime(event.endTime)}
                         </span>
                       </div>
 
@@ -155,11 +154,9 @@ const AdminEvents = () => {
                       <div className="flex items-center text-gray-600">
                         <User size={18} className="text-purple-600 mr-2" />
                         <span>
-                          Host:{" "}
-                          {typeof event.hostId === "object" &&
-                          "name" in event.hostId
+                          Host: {typeof event.hostId === 'object' && 'name' in event.hostId
                             ? event.hostId.name
-                            : "Unknown Host"}
+                            : 'Unknown Host'}
                         </span>
                       </div>
                     </div>
@@ -186,13 +183,6 @@ const AdminEvents = () => {
 
                     {/* View Bookings Link */}
                     <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end">
-                      {/* <a 
-                        href={`/admin/events/${event._id}/bookings`}
-                        className="flex items-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-                      >
-                        <Eye size={16} className="mr-2" />
-                        View Bookings
-                      </a> */}
                       <Link
                         to={`/admin/events/${event._id}/bookings`}
                         className="flex items-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
@@ -209,51 +199,12 @@ const AdminEvents = () => {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-8">
-            <div className="inline-flex rounded-md shadow">
-              <button
-                onClick={() => currentPage > 1 && setPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center px-3 py-2 rounded-l-md border border-purple-300 bg-white text-sm font-medium text-purple-700 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-
-              <div className="hidden md:flex">
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    className={`relative inline-flex items-center px-4 py-2 border border-purple-300 bg-white text-sm font-medium ${
-                      currentPage === i + 1
-                        ? "bg-purple-600 text-white border-purple-600 z-10"
-                        : "text-purple-700 hover:bg-purple-50"
-                    }`}
-                    onClick={() => setPage(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-
-              <div className="md:hidden flex items-center px-4 border border-purple-300 bg-white">
-                <span className="text-sm text-gray-700">
-                  {currentPage} of {totalPages}
-                </span>
-              </div>
-
-              <button
-                onClick={() =>
-                  currentPage < totalPages && setPage(currentPage + 1)
-                }
-                disabled={currentPage === totalPages}
-                className="relative inline-flex items-center px-3 py-2 rounded-r-md border border-purple-300 bg-white text-sm font-medium text-purple-700 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          
+        />
       </div>
     </AdminLayout>
   );

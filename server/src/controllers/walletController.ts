@@ -28,10 +28,16 @@ export class WalletController implements IWalletController {
         });
         return;
       }
-      const wallet = await this.walletService.getWallet(userId);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      const { wallet, pagination } = await this.walletService.getWallet(userId, page, limit);
+      
+      //const wallet = await this.walletService.getWallet(userId);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         wallet,
+        pagination
       });
     } catch (error) {
       console.error("Get Wallet Error:", error);

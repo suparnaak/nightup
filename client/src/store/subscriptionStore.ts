@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { adminRepository } from "../repositories/adminRepository";
+import { adminRepository } from "../services/adminService";
 
 export interface SubscriptionPlan {
   id: string;
@@ -12,7 +12,14 @@ interface SubscriptionState {
   subscriptions: SubscriptionPlan[];
   isLoading: boolean;
   error: string | null;
-  getSubscriptions: () => Promise<SubscriptionPlan[]>;
+  pagination: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+  };
+  //getSubscriptions: () => Promise<SubscriptionPlan[]>;
+  getSubscriptions: (page?: number, limit?: number) => Promise<SubscriptionPlan[]>;
   createSubscription: (payload: {
     name: string;
     duration: string;
@@ -29,8 +36,14 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   subscriptions: [],
   isLoading: false,
   error: null,
+  pagination: {
+    total: 0,
+    page: 1,
+    totalPages: 0,
+    limit: 10
+  },
 
-  getSubscriptions: async () => {
+  /* getSubscriptions: async () => {
     set({ isLoading: true, error: null });
     try {
       const data = await adminRepository.getSubscriptions();
@@ -39,6 +52,28 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         ...sub,
       }));
       set({ subscriptions, isLoading: false });
+      return subscriptions;
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Failed to load subscriptions",
+        isLoading: false,
+      });
+      throw error;
+    }
+  }, */
+  getSubscriptions: async (page = 1, limit = 10) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await adminRepository.getSubscriptions(page, limit);
+      const subscriptions = data.subscriptions.map((sub: any) => ({
+        id: sub._id.toString(),
+        ...sub,
+      }));
+      set({ 
+        subscriptions, 
+        pagination: data.pagination,
+        isLoading: false 
+      });
       return subscriptions;
     } catch (error: any) {
       set({

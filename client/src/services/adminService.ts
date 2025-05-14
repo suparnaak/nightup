@@ -2,17 +2,13 @@ import axiosAdminClient from "../api/axiosAdminClient";
 
 export const adminRepository = {
   // list all the hosts
-  /* getHosts: async (page = 1, limit = 10) => {
-    const response = await axiosAdminClient.get("/hosts", {
-      params: { page, limit }
-    });
-    return response.data; // { hosts: [...], pagination: { total, page, pages, limit } }
-  }, */
+  
   getHosts: async (page = 1, limit = 10) => {
     const response = await axiosAdminClient.get("/hosts", {
       params: { page, limit }
     });
-    return response.data; // { hosts: [...], pagination: { total, page, totalPages, limit } }
+    console.log(response)
+    return response.data; 
   },
   // document verification
   verifyDocument: async ({
@@ -71,9 +67,15 @@ export const adminRepository = {
     return response.data;
   },
   // subscription management
-  getSubscriptions: async () => {
+ /*  getSubscriptions: async () => {
     const response = await axiosAdminClient.get("/subscriptions");
     return response.data;
+  }, */
+  getSubscriptions: async (page = 1, limit = 10) => {
+    const response = await axiosAdminClient.get("/subscriptions", {
+      params: { page, limit }
+    });
+    return response.data; // { subscriptions: [...], pagination: { total, page, totalPages, limit } }
   },
   createSubscription: async (payload: {
     name: string;
@@ -95,9 +97,15 @@ export const adminRepository = {
     return response.data;
   },
   // coupon management
-  getCoupons: async () => {
+ /*  getCoupons: async () => {
     const response = await axiosAdminClient.get("/coupons");
     return response.data; // This should be the { success, coupons } object
+  }, */
+  getCoupons: async (page = 1, limit = 10) => {
+    const response = await axiosAdminClient.get("/coupons", {
+      params: { page, limit }
+    });
+    return response.data; // { success: true, coupons: [...], pagination: { total, page, totalPages, limit } }
   },
   createCoupon: async (payload: {
     couponCode: string;
@@ -128,9 +136,15 @@ export const adminRepository = {
     return response.data;
   },
   //category management
-  getCategories: async () => {
+  /* getCategories: async () => {
     const response = await axiosAdminClient.get("/event-types");
     return response.data;
+  }, */
+   getCategories: async (page = 1, limit = 10) => {
+    const response = await axiosAdminClient.get("/event-types", {
+      params: { page, limit }
+    });
+    return response.data; // { categories: [...], pagination: { total, page, totalPages, limit } }
   },
   createCategory: async (payload: {
     name: string;

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { hostRepository } from "../repositories/hostRepository";
+import { hostRepository } from "../services/hostService";
 
 export interface HostSubscription {
   id?: string;      

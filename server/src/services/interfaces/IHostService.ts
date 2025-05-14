@@ -23,7 +23,9 @@ export interface IHostService {
     success: boolean;
     message: string;
     token: string;
+    refreshToken: string;
     otpRequired?: boolean;
     host: Partial<IHost>;
   }>;
+  refreshToken(refreshToken: string): Promise<{ token: string; message: string }>;
 }

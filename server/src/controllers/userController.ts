@@ -188,6 +188,12 @@ export class UserController implements IUserController{
         sameSite: "strict",
         maxAge: 3600000,
         path: "/",
+      }).cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 3600000,
+        path: "/",
       });
       res.redirect(
         `${process.env.CORS_ORIGIN}/auth/google/callback?token=${result.token}`
@@ -269,9 +275,15 @@ export class UserController implements IUserController{
         sameSite: "strict" as "strict",
         maxAge: 1 * 60 * 60 * 1000,
       };
-
+      const refreshTokenCookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict' as 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      };
       res
         .cookie("token", result.token, cookieOptions)
+        .cookie("refreshToken", result.refreshToken, refreshTokenCookieOptions)
         .status(STATUS_CODES.SUCCESS)
         .json({
           success: true,
@@ -289,6 +301,38 @@ export class UserController implements IUserController{
       res.status(STATUS_CODES.SERVER_ERROR).json({
         success: false,
         message: errMessage,
+      });
+    }
+  }
+  async refreshToken(req: Request, res: Response): Promise<void> {
+    try {
+      const refreshToken = req.cookies.refreshToken;
+      if (!refreshToken) {
+        res.status(STATUS_CODES.UNAUTHORIZED).json({ success: false, message: MESSAGES.COMMON.ERROR.REFRESH_TOKEN_MISSING });
+        return;
+      }
+      const result = await this.userService.refreshToken(refreshToken);
+
+      const accessTokenCookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict' as const,
+        maxAge: 1 * 60 * 60 * 1000, // 1 hour
+      };
+
+      res
+        .cookie('token', result.token, accessTokenCookieOptions)
+        .status(STATUS_CODES.SUCCESS)
+        .json({
+          success: true,
+          message: result.message,
+          token: result.token,
+        });
+    } catch (error) {
+      console.error("Refresh Token Error:", error);
+      res.status(STATUS_CODES.UNAUTHORIZED).json({
+        success: false,
+        message: MESSAGES.COMMON.ERROR.REFRESH_TOKEN_INVALID,
       });
     }
   }

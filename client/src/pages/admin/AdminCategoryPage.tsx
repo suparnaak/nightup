@@ -1,8 +1,10 @@
+// src/pages/admin/AdminCategoryPage.tsx
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import toast from "react-hot-toast";
 import Spinner from "../../components/common/Spinner";
 import { useCategoryStore, Category } from "../../store/categoryStore";
+import Pagination from "../../components/common/Pagination";
 
 interface FormErrors {
   name?: string;
@@ -19,12 +21,11 @@ const AdminCategoryPage: React.FC = () => {
   } = useCategoryStore();
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(
-    null
-  );
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({ name: "", description: "" });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -79,6 +80,7 @@ const AdminCategoryPage: React.FC = () => {
         toast.success("Category created");
       }
       setModalVisible(false);
+      setCurrentPage(1);
       await getCategories();
     } catch (err: any) {
       console.error(err);
@@ -86,18 +88,16 @@ const AdminCategoryPage: React.FC = () => {
     }
   };
 
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentItems = categories.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(categories.length / itemsPerPage);
+  // Paginated items
+  const totalPages = Math.ceil(categories.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = categories.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <AdminLayout>
       <div className="p-6">
         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">
-            Event Category Management
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-800">Event Category Management</h2>
           <button
             onClick={openModalForAdd}
             className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300"
@@ -109,64 +109,56 @@ const AdminCategoryPage: React.FC = () => {
         {isLoading ? (
           <Spinner />
         ) : (
-          <div className="overflow-x-auto shadow-lg rounded-lg">
-            <table className="min-w-full bg-white divide-y divide-gray-200">
-              <thead className="bg-purple-600">
-                <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-white">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-white">
-                    Description
-                  </th>
-                  <th className="px-6 py-3 text-center text-sm font-semibold text-white">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {currentItems.map((cat) => (
-                  <tr
-                    key={cat.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                      {cat.name}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-800">
-                      {cat.description}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => openModalForEdit(cat)}
-                        className="px-4 py-1 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition-colors text-xs"
-                      >
-                        Edit
-                      </button>
-                    </td>
+          <>
+            <div className="overflow-x-auto shadow-lg rounded-lg">
+              <table className="min-w-full bg-white divide-y divide-gray-200">
+                <thead className="bg-purple-600">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-white">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-white">
+                      Description
+                    </th>
+                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {currentItems.map((cat) => (
+                    <tr
+                      key={cat.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                        {cat.name}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-800">
+                        {cat.description}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => openModalForEdit(cat)}
+                          className="px-4 py-1 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition-colors text-xs"
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             {totalPages > 1 && (
-              <div className="flex justify-center mt-6 space-x-2">
-                {Array.from({ length: totalPages }, (_, idx) => (
-                  <button
-                    key={idx + 1}
-                    onClick={() => setCurrentPage(idx + 1)}
-                    className={`px-4 py-2 border rounded-md transition-colors ${
-                      currentPage === idx + 1
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-white text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                className="mt-6"
+              />
             )}
-          </div>
+          </>
         )}
 
         {/* Modal */}

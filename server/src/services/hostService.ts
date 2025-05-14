@@ -143,6 +143,7 @@ export class HostService implements IHostService {
     success: boolean;
     message: string;
     token: string;
+    refreshToken: string;
     otpRequired?: boolean;
     host: Partial<IHost>;
   }> {
@@ -152,6 +153,7 @@ export class HostService implements IHostService {
         success: false,
         message: MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS || "Invalid email or password",
         token: "",
+        refreshToken: "",
         host: {},
       };
     }
@@ -160,6 +162,7 @@ export class HostService implements IHostService {
         success: false,
         message: MESSAGES.COMMON.ERROR.ACCOUNT_NOT_VERIFIED || "Account not verified",
         token: "",
+        refreshToken: "",
         otpRequired: true,
         host: {},
       };
@@ -169,6 +172,7 @@ export class HostService implements IHostService {
         success: false,
         message: MESSAGES.COMMON.ERROR.BLOCKED || "Your account is blocked.",
         token: "",
+        refreshToken: "",
         host: {},
       };
     }
@@ -178,25 +182,34 @@ export class HostService implements IHostService {
         success: false,
         message: MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS || "Invalid email or password",
         token: "",
+        refreshToken: "",
         host: {},
       };
     }
     const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
+    const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+    if (!jwtSecret || !jwtRefreshSecret) {
       return {
         success: false,
         message: MESSAGES.COMMON.ERROR.JWT_SECRET_MISSING || "JWT secret missing",
         token: "",
+        refreshToken: "",
         host: {},
       };
     }
     const token = jwt.sign({ hostId: host._id, type: "host" }, jwtSecret, {
       expiresIn: "1h",
     });
+    const refreshToken = jwt.sign(
+          { hostId: host._id, type: "host" },
+          jwtRefreshSecret,
+          { expiresIn: "7d" }
+        );
     return {
       success: true,
       message: MESSAGES.COMMON.SUCCESS.LOGIN || "Login successful",
       token,
+      refreshToken,
       host: {
         id: host._id,
         name: host.name,
@@ -206,6 +219,34 @@ export class HostService implements IHostService {
       },
     };
   }
+  async refreshToken(
+      refreshToken: string
+    ): Promise<{ success: boolean; token: string; message: string }> {
+      const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret || !jwtRefreshSecret) {
+        throw new Error(MESSAGES.COMMON.ERROR.JWT_SECRET_MISSING);
+      }
+      try {
+        const decoded = jwt.verify(refreshToken, jwtRefreshSecret) as {
+          hostId: string;
+          type: string;
+        };
+        const newAccessToken = jwt.sign(
+          { hostId: decoded.hostId, type: "host" },
+          jwtSecret,
+          { expiresIn: "1h" }
+        );
+  
+        return {
+          success: true,
+          token: newAccessToken,
+          message: MESSAGES.COMMON.SUCCESS.TOKEN_REFRESH,
+        };
+      } catch (error) {
+        throw new Error("Invalid refresh token");
+      }
+    }
 }
 
 //export default HostService;

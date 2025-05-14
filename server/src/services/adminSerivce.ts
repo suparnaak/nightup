@@ -15,6 +15,7 @@ import { IHost } from "../models/host";
 import { sendDocumentVerificationEmail } from "../utils/mailer";
 //import UserRepository from "../repositories/userRepository";
 import { IUser } from "../models/user";
+import { IHostSubscriptionRepository } from '../repositories/interfaces/IHostSubscriptionRepository';
 
 @injectable()
 export class AdminService implements IAdminService {
@@ -24,7 +25,9 @@ export class AdminService implements IAdminService {
     @inject(TYPES.HostRepository)
       private hostRepository: IHostRepository,
     @inject(TYPES.UserRepository)
-    private userRepository: IUserRepository
+    private userRepository: IUserRepository,
+    @inject(TYPES.HostSubscriptionRepository)
+    private hostSubscriptionRepo: IHostSubscriptionRepository,
     
   ){}
   async login(

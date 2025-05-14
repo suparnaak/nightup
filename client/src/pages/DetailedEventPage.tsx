@@ -10,6 +10,7 @@ import { useAuthStore } from "../store/authStore";
 import { useUserStore } from "../store/userStore";
 import { useChatStore } from "../store/chatStore";
 import { useBookingStore } from "../store/bookingStore"; 
+import { io } from "../config/SocketClient";
 import {
   Calendar,
   Clock,
@@ -39,7 +40,7 @@ const DetailedEventPage: React.FC = () => {
   // Use the bookingStore for reviews
   const { reviews, fetchReviewsByHost } = useBookingStore();
 
-  const { messages, isLoading: chatLoading, error: chatError, fetchMessages, sendMessage } = useChatStore();
+  const { messages, isLoading: chatLoading, error: chatError, fetchMessages, sendMessage, setMessages } = useChatStore();
 
   const [showChat, setShowChat] = useState(false);
   const [minimizedChat, setMinimizedChat] = useState(false);
@@ -126,6 +127,38 @@ const DetailedEventPage: React.FC = () => {
       messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, showChat, minimizedChat]);
+
+  // ADDED: Real-time chat socket handler
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id || !event?.hostId?._id || !event?._id) return;
+    
+    console.log('Setting up socket handler for chat in DetailedEventPage');
+    
+    // Join user's room to receive messages
+    io.emit('joinUserRoom', user.id);
+    
+    const handleNewMessage = (msg: any) => {
+      console.log('Received message via socket in DetailedEventPage:', msg);
+      
+      // Check if this message belongs to the current conversation
+      if (
+        msg.eventId === event._id && 
+        ((msg.senderId === user.id && msg.receiverId === event.hostId._id) ||
+         (msg.senderId === event.hostId._id && msg.receiverId === user.id))
+      ) {
+        console.log('Adding message to current chat window');
+        // Update messages state directly
+        setMessages((prevMessages: any[]) => [...prevMessages, msg]);
+      }
+    };
+    
+    io.on('receiveMessage', handleNewMessage);
+    
+    return () => {
+      console.log('Removing socket event listener in DetailedEventPage');
+      io.off('receiveMessage', handleNewMessage);
+    };
+  }, [isAuthenticated, user?.id, event?.hostId?._id, event?._id, setMessages]);
 
   const isLiked = Boolean(event && savedEvents.some(se => se.event?._id === event._id));
 

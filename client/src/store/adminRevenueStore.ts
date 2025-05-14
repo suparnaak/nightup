@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { adminRepository } from "../repositories/adminRepository";
+import { adminRepository } from "../services/adminService";
 
 export interface RevenueData {
   totalRevenue: number;

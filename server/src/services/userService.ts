@@ -125,7 +125,7 @@ export class UserService implements IUserService {
   }
   
   //google signup
-  async processGoogleAuth(profile: any): Promise<{ user: IUser; token: string; message: string; status: number }> {
+  async processGoogleAuth(profile: any): Promise<{ user: IUser; token: string; refreshToken: string; message: string; status: number }> {
     const email = profile.email;
     if (!email) {
       throw new Error(MESSAGES.USER.ERROR.NO_GOOGLE_AUTH);
@@ -150,7 +150,9 @@ export class UserService implements IUserService {
     }
   
     const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
+    const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+
+    if (!jwtSecret || !jwtRefreshSecret) {
       throw new Error(MESSAGES.COMMON.ERROR.JWT_SECRET_MISSING);
     }
   
@@ -161,17 +163,24 @@ export class UserService implements IUserService {
     email: user.email,  
     role: user.role,
     }, jwtSecret, { expiresIn: "1h" });
+
+    const refreshToken = jwt.sign(
+              { userId: user._id, type: "user" },
+              jwtRefreshSecret,
+              { expiresIn: "7d" }
+            );
   
     return {
       user,
       token,
+      refreshToken,
       message: MESSAGES.COMMON.SUCCESS.LOGIN,
       status: 200,
     };
   }  
 
   //login
-  async login(email: string, password: string): Promise<{ success: boolean; message: string; token: string; otpRequired?: boolean; user: Partial<IUser> }> {
+  async login(email: string, password: string): Promise<{ success: boolean; message: string; token: string; refreshToken: string; otpRequired?: boolean; user: Partial<IUser> }> {
     const user = await this.userRepository.findByEmail(email);
     console.log(user)
     if (!user) {
@@ -180,6 +189,7 @@ export class UserService implements IUserService {
         success: false, 
         message: MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS || "Invalid email or password", 
         token: "", 
+        refreshToken:"",
         user: {} 
       };
     }
@@ -189,6 +199,7 @@ export class UserService implements IUserService {
         success: false, 
         message: MESSAGES.COMMON.ERROR.ACCOUNT_NOT_VERIFIED || "Account not verified", 
         token: "", 
+        refreshToken:"",
         otpRequired: true, 
         user: {} 
       };
@@ -200,6 +211,7 @@ export class UserService implements IUserService {
         success: false, 
         message: MESSAGES.COMMON.ERROR.BLOCKED || "Your account is blocked.", 
         token: "", 
+        refreshToken:"",
         user: {} 
       };
     }
@@ -211,16 +223,20 @@ export class UserService implements IUserService {
         success: false, 
         message: MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS || "Invalid email or password", 
         token: "", 
+        refreshToken:"",
         user: {} 
       };
     }
   
     const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
+    const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+
+    if (!jwtSecret || !jwtRefreshSecret) {
       return { 
         success: false, 
         message: MESSAGES.COMMON.ERROR.JWT_SECRET_MISSING || "JWT secret missing", 
         token: "", 
+        refreshToken:"",
         user: {} 
       };
     }
@@ -228,11 +244,17 @@ export class UserService implements IUserService {
     const token = jwt.sign({ userId: user._id, type: "user" }, jwtSecret, {
       expiresIn: "1h",
     });
+    const refreshToken = jwt.sign(
+              { userId: user._id, type: "user" },
+              jwtRefreshSecret,
+              { expiresIn: "7d" }
+            );
   
     return {
       success: true,
       message: MESSAGES.COMMON.SUCCESS.LOGIN || "Login successful",
       token,
+      refreshToken,
       user: {
         id: user._id,
     name: user.name,
@@ -242,6 +264,35 @@ export class UserService implements IUserService {
       }
     };
   }
+
+  async refreshToken(
+        refreshToken: string
+      ): Promise<{ success: boolean; token: string; message: string }> {
+        const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret || !jwtRefreshSecret) {
+          throw new Error(MESSAGES.COMMON.ERROR.JWT_SECRET_MISSING);
+        }
+        try {
+          const decoded = jwt.verify(refreshToken, jwtRefreshSecret) as {
+            userId: string;
+            type: string;
+          };
+          const newAccessToken = jwt.sign(
+            { userId: decoded.userId, type: "user" },
+            jwtSecret,
+            { expiresIn: "1h" }
+          );
+    
+          return {
+            success: true,
+            token: newAccessToken,
+            message: MESSAGES.COMMON.SUCCESS.TOKEN_REFRESH,
+          };
+        } catch (error) {
+          throw new Error("Invalid refresh token");
+        }
+      }
   
   
 
