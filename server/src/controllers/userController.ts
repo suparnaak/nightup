@@ -251,7 +251,7 @@ export class UserController implements IUserController{
       }
 
       const result = await this.userService.login(email, password);
-      console.log(result);
+      console.log(result.refreshToken);
       if (!result.success) {
         //console.log(result.otpRequired)
         console.log("success false");

@@ -249,7 +249,7 @@ export class UserService implements IUserService {
               jwtRefreshSecret,
               { expiresIn: "7d" }
             );
-  
+  console.log(refreshToken)
     return {
       success: true,
       message: MESSAGES.COMMON.SUCCESS.LOGIN || "Login successful",
