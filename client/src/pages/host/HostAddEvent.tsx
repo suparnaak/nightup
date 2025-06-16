@@ -6,11 +6,13 @@ import { useEventStore } from "../../store/eventStore";
 import { validateEventForm } from "../../utils/eventValidation";
 import { useCategoryStore } from "../../store/categoryStore";
 import toast from "react-hot-toast";
+import { useAuthStore } from "../../store/authStore";
 
 const HostAddEvent: React.FC = () => {
   const navigate = useNavigate();
   const { addEvent } = useEventStore();
   const { categories, getHostCategories } = useCategoryStore();
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -108,7 +110,10 @@ const HostAddEvent: React.FC = () => {
     e.preventDefault();
     setError("");
     if (!validateForm()) return;
-
+     if (!user) {
+      toast.error("You must be logged in to create an event");
+      return;
+    }
     setLoading(true);
     try {
       let eventImageUrl = "";
@@ -134,6 +139,7 @@ const HostAddEvent: React.FC = () => {
         eventImage: eventImageUrl,
         additionalDetails,
         isBlocked: false,
+        hostId: user.id,
       };
 
       await addEvent(eventData);
@@ -163,7 +169,7 @@ const HostAddEvent: React.FC = () => {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              required
+              /* required */
               className="w-full border border-gray-300 p-2 rounded"
             />
             {formErrors.title && (
@@ -179,7 +185,7 @@ const HostAddEvent: React.FC = () => {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 min={getTodayDate()}
-                required
+                /* required */
                 className="w-full border border-gray-300 p-2 rounded"
               />
               {formErrors.date && (
@@ -192,7 +198,7 @@ const HostAddEvent: React.FC = () => {
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                required
+                /* required */
                 className="w-full border border-gray-300 p-2 rounded"
               />
               {formErrors.startTime && (
@@ -207,7 +213,7 @@ const HostAddEvent: React.FC = () => {
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                required
+                /* required */
                 className="w-full border border-gray-300 p-2 rounded"
               />
               {formErrors.endTime && (
@@ -224,7 +230,7 @@ const HostAddEvent: React.FC = () => {
               type="text"
               value={venueName}
               onChange={(e) => setVenueName(e.target.value)}
-              required
+              /* required */
               className="w-full border border-gray-300 p-2 rounded"
             />
             {formErrors.venueName && (
@@ -240,7 +246,7 @@ const HostAddEvent: React.FC = () => {
                 type="text"
                 value={venueCity}
                 onChange={(e) => setVenueCity(e.target.value)}
-                required
+                /* required */
                 className="w-full border border-gray-300 p-2 rounded"
               />
               {formErrors.venueCity && (
@@ -255,7 +261,7 @@ const HostAddEvent: React.FC = () => {
                 type="text"
                 value={venueState}
                 onChange={(e) => setVenueState(e.target.value)}
-                required
+                /* required */
                 className="w-full border border-gray-300 p-2 rounded"
               />
               {formErrors.venueState && (
@@ -270,7 +276,7 @@ const HostAddEvent: React.FC = () => {
                 type="text"
                 value={venueZip}
                 onChange={(e) => setVenueZip(e.target.value)}
-                required
+                /* required */
                 className="w-full border border-gray-300 p-2 rounded"
               />
               {formErrors.venueZip && (
@@ -286,7 +292,7 @@ const HostAddEvent: React.FC = () => {
               type="number"
               value={venueCapacity}
               onChange={(e) => setVenueCapacity(Number(e.target.value))}
-              required
+              /* required */
               className="w-full border border-gray-300 p-2 rounded"
             />
             {formErrors.venueCapacity && (
@@ -306,7 +312,7 @@ const HostAddEvent: React.FC = () => {
                 const sel = categories.find((c) => c.id === id);
                 setCategoryName(sel?.name || "");
               }}
-              required
+              /* required */
               className="w-full border border-gray-300 p-2 rounded"
             >
               <option value="">Select a category</option>
@@ -328,7 +334,7 @@ const HostAddEvent: React.FC = () => {
               type="text"
               value={artist}
               onChange={(e) => setArtist(e.target.value)}
-              required
+              /* required */
               className="w-full border border-gray-300 p-2 rounded"
             />
             {formErrors.artist && (
@@ -340,7 +346,7 @@ const HostAddEvent: React.FC = () => {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              required
+              /* required */
               className="w-full border border-gray-300 p-2 rounded"
             ></textarea>
             {formErrors.description && (
@@ -368,7 +374,7 @@ const HostAddEvent: React.FC = () => {
                     onChange={(e) =>
                       handleTicketChange(index, "ticketType", e.target.value)
                     }
-                    required
+                    /* required */
                     className="w-full border border-gray-300 p-2 rounded"
                   />
                 </div>
@@ -387,7 +393,7 @@ const HostAddEvent: React.FC = () => {
                         Number(e.target.value)
                       )
                     }
-                    required
+                    /* required */
                     className="w-full border border-gray-300 p-2 rounded"
                   />
                 </div>
@@ -406,7 +412,7 @@ const HostAddEvent: React.FC = () => {
                         Number(e.target.value)
                       )
                     }
-                    required
+                    /* required */
                     className="w-full border border-gray-300 p-2 rounded"
                   />
                 </div>

@@ -1,39 +1,7 @@
 import { create } from "zustand";
 import { userRepository } from "../services/userService";
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-}
-
-export interface UserProfileResponse {
-  user: UserProfile;
-  message: string;
-}
-
-/* export interface SavedEvent {
-  id: string;       
-  eventId: string;  
-  title: string;
-  eventImage?: string;
-  date?: Date;
-} */
-  export interface SavedEvent {
-    _id: string;
-    user: string;
-    event: {
-      _id: string;
-      title: string;
-      eventImage?: string;
-      date?: string;
-      startTime?: string;
-      endTime?: string;
-      venueName?: string;
-      venueCity?: string;
-    };
-  }
+import { UserProfile } from "../types/userTypes";
+import { SavedEvent } from "../types/eventTypes";
 
 interface UserProfileState {
   user: UserProfile | null;

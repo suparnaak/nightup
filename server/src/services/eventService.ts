@@ -2,29 +2,34 @@ import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
 import TYPES from '../config/di/types';
 import { Types } from 'mongoose';
-import { IEventService, IEvent } from './interfaces/IEventService';
+import { IEventService } from './interfaces/IEventService';
 import { IEventRepository } from '../repositories/interfaces/IEventRepository';
 import { IHostRepository } from '../repositories/interfaces/IHostRepository';
 import { IHostSubscriptionRepository } from '../repositories/interfaces/IHostSubscriptionRepository';
 import { IBookingRepository } from '../repositories/interfaces/IBookingRepository';
 import { MESSAGES } from "../utils/constants";
-import { IEventDocument } from '../models/events';
+import { CreateEventDto, UpdateEventDto, EventResponseDto } from '../dtos/event/EventDTO';
+import { EventMapper } from '../mappers/EventMapper';
+import { INotificationService } from './interfaces/INotificationService';
+import { CreateNotificationDto } from '../dtos/notification/NotificationDTO';
 
 @injectable()
 export class EventService implements IEventService {
-
   constructor(
     @inject(TYPES.EventRepository)
-    private eventRepository:IEventRepository,
+    private eventRepository: IEventRepository,
     @inject(TYPES.HostRepository)
-    private hostRepository:IHostRepository,
+    private hostRepository: IHostRepository,
     @inject(TYPES.HostSubscriptionRepository)
-    private hostSubscriptionRepository:IHostSubscriptionRepository,
+    private hostSubscriptionRepository: IHostSubscriptionRepository,
     @inject(TYPES.BookingRepository)
-    private bookingRepository: IBookingRepository
-  ){}
-  async addEvent(eventData: IEvent): Promise<IEvent> {
-    const host = await this.hostRepository.getHostProfile(eventData.hostId.toString());
+    private bookingRepository: IBookingRepository,
+    @inject(TYPES.NotificationService)
+    private notificationService: INotificationService,
+  ) {}
+
+  async addEvent(createEventDto: CreateEventDto): Promise<EventResponseDto> {
+    const host = await this.hostRepository.getHostProfile(createEventDto.hostId);
     if (!host) {
       throw new Error("Host not found.");
     }
@@ -34,16 +39,24 @@ export class EventService implements IEventService {
     if (host.documentStatus !== "approved") {
       throw new Error(MESSAGES.HOST.ERROR.DOCUMENT_NOT_VERIFIED);
     }
-    const hostSubscription = await this.hostSubscriptionRepository.getHostSubscription(eventData.hostId.toString());
 
-      if (!hostSubscription || hostSubscription.status !== "Active" || new Date() > hostSubscription.endDate) {
-        throw new Error(MESSAGES.HOST.ERROR.NO_SUBSCRIPTION);
-      }
-    return await this.eventRepository.addEvent(eventData);
+    const hostSubscription = await this.hostSubscriptionRepository.getHostSubscription(createEventDto.hostId);
+    if (!hostSubscription || hostSubscription.status !== "Active" || new Date() > hostSubscription.endDate) {
+      throw new Error(MESSAGES.HOST.ERROR.NO_SUBSCRIPTION);
+    }
+
+    const eventData = EventMapper.toPersistence(createEventDto);
+    
+    const savedEvent = await this.eventRepository.addEvent(eventData);
+    
+    return EventMapper.toResponse(savedEvent);
   }
 
-  async getEventsByHostId(hostId: Types.ObjectId): Promise<IEvent[]> {
-    return await this.eventRepository.getEventsByHostId(hostId);
+
+  async getEventsByHostId(hostId: string): Promise<EventResponseDto[]> {
+    const hostObjectId = new Types.ObjectId(hostId);
+    const events = await this.eventRepository.getEventsByHostId(hostObjectId);
+    return EventMapper.toResponseArray(events);
   }
 
   async getAllEvents(query: {
@@ -53,46 +66,126 @@ export class EventService implements IEventService {
     category?: string,
     date?: string,
     city?: string
-  }): Promise<{ events: IEvent[], total: number }> {
-    return await this.eventRepository.getAllEvents(query);
+  }): Promise<{ events: EventResponseDto[], total: number }> {
+    const result = await this.eventRepository.getAllEvents(query);
+    return {
+      events: EventMapper.toResponseArray(result.events),
+      total: result.total
+    };
   }
-  
+
   async getEventsByCity(city: string, query: {
     page?: number,
     limit?: number,
     search?: string,
     category?: string,
     date?: string
-  }): Promise<{ events: IEvent[], total: number }> {
-    
-    return await this.eventRepository.getAllEvents({ ...query, city });
-  }
-  /* async getEventsByCity(city: string): Promise<IEvent[]> {
-    return await EventRepository.getEventsByCity(city);
-  } */
-  async getEventDetails(eventId: Types.ObjectId): Promise<IEvent | null> {
-    return await this.eventRepository.getEventById(eventId);
-  }
-  async editEvent(eventId: Types.ObjectId, eventData: Partial<IEvent>): Promise<IEvent | null> {
-    return await this.eventRepository.editEvent(eventId, eventData);
+  }): Promise<{ events: EventResponseDto[], total: number }> {
+    const result = await this.eventRepository.getAllEvents({ ...query, city });
+    return {
+      events: EventMapper.toResponseArray(result.events),
+      total: result.total
+    };
   }
 
-  async deleteEvent(eventId: Types.ObjectId, reason: string): Promise<IEventDocument> {
-    const updatedEvent = await this.eventRepository.blockEvent(eventId, reason);
-    await this.bookingRepository.cancelAndRefundBookings(eventId, reason);
-    if (!updatedEvent) throw new Error(MESSAGES.COMMON.ERROR.NO_EVENT_FOUND);
-    return updatedEvent;
+  async getEventDetails(eventId: string): Promise<EventResponseDto | null> {
+    /* const eventObjectId = new Types.ObjectId(eventId);
+    const event = await this.eventRepository.getEventById(eventObjectId);
+    return event ? EventMapper.toResponse(event) : null; */
+    const event = await this.eventRepository.findByIdPopulated(eventId);
+    if (!event) return null;
+
+    return EventMapper.toResponse(event);
   }
-  async  getAllEventsForAdmin({
+
+  //edit event
+  async editEvent(eventId: string, updateEventDto: UpdateEventDto): Promise<EventResponseDto | null> {
+    /* const eventObjectId = new Types.ObjectId(eventId);
+    
+    const updateData = EventMapper.toUpdatePersistence(updateEventDto);
+
+    const updatedEvent = await this.eventRepository.editEvent(eventObjectId, updateData);
+    return updatedEvent ? EventMapper.toResponse(updatedEvent) : null; */
+    const eventObjectId = new Types.ObjectId(eventId);
+    const updateData = EventMapper.toUpdatePersistence(updateEventDto);
+
+    const updatedEvent = await this.eventRepository.editEvent(eventObjectId, updateData);
+    if (!updatedEvent) {
+      return null;
+    }
+
+    const userIds = await this.bookingRepository.findUserIdsByEvent(eventId);
+
+    const notifications: CreateNotificationDto[] = userIds.map((uid) => ({
+    user: uid.toString(),
+    event: updatedEvent._id.toString(),
+    message: `The event "${updatedEvent.title}" has been updated. Please visit your Bookings for the updated details`,
+
+  }));
+
+  await this.notificationService.notifyMultipleUsers(notifications);
+
+
+    return EventMapper.toResponse(updatedEvent);
+  }
+
+/*   async deleteEvent(eventId: string, reason: string): Promise<EventResponseDto> {
+    const eventObjectId = new Types.ObjectId(eventId);
+    
+    const updatedEvent = await this.eventRepository.blockEvent(eventObjectId, reason);
+    if (!updatedEvent) {
+      throw new Error(MESSAGES.COMMON.ERROR.NO_EVENT_FOUND);
+    }
+
+    await this.bookingRepository.cancelAndRefundBookings(eventObjectId, reason);
+    
+    return EventMapper.toResponse(updatedEvent);
+  } */
+ async deleteEvent(eventId: string, reason: string): Promise<EventResponseDto> {
+  const eventObjectId = new Types.ObjectId(eventId);
+  
+  // Get the event details before blocking it (to access title for notification)
+  const event = await this.eventRepository.getEventById(eventObjectId);
+  if (!event) {
+    throw new Error(MESSAGES.COMMON.ERROR.NO_EVENT_FOUND);
+  }
+
+  // Get user IDs who have bookings for this event before cancelling
+  const userIds = await this.bookingRepository.findUserIdsByEvent(eventId);
+  
+  const updatedEvent = await this.eventRepository.blockEvent(eventObjectId, reason);
+  if (!updatedEvent) {
+    throw new Error(MESSAGES.COMMON.ERROR.NO_EVENT_FOUND);
+  }
+
+  // Cancel and refund bookings
+  await this.bookingRepository.cancelAndRefundBookings(eventObjectId, reason);
+  
+  // Send notifications to users about event cancellation
+  if (userIds.length > 0) {
+    const notifications: CreateNotificationDto[] = userIds.map((uid) => ({
+      user: uid.toString(),
+      event: updatedEvent._id.toString(),
+      message: `The event "${event.title}" has been cancelled. Reason: ${reason}. Your booking has been refunded.`,
+    }));
+
+    await this.notificationService.notifyMultipleUsers(notifications);
+  }
+  
+  return EventMapper.toResponse(updatedEvent);
+}
+
+  async getAllEventsForAdmin({
     page,
     limit,
   }: {
     page: number;
     limit: number;
-  }): Promise<{ events: IEvent[]; total: number }> {
-    return await this.eventRepository.getEventsForAdmin(page, limit);
+  }): Promise<{ events: EventResponseDto[]; total: number }> {
+    const result = await this.eventRepository.getEventsForAdmin(page, limit);
+    return {
+      events: EventMapper.toResponseArray(result.events),
+      total: result.total
+    };
   }
-  
 }
-
-//export default new EventService();

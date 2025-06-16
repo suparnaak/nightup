@@ -56,12 +56,9 @@ const HostEditEventPage: React.FC = () => {
           toast.error("Event not found.");
           return;
         }
-        // Pre-fill form data with fetched event details.
         setFormData({
           title: fetchedEvent.title,
-          // Format date as yyyy-mm-dd for the date input.
           date: new Date(fetchedEvent.date).toISOString().split("T")[0],
-          // Format time as HH:MM in 24-hour format.
           startTime: new Date(fetchedEvent.startTime).toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit" }),
           endTime: new Date(fetchedEvent.endTime).toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit" }),
           venueName: fetchedEvent.venueName,
@@ -96,30 +93,30 @@ const HostEditEventPage: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  
+const handleSubmit = async (e: FormEvent) => {
+  e.preventDefault();
+  setSubmitting(true);
+  
+  try {
+    const processedData = {
+      ...formData,
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime
+    };
     
-    try {
-      // Convert string dates to Date objects
-      const processedData = {
-        ...formData,
-        date: new Date(formData.date),
-        startTime: new Date(`${formData.date}T${formData.startTime}`),
-        endTime: new Date(`${formData.date}T${formData.endTime}`)
-      };
-      
-      await editEvent(id!, processedData);
-      toast.success("Event updated successfully!");
-      navigate("/host/events");
-    } catch (err: any) {
-      toast.error("Failed to update event.");
-      console.error(err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
+  
+    await editEvent(id!, processedData);
+    toast.success("Event updated successfully!");
+    navigate("/host/events");
+  } catch (err: any) {
+    toast.error("Failed to update event.");
+    console.error(err);
+  } finally {
+    setSubmitting(false);
+  }
+};
   if (loading) return <Spinner />;
   if (error) return <p className="text-red-600">{error}</p>;
 

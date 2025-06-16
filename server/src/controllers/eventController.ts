@@ -1,13 +1,14 @@
 import 'reflect-metadata';
-import { injectable,inject } from 'inversify';
+import { injectable, inject } from 'inversify';
 import TYPES from '../config/di/types';
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 import { IEventController } from "./interfaces/IEventController";
 import { IEventService } from '../services/interfaces/IEventService';
-import { IEvent } from "../services/interfaces/IEventService";
 import { MESSAGES, STATUS_CODES } from "../utils/constants";
 import NodeGeocoder, { Options as GeocoderOptions } from "node-geocoder";
+import { CreateEventDto, EventResponseDto, UpdateEventDto } from '../dtos/event/EventDTO';
+import { EventMapper } from '../mappers/EventMapper';
 
 const geocoderOptions: GeocoderOptions = {
   provider: "openstreetmap",
@@ -26,10 +27,10 @@ interface AuthRequest extends Request {
 export class EventController implements IEventController {
   constructor(
     @inject(TYPES.EventService)
-    private eventService:IEventService
+    private eventService: IEventService
+  ) {}
 
-  ){}
-  //add an event
+  // Add an event
   async addEvent(req: AuthRequest, res: Response): Promise<void> {
     try {
       const hostIdStr = req.user?.userId;
@@ -40,7 +41,6 @@ export class EventController implements IEventController {
         return;
       }
 
-      const hostId = new Types.ObjectId(hostIdStr);
       console.log("Received event data:", req.body);
 
       const {
@@ -85,17 +85,17 @@ export class EventController implements IEventController {
         return;
       }
 
-      const eventData: IEvent = {
+      const createEventDto: CreateEventDto = {
         title,
         startTime: new Date(`${date}T${startTime}`),
         endTime: new Date(`${date}T${endTime}`),
         date: new Date(date),
-        hostId,
+        hostId: hostIdStr,
         venueName,
         venueCity,
         venueState,
         venueZip,
-        venueCapacity,
+        venueCapacity: Number(venueCapacity),
         categoryId,
         category,
         artist,
@@ -105,23 +105,26 @@ export class EventController implements IEventController {
         additionalDetails,
         isBlocked: isBlocked || false,
       };
+
+      // Geocoding
       const fullAddress = `${venueZip}, ${venueCity}, ${venueState}`;
       const geoRes = await geocoder.geocode(fullAddress);
       if (geoRes && geoRes.length > 0) {
         const { latitude, longitude } = geoRes[0];
-        eventData.location = {
+        createEventDto.location = {
           type: "Point",
           coordinates: [Number(longitude), Number(latitude)],
         };
       } else {
         console.error("Geocoding failed for address:", fullAddress);
       }
-      const event = await this.eventService.addEvent(eventData);
+
+      const eventResponseDto = await this.eventService.addEvent(createEventDto);
 
       res.status(STATUS_CODES.CREATED).json({
         success: true,
         message: MESSAGES.HOST.SUCCESS.EVENT_CREATED,
-        event,
+        event: eventResponseDto,
       });
     } catch (error: any) {
       console.error("Error creating event:", error);
@@ -131,7 +134,7 @@ export class EventController implements IEventController {
     }
   }
 
-  //get events - host specific
+  // Get events - host specific
   async getEvents(req: AuthRequest, res: Response): Promise<void> {
     try {
       const hostIdStr = req.user?.userId;
@@ -142,8 +145,7 @@ export class EventController implements IEventController {
         return;
       }
 
-      const hostId = new Types.ObjectId(hostIdStr);
-      const events = await this.eventService.getEventsByHostId(hostId);
+      const events = await this.eventService.getEventsByHostId(hostIdStr);
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
@@ -158,14 +160,14 @@ export class EventController implements IEventController {
     }
   }
 
-  // get all events not host specific
+  // Get all events not host specific
   async getAllEvents(req: Request, res: Response): Promise<void> {
     try {
       const { city, page, limit, search, category, date } = req.query;
 
       const query = {
         page: page ? parseInt(page as string) : 1,
-        limit: limit ? parseInt(limit as string) : 6,
+        limit: limit ? parseInt(limit as string) : 2,
         search: search as string,
         category: category as string,
         date: date as string,
@@ -196,7 +198,8 @@ export class EventController implements IEventController {
       });
     }
   }
-  //get event's details
+
+  // Get event's details
   async getEventDetails(req: Request, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;
@@ -208,10 +211,8 @@ export class EventController implements IEventController {
         return;
       }
 
-      const event = await this.eventService.getEventDetails(
-        new Types.ObjectId(eventId)
-      );
-
+      const event = await this.eventService.getEventDetails(eventId);
+console.log("event details:", event)
       if (!event) {
         res.status(STATUS_CODES.NOT_FOUND).json({
           message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND,
@@ -231,6 +232,7 @@ export class EventController implements IEventController {
       });
     }
   }
+
   async editEvent(req: AuthRequest, res: Response): Promise<void> {
     try {
       const hostIdStr = req.user?.userId;
@@ -249,10 +251,60 @@ export class EventController implements IEventController {
         return;
       }
 
-      const updatedEvent = await this.eventService.editEvent(
-        new Types.ObjectId(eventId),
-        req.body
-      );
+      const updateEventDto: UpdateEventDto = { ...req.body };
+if (req.body.date) {
+        const parsedDate = new Date(req.body.date);
+        if (isNaN(parsedDate.valueOf())) {
+           res
+            .status(STATUS_CODES.BAD_REQUEST)
+            .json({ message: 'Invalid date format.' });
+            return
+        }
+        updateEventDto.date = parsedDate;
+      }
+      if (req.body.startTime) {
+        const baseDate = updateEventDto.date ?? new Date();
+        const isoDay = baseDate.toISOString().slice(0, 10);
+        const parsedStart = new Date(`${isoDay}T${req.body.startTime}`);
+        if (isNaN(parsedStart.valueOf())) {
+           res
+            .status(STATUS_CODES.BAD_REQUEST)
+            .json({ message: 'Invalid startTime for given date.' });
+            return
+        }
+        updateEventDto.startTime = parsedStart;
+        if (!req.body.date) {
+          updateEventDto.date = new Date(isoDay);
+        }
+      }
+       if (req.body.endTime) {
+        const baseDate = updateEventDto.date ?? new Date();
+        const isoDay = baseDate.toISOString().slice(0, 10);
+        const parsedEnd = new Date(`${isoDay}T${req.body.endTime}`);
+        if (isNaN(parsedEnd.valueOf())) {
+           res
+            .status(STATUS_CODES.BAD_REQUEST)
+            .json({ message: 'Invalid endTime for given date.' });
+            return
+        }
+        updateEventDto.endTime = parsedEnd;
+        if (!req.body.date) {
+          updateEventDto.date = new Date(isoDay);
+        }
+      }
+      if (updateEventDto.venueZip || updateEventDto.venueCity || updateEventDto.venueState) {
+        const fullAddress = `${updateEventDto.venueZip || ''}, ${updateEventDto.venueCity || ''}, ${updateEventDto.venueState || ''}`;
+        const geoRes = await geocoder.geocode(fullAddress);
+        if (geoRes && geoRes.length > 0) {
+          const { latitude, longitude } = geoRes[0];
+          updateEventDto.location = {
+            type: "Point",
+            coordinates: [Number(longitude), Number(latitude)],
+          };
+        }
+      }
+
+      const updatedEvent = await this.eventService.editEvent(eventId, updateEventDto);
       if (!updatedEvent) {
         res
           .status(STATUS_CODES.NOT_FOUND)
@@ -272,7 +324,9 @@ export class EventController implements IEventController {
       });
     }
   }
+ 
 
+   
   async deleteEvent(req: AuthRequest, res: Response): Promise<void> {
     try {
       const hostIdStr = req.user?.userId;
@@ -300,10 +354,8 @@ export class EventController implements IEventController {
         return;
       }
 
-      const updatedEvent = await this.eventService.deleteEvent(
-        new Types.ObjectId(eventId),
-        reason
-      );
+      const updatedEvent = await this.eventService.deleteEvent(eventId, reason);
+      
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         event: updatedEvent,
@@ -316,34 +368,32 @@ export class EventController implements IEventController {
       });
     }
   }
-  // admin side fetching all events
-async getAllEventsForAdmin(req: Request, res: Response): Promise<void> {
-  try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
 
-    const result = await this.eventService.getAllEventsForAdmin({ page, limit });
-console.log("events for admin",result)
-    res.status(STATUS_CODES.SUCCESS).json({
-      success: true,
-      message: MESSAGES.ADMIN.SUCCESS.EVENTS_FETCHED,
-      events: result.events,
-      pagination: {
-        total: result.total,
-        page,
-        limit,
-        totalPages: Math.ceil(result.total / limit),
-      },
-    });
-  } catch (error: any) {
-    console.error("Error fetching events for admin:", error);
-    res.status(STATUS_CODES.SERVER_ERROR).json({
-      message: error.message || MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-    });
+  // Admin side fetching all events
+  async getAllEventsForAdmin(req: Request, res: Response): Promise<void> {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 2;
+
+      const result = await this.eventService.getAllEventsForAdmin({ page, limit });
+      console.log("events for admin", result);
+
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        message: MESSAGES.ADMIN.SUCCESS.EVENTS_FETCHED,
+        events: result.events,
+        pagination: {
+          total: result.total,
+          page,
+          limit,
+          totalPages: Math.ceil(result.total / limit),
+        },
+      });
+    } catch (error: any) {
+      console.error("Error fetching events for admin:", error);
+      res.status(STATUS_CODES.SERVER_ERROR).json({
+        message: error.message || MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
+      });
+    }
   }
 }
-
-  
-}
-
-//export default new EventController();

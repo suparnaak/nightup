@@ -35,26 +35,6 @@ const AdminSidebar: React.FC = () => {
         >
           Hosts
         </NavLink>
-        {/* <NavLink
-          to="/admin/events"
-          className={({ isActive }) =>
-            isActive
-              ? "block px-4 py-2 font-semibold text-white bg-purple-600 rounded"
-              : "block px-4 py-2 font-semibold text-gray-700 hover:bg-purple-100 rounded"
-          }
-        >
-          Events
-        </NavLink> */}
-       {/*  <NavLink
-          to="/admin/bookings"
-          className={({ isActive }) =>
-            isActive
-              ? "block px-4 py-2 font-semibold text-white bg-purple-600 rounded"
-              : "block px-4 py-2 font-semibold text-gray-700 hover:bg-purple-100 rounded"
-          }
-        >
-          Bookings
-        </NavLink> */}
         <NavLink
           to="/admin/event-categories"
           className={({ isActive }) =>

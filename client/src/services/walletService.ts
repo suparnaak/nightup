@@ -2,15 +2,12 @@ import axiosUserClient from "../api/axiosUserClient";
 
 export const walletRepository = {
   // Fetch the wallet details
-  /* getWallet: async () => {
-    const response = await axiosUserClient.get("/wallet");
-    return response.data; 
-  }, */
+
   getWallet: async (page = 1, limit = 10) => {
     const response = await axiosUserClient.get(`/wallet?page=${page}&limit=${limit}`);
     return response.data;
   },
-  // Create a payment order for adding money to the wallet
+  // Creating payment order for adding money to the wallet
   createWalletOrder: async (amount: number) => {
     const response = await axiosUserClient.post("/wallet/create-order", { amount });
     return response.data; 

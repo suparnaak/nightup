@@ -2,13 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { authRepository } from '../services/authService';
 import {jwtDecode} from 'jwt-decode';
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: 'user' | 'host' | 'admin';
-}
+import { User } from '../types/userTypes';
 
 interface AuthState {
   user: User | null;
@@ -16,7 +10,7 @@ interface AuthState {
   error: string | null;
   isAuthenticated: boolean;
 
-  // Auth actions
+  // Auth related
   signup: (name: string, email: string, phone: string, password: string, confirmPassword: string) => Promise<any>;
   hostSignup: (name: string, email: string, phone: string, password: string, confirmPassword: string, hostType: string) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
@@ -49,6 +43,7 @@ export const useAuthStore = create<AuthState>()(
             password,
             confirmPassword,
           });
+          console.log(response)
           set({
             user: response.user,
             isAuthenticated: false,
@@ -75,6 +70,7 @@ export const useAuthStore = create<AuthState>()(
             confirmPassword,
             hostType,
           });
+          console.log(response)
           set({
             user: response.host,
             isAuthenticated: false,
@@ -219,7 +215,6 @@ export const useAuthStore = create<AuthState>()(
       getGoogleAuthUrl: () => {
         return `${import.meta.env.VITE_API_URL}/api/users/auth/google`;
       },
-      //upating user state after profile edit
       setUser: (user: User | null) => set({ user }),
     }),
     {

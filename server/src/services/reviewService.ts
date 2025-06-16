@@ -46,6 +46,7 @@ export class ReviewService implements IReviewService {
   }
 
   async getReviewByBookingId(bookingId: string): Promise<IReviewDocument | null> {
+    console.log("booking id at service",bookingId)
     return await this.reviewRepository.findByBookingId(bookingId);
   }
 

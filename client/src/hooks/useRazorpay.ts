@@ -1,11 +1,9 @@
 import { useCallback } from "react";
-
 declare global {
   interface Window {
     Razorpay: any;
   }
 }
-
 export interface RazorpayOptions {
   key: string;
   amount: number; 
@@ -25,7 +23,6 @@ export interface RazorpayOptions {
     color?: string;
   };
 }
-
 export const useRazorpay = () => {
   const openRazorpay = useCallback((options: RazorpayOptions) => {
     if (typeof window.Razorpay === "undefined") {

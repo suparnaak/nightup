@@ -10,9 +10,12 @@ export interface ITransaction {
 }
 
 export interface IWallet extends Document {
+    _id: Types.ObjectId;
   user: Types.ObjectId;
   balance: number;
   transactions: ITransaction[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const transactionSchema: Schema = new Schema({

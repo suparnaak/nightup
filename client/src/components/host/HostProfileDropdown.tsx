@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
-import { useChatStore } from "../../store/chatStore"; // Import the chat store
+import { useChatStore } from "../../store/chatStore"; 
 
 const HostProfileDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,7 +9,7 @@ const HostProfileDropdown: React.FC = () => {
   const navigate = useNavigate();
 
   const { user, logout } = useAuthStore();
-  const { conversations, listConversations } = useChatStore(); // Get conversations from chat store
+  const { conversations, listConversations } = useChatStore(); 
   
   const userName = user?.name || "Host";
   const initials = userName
@@ -19,13 +19,13 @@ const HostProfileDropdown: React.FC = () => {
     .slice(0, 2)
     .toUpperCase();
 
-  // Calculate total unread count
+  // for unread count
   const totalUnreadCount = conversations.reduce(
     (sum, conv) => sum + (conv.unreadCount || 0), 
     0
   );
 
-  // Fetch conversations when component mounts
+  // conversation fetching
   useEffect(() => {
     listConversations();
   }, [listConversations]);

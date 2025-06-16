@@ -28,18 +28,12 @@ export const bookingRepository = {
     const response = await axiosUserClient.post("/bookings/verify", payload);
     return response.data.success as boolean;
   },
-  //create booking
+  //create booking for wallet
   createBooking: async (bookingData: any) => {
     const response = await axiosUserClient.post("/bookings/create", bookingData);
     return response.data;
   },
 
-  /* getMyBookings: async () => {
-    const response = await axiosUserClient.get("/bookings");
-    console.log(response.data)
-    return response.data.bookings as any[];
-  }, */
-  // Frontend - bookingRepository.js
 async getMyBookings(page = 1, limit = 5) {
   const response = await axiosUserClient.get("/bookings", {
     params: { page, limit }
@@ -49,6 +43,7 @@ async getMyBookings(page = 1, limit = 5) {
     pagination: response.data.pagination
   };
 },
+
   cancelBooking: async (bookingId: string, reason: string) => {
     const response = await axiosUserClient.post(`/bookings/${bookingId}/cancel`, { reason });
     return response.data.success as boolean;

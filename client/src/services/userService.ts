@@ -1,6 +1,6 @@
 import axiosClient from "../api/axiosUserClient";
-import { SavedEvent } from "../store/userStore";
-import { Coupon } from "../store/couponStore";
+import { SavedEvent } from "../types/eventTypes";
+import { Coupon } from "../types/couponTypes";
 
 export const userRepository = {
   // Update the user profile

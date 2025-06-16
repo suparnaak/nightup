@@ -1,4 +1,3 @@
-// src/pages/admin/AdminCouponPage.tsx
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import toast from "react-hot-toast";
@@ -6,6 +5,8 @@ import Spinner from "../../components/common/Spinner";
 import Swal from "sweetalert2";
 import { useCouponStore } from "../../store/couponStore";
 import Pagination from "../../components/common/Pagination";
+import { DataTable } from "../../components/common/DataTable";
+import { ColumnDef } from "@tanstack/react-table";
 
 interface Coupon {
   id: string;
@@ -30,7 +31,6 @@ interface FormErrors {
 
 const AdminCouponPage: React.FC = () => {
   const { coupons, getCoupons, createCoupon, updateCoupon, deleteCoupon } = useCouponStore();
-
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
@@ -159,6 +159,98 @@ const AdminCouponPage: React.FC = () => {
     catch (err: any) { toast.error(err.response?.data?.message || "Failed to delete coupon"); }
   };
 
+  // columns
+  const columns: ColumnDef<Coupon>[] = [
+    {
+      accessorKey: "couponCode",
+      header: "Coupon Code",
+    },
+    {
+      accessorKey: "couponAmount",
+      header: "Amount",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center text-sm text-gray-800",
+      },
+      cell: ({ getValue }) => `₹${(getValue() as number).toFixed(2)}`,
+    },
+    {
+      accessorKey: "minimumAmount",
+      header: "Min. Amount",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center text-sm text-gray-800",
+      },
+      cell: ({ getValue }) => `₹${(getValue() as number).toFixed(2)}`,
+    },
+    {
+      accessorKey: "startDate",
+      header: "Start Date",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center text-sm text-gray-800",
+      },
+      cell: ({ getValue }) => new Date(getValue() as string).toLocaleDateString(),
+    },
+    {
+      accessorKey: "endDate",
+      header: "End Date",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center text-sm text-gray-800",
+      },
+      cell: ({ getValue }) => new Date(getValue() as string).toLocaleDateString(),
+    },
+    {
+      accessorKey: "couponQuantity",
+      header: "Quantity",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center text-sm text-gray-800",
+      },
+    },
+    {
+      accessorKey: "usedCount",
+      header: "Used",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center text-sm text-gray-800",
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center text-sm text-gray-800 capitalize",
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center text-sm",
+      },
+      cell: ({ row }) => (
+        <div>
+          <button
+            className="mr-2 px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-xs"
+            onClick={() => openModalForEdit(row.original)}
+          >
+            Edit
+          </button>
+          <button
+            className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs"
+            onClick={() => handleDelete(row.original.id)}
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   // Pagination Logic
   const totalPages = Math.ceil(coupons.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -177,41 +269,14 @@ const AdminCouponPage: React.FC = () => {
           <Spinner />
         ) : (
           <>
-            <div className="overflow-x-auto shadow-lg rounded-lg">
-              <table className="min-w-full bg-white divide-y divide-gray-200">
-                <thead className="bg-purple-600">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-white">Coupon Code</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">Amount</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">Min. Amount</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">Start Date</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">End Date</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">Quantity</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">Used</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">Status</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {currentCoupons.map(coupon => (
-                    <tr key={coupon.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{coupon.couponCode}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-800">₹{coupon.couponAmount.toFixed(2)}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-800">₹{coupon.minimumAmount.toFixed(2)}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-800">{new Date(coupon.startDate).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-800">{new Date(coupon.endDate).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-800">{coupon.couponQuantity}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-800">{coupon.usedCount}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-800 capitalize">{coupon.status}</td>
-                      <td className="px-6 py-4 text-center text-sm">
-                        <button className="mr-2 px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-xs" onClick={() => openModalForEdit(coupon)}>Edit</button>
-                        <button className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs" onClick={() => handleDelete(coupon.id)}>Delete</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={columns}
+              data={currentCoupons}
+              headerRowClassName="bg-purple-600"
+              headerCellClassName="px-6 py-3 text-left text-sm font-semibold text-white"
+              rowClassName="hover:bg-gray-50 transition-colors"
+              cellClassName="px-6 py-4 whitespace-nowrap text-sm text-gray-800"
+            />
             {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} className="mt-6" />}
           </>
         )}

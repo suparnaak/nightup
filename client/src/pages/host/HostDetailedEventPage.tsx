@@ -16,7 +16,6 @@ const HostDetailedEventPage: React.FC = () => {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const [showCancelModal, setShowCancelModal] = useState(false);
 
-  // whether the event is in the past
   const isPast = event ? new Date(event.date) < new Date() : false;
 
   useEffect(() => {

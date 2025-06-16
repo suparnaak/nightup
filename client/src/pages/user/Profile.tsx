@@ -21,6 +21,7 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     if (user) {
+      console.log("its me",user)
       setFormData({ name: user.name, phone: user.phone });
     }
   }, [user]);

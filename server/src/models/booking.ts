@@ -1,6 +1,8 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IBooking extends Document {
+    _id: Types.ObjectId;
+  
   userId: Types.ObjectId;
   eventId: Types.ObjectId;
   tickets: { ticketType: string; quantity: number; price: number }[];

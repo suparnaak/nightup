@@ -17,6 +17,7 @@ interface AuthRequest extends Request {
 export class ChatController implements IChatController {
   constructor(@inject(TYPES.ChatService)
   private chatService: IChatService){}
+  
   async fetchMessages(req: AuthRequest, res: Response): Promise<void> {
     const participantId = req.user?.userId;
     const participantType = req.user?.type;
@@ -43,7 +44,6 @@ export class ChatController implements IChatController {
     }
   }
 
- 
   async sendMessage(req: AuthRequest, res: Response): Promise<void> {
     const senderId = req.user?.userId;
     const senderType = req.user?.type;
@@ -94,7 +94,23 @@ export class ChatController implements IChatController {
     }
   }
 
+  async markMessagesAsRead(req: AuthRequest, res: Response): Promise<void> {
+    const participantId = req.user?.userId;
+    const participantType = req.user?.type;
+    const otherId = req.params.otherId;
+    const eventId = req.params.eventId;
 
+    if (!participantId || !participantType) {
+      res.status(STATUS_CODES.UNAUTHORIZED).json({ message: MESSAGES.COMMON.ERROR.UNAUTHENTICATED });
+      return;
+    }
+
+    try {
+      await this.chatService.markMessagesAsRead(eventId, participantId, otherId);
+      res.status(STATUS_CODES.SUCCESS).json({ message: 'Messages marked as read' });
+    } catch (err) {
+      console.error('Error marking messages as read:', err);
+      res.status(STATUS_CODES.SERVER_ERROR).json({ message: 'Failed to mark messages as read' });
+    }
+  }
 }
-
-//export default new ChatController();

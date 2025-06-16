@@ -26,11 +26,14 @@ export const eventRepository = {
     });
 
     const response = await axiosUserClient.get(url);
-    return response.data;
+    return {
+      events: response.data.events,
+      totalCount: response.data.pagination.total,
+      totalPages: response.data.pagination.totalPages,
+    };
   },
   //event's details
   fetchEventDetails: async (id: string) => {
-    //console.log(id)
     const response = await axiosUserClient.get(`/event/${id}`);
     return response.data.event;
   },
@@ -57,7 +60,11 @@ export const eventRepository = {
     });
 
     const response = await axiosUserClient.get(url);
-    return response.data;
+    return {
+      events: response.data.events,
+      totalCount: response.data.pagination.total,
+      totalPages: response.data.pagination.totalPages,
+    };
   },
 //editing event
   editEvent: async (id: string, eventData: any) => {
@@ -65,11 +72,8 @@ export const eventRepository = {
     return response.data;
   },
 
-  // Delete event
-  /* deleteEvent: async (id: string) => {
-    const response = await axiosHostClient.delete(`/events/${id}`);
-    return response.data;
-  }, */
+  // cancel event
+
   blockEvent: async (id: string, reason: string) => {
     const response = await axiosHostClient.put(`/events/cancel/${id}`, { reason });
     return response.data.event;

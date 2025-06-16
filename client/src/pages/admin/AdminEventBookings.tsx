@@ -1,4 +1,3 @@
-// src/pages/AdminEventBookings.tsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import AdminLayout from '../../layouts/AdminLayout';
@@ -33,11 +32,10 @@ const AdminEventBookings: React.FC = () => {
     }
   }, [eventId, fetchBookingsByEventAdmin, currentPage, itemsPerPage]);
 
-  const eventTitle =
-    bookings.length > 0 &&
-    typeof bookings[0].eventId === 'object'
-      ? (bookings[0].eventId as { title: string }).title
-      : '';
+  // Fix: Get event title from the event object instead of eventId
+  const eventTitle = bookings.length > 0 && bookings[0].event 
+    ? bookings[0].event.title 
+    : '';
 
   const goToFirstPage = () => setCurrentPage(1);
 
@@ -66,7 +64,7 @@ const AdminEventBookings: React.FC = () => {
       <div className="bg-purple-50 min-h-screen">
         <div className="p-6 max-w-6xl mx-auto">
           <h2 className="text-2xl font-bold text-purple-800 mb-6">
-            Bookings for “{eventTitle || 'Event'}”
+            Bookings for "{eventTitle || 'Event'}"
           </h2>
 
           {bookings.length === 0 ? (
@@ -126,16 +124,8 @@ const AdminEventBookings: React.FC = () => {
               {/* Bookings list */}
               <div className="space-y-6">
                 {bookings.map(booking => {
-                  let userName: string;
-                  if (
-                    typeof booking.userId === 'object' &&
-                    booking.userId !== null &&
-                    'name' in booking.userId
-                  ) {
-                    userName = (booking.userId as any).name;
-                  } else {
-                    userName = String(booking.userId);
-                  }
+                  // Fix: Get userName from the user object instead of userId
+                  const userName = booking.user?.name || 'Unknown User';
 
                   const totalTickets = booking.tickets.reduce(
                     (sum, t) => sum + t.quantity,
@@ -167,7 +157,7 @@ const AdminEventBookings: React.FC = () => {
 
                   return (
                     <div
-                      key={booking._id}
+                      key={booking.id} // Fix: Use booking.id instead of booking._id
                       className="bg-white rounded-lg shadow-md overflow-hidden border border-purple-100 hover:border-purple-300 transition-all"
                     >
                       {/* Header */}

@@ -250,7 +250,7 @@ export class BookingRepository
     return (updated as IBooking) || null;
   }
 
-  async getBookingsByEvent(
+  /* async getBookingsByEvent(
     eventId: string,
     page = 1,
     limit = 10
@@ -268,7 +268,34 @@ export class BookingRepository
     ])) as IBooking[];
     return { bookings, total, pages };
   }
-
+ */
+async getBookingsByEvent(
+  eventId: string,
+  page = 1,
+  limit = 10
+): Promise<{ bookings: IBooking[]; total: number; pages: number }> {
+  const filter = { eventId: new Types.ObjectId(eventId) };
+  const { items, total, pages } = await this.findWithPagination(
+    filter,
+    page,
+    limit,
+    { createdAt: -1 }
+  );
+  
+  const bookings = (await this.model.populate(items, [
+    { path: "userId", select: "name email" },
+    { 
+      path: "eventId", 
+      select: "title date venueName venueCity venueState venue" 
+    },
+    { 
+      path: "couponId", 
+      select: "code discountValue discountType" 
+    }
+  ])) as IBooking[];
+  
+  return { bookings, total, pages };
+}
   async cancelAndRefundBookings(
     eventId: Types.ObjectId,
     reason: string
@@ -291,4 +318,12 @@ export class BookingRepository
       await booking.save();
     }
   }
+  async findUserIdsByEvent(eventId: string): Promise<Types.ObjectId[]> {
+    
+  const objectEventId = new Types.ObjectId(eventId);
+
+  const ids = await this.model.distinct('userId', { eventId: objectEventId, status: 'confirmed' });
+  
+  return ids.map(id => new Types.ObjectId(String(id)));
+}
 }

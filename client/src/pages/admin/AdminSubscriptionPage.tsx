@@ -1,4 +1,3 @@
-// src/pages/admin/AdminSubscriptionPage.tsx
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import toast from "react-hot-toast";
@@ -6,6 +5,8 @@ import Spinner from "../../components/common/Spinner";
 import { useSubscriptionStore } from "../../store/subscriptionStore";
 import Swal from "sweetalert2";
 import Pagination from "../../components/common/Pagination";
+import { DataTable } from "../../components/common/DataTable";
+import { ColumnDef } from "@tanstack/react-table";
 
 interface SubscriptionPlan {
   id: string;
@@ -13,7 +14,6 @@ interface SubscriptionPlan {
   duration: string;
   price: number;
 }
-
 interface FormErrors {
   name?: string;
   duration?: string;
@@ -27,35 +27,28 @@ const AdminSubscriptionPage: React.FC = () => {
     createSubscription,
     updateSubscription,
     deleteSubscription,
+    isLoading,
+    pagination,
   } = useSubscriptionStore();
 
-  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<SubscriptionPlan | null>(null);
   const [formData, setFormData] = useState({ name: "", duration: "", price: "" });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
-  // Pagination
+  // Pagination - now using server-side pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   useEffect(() => {
-    fetchSubscriptions();
-  }, []);
+    fetchSubscriptions(currentPage);
+  }, [currentPage]);
 
-  const fetchSubscriptions = async () => {
-    setLoading(true);
+  const fetchSubscriptions = async (page: number) => {
     try {
-      const subs = await getSubscriptions();
-      if (subs.length === 0) {
-        toast("No subscriptions found", { icon: "ℹ️", style: { background: "#edf2f7", color: "#2d3748" } });
-      }
-      setCurrentPage(1);
-    } catch (err) {
-      console.error(err);
+      await getSubscriptions(page, itemsPerPage);
+    } catch {
       toast.error("Failed to load subscriptions");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -102,68 +95,124 @@ const AdminSubscriptionPage: React.FC = () => {
         toast.success("Subscription created");
       }
       setModalVisible(false);
-      fetchSubscriptions();
+      fetchSubscriptions(currentPage);
     } catch (err: any) {
-      console.error(err);
       toast.error(err.response?.data?.message || "Operation failed");
     }
   };
 
   const handleDelete = async (id: string) => {
-    const res = await Swal.fire({ title: "Confirm Deletion", text: "Delete this subscription?", icon: "warning", showCancelButton: true, confirmButtonText: "Yes, delete" });
+    const res = await Swal.fire({
+      title: "Confirm Deletion",
+      text: "Delete this subscription?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+    });
     if (!res.isConfirmed) return;
+
     try {
       await deleteSubscription(id);
       toast.success("Subscription deleted");
-      fetchSubscriptions();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Delete failed");
+      fetchSubscriptions(currentPage);
+    } catch {
+      toast.error("Delete failed");
     }
   };
 
-  // Paginated data
-  const totalPages = Math.ceil(subscriptions.length / itemsPerPage) || 1;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentSubs = subscriptions.slice(startIndex, startIndex + itemsPerPage);
+  // Column definitions with Edit handler
+  const columns: ColumnDef<SubscriptionPlan, any>[] = [
+    {
+      header: "Name",
+      accessorKey: "name",
+      meta: {
+        headerClassName: "px-6 py-3 text-left text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-sm text-gray-800",
+      },
+    },
+    {
+      header: "Duration",
+      accessorKey: "duration",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center text-sm text-gray-800",
+      },
+    },
+    {
+      header: "Price",
+      accessorKey: "price",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center text-sm text-gray-800",
+      },
+      cell: info => `₹${info.getValue<number>().toFixed(2)}`,
+    },
+    {
+      header: "Actions",
+      id: "actions",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center space-x-2",
+      },
+      cell: ({ row }) => (
+        <>
+          <button
+            onClick={() => openModalForEdit(row.original)}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDelete(row.original.id)}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+          >
+            Delete
+          </button>
+        </>
+      ),
+    },
+  ];
 
   return (
     <AdminLayout>
       <div className="p-6">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800">Subscription Plans Management</h2>
-          <button onClick={openModalForAdd} className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition">
+          <button
+            onClick={openModalForAdd}
+            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow hover:from-purple-700 hover:to-indigo-700 transition"
+          >
             Add New Subscription
           </button>
         </div>
 
-        {loading ? <Spinner /> : (
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Spinner />
+          </div>
+        ) : subscriptions.length === 0 ? (
+          <div className="bg-yellow-50 p-4 rounded flex items-center">
+            <span className="text-yellow-600">No subscriptions found.</span>
+          </div>
+        ) : (
           <>
-            <div className="overflow-x-auto shadow-lg rounded-lg">
-              <table className="min-w-full bg-white divide-y divide-gray-200">
-                <thead className="bg-purple-600">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-white">Name</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">Duration</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">Price</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {currentSubs.map(sub => (
-                    <tr key={sub.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-800">{sub.name}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-800">{sub.duration}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-800">₹{sub.price.toFixed(2)}</td>
-                      <td className="px-6 py-4 text-center space-x-2">
-                        <button onClick={() => openModalForEdit(sub)} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-xs">Edit</button>
-                        <button onClick={() => handleDelete(sub.id)} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-xs">Delete</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} className="mt-6" />}
+            <DataTable
+              columns={columns}
+              data={subscriptions}
+              tableClassName="min-w-full bg-white divide-y divide-gray-200"
+              headerRowClassName="bg-purple-600"
+              headerCellClassName="px-6 py-3 text-center text-sm font-semibold text-white"
+              rowClassName="hover:bg-gray-50"
+              cellClassName="px-6 py-4 text-sm text-gray-800"
+            />
+            {/* {pagination.totalPages > 1 && ( */}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={setCurrentPage}
+                className="mt-6"
+              />
+            {/* )} */}
           </>
         )}
 
@@ -177,12 +226,26 @@ const AdminSubscriptionPage: React.FC = () => {
               <form onSubmit={handleSubmit}>
                 <div className="mb-4">
                   <label className="block text-base font-medium text-gray-700 mb-1">Name</label>
-                  <input type="text" name="name" value={formData.name} onChange={handleFormChange} className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 transition" placeholder="Subscription name" required />
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleFormChange}
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 transition"
+                    placeholder="Subscription name"
+                    required
+                  />
                   {formErrors.name && <p className="text-sm text-red-600 mt-1">{formErrors.name}</p>}
                 </div>
                 <div className="mb-4">
                   <label className="block text-base font-medium text-gray-700 mb-1">Duration</label>
-                  <select name="duration" value={formData.duration} onChange={handleFormChange} className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 transition" required>
+                  <select
+                    name="duration"
+                    value={formData.duration}
+                    onChange={handleFormChange}
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 transition"
+                    required
+                  >
                     <option value="">Select Duration</option>
                     <option value="Monthly">Monthly</option>
                     <option value="6 Months">6 Months</option>
@@ -192,14 +255,33 @@ const AdminSubscriptionPage: React.FC = () => {
                 </div>
                 <div className="mb-6">
                   <label className="block text-base font-medium text-gray-700 mb-1">Price</label>
-                  <input type="number" name="price" value={formData.price} onChange={handleFormChange} className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 transition" placeholder="Enter price" required />
+                  <input
+                    type="number"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleFormChange}
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 transition"
+                    placeholder="Enter price"
+                    required
+                  />
                   {formErrors.price && <p className="text-sm text-red-600 mt-1">{formErrors.price}</p>}
                 </div>
                 <div className="flex justify-end">
-                  <button type="button" onClick={() => setModalVisible(false)} className="mr-4 px-6 py-3 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 transition">Cancel</button>
-                  <button type="submit" className="px-6 py-3 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 transition">{editingSubscription ? "Update" : "Create"}</button>
+                  <button
+                    type="button"
+                    onClick={() => setModalVisible(false)}
+                    className="mr-4 px-6 py-3 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 transition"
+                  >
+                    {editingSubscription ? "Update" : "Create"}
+                  </button>
                 </div>
-              </form>
+                </form>
             </div>
           </div>
         )}

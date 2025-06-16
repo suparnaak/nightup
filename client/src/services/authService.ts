@@ -1,23 +1,7 @@
 import axiosClient from "../api/axiosUserClient";
 import axiosHostClient from "../api/axiosHostClient";
 import axiosAdminClient from "../api/axiosAdminClient";
-
-interface SignupData {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  confirmPassword: string;
-}
-
-interface HostSignupData extends SignupData {
-  hostType: string;
-}
-
-interface LoginData {
-  email: string;
-  password: string;
-}
+import { SignupData, HostSignupData, LoginData } from "../types/authTypes";
 
 export const authRepository = {
   // methods for user
@@ -28,7 +12,6 @@ export const authRepository = {
 
   login: async (credentials: LoginData) => {
     const response = await axiosClient.post("/login", credentials);
-    //console.log(response)
     return response.data;
   },
   verifyOtp: async ({
@@ -81,7 +64,6 @@ export const authRepository = {
   getCurrentUser: async () => {
     try {
       const response = await axiosClient.get("/me", {
-        /* withCredentials: true, */
       });
       return response.data;
     } catch (error) {

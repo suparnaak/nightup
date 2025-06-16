@@ -10,6 +10,8 @@ import * as nodeCrypto from "crypto";
 import { Types } from "mongoose";
 import { MESSAGES } from "../utils/constants";
 import TYPES from "../config/di/types";
+import { BookingMapper } from "../mappers/BookingMapper";
+
 
 @injectable()
 export class BookingService implements IBookingService {
@@ -39,6 +41,7 @@ export class BookingService implements IBookingService {
       receipt,
     };
     const order = await this.paymentService.createOrder(options);
+    
     return order;
   }
 
@@ -267,7 +270,15 @@ async getUserBookings(userId: string, page: number = 1, limit: number = 10): Pro
       if (!event) {
         return { success: false, message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND };
       }
-
+const eventStart = new Date(event.date);
+    const cutoff     = new Date(eventStart.getTime() - 24 * 60 * 60 * 1000);
+    if (new Date() > cutoff) {
+      return {
+        success: false,
+        message:
+          'Cannot cancel less than 24 hours before the event.',
+      };
+    }
       
       const updatedTickets = event.tickets.map((eventTicket) => {
         const bookingTicket = booking.tickets.find(

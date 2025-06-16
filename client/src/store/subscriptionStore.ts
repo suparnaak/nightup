@@ -1,12 +1,6 @@
 import { create } from "zustand";
 import { adminRepository } from "../services/adminService";
-
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  duration: string; 
-  price: number;
-}
+import { SubscriptionPlan } from "../types/subcriptionPlanTypes";
 
 interface SubscriptionState {
   subscriptions: SubscriptionPlan[];
@@ -18,7 +12,6 @@ interface SubscriptionState {
     totalPages: number;
     limit: number;
   };
-  //getSubscriptions: () => Promise<SubscriptionPlan[]>;
   getSubscriptions: (page?: number, limit?: number) => Promise<SubscriptionPlan[]>;
   createSubscription: (payload: {
     name: string;
@@ -43,25 +36,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     limit: 10
   },
 
-  /* getSubscriptions: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const data = await adminRepository.getSubscriptions();
-      const subscriptions = data.subscriptions.map((sub: any) => ({
-        id: sub._id.toString(),
-        ...sub,
-      }));
-      set({ subscriptions, isLoading: false });
-      return subscriptions;
-    } catch (error: any) {
-      set({
-        error: error.response?.data?.message || "Failed to load subscriptions",
-        isLoading: false,
-      });
-      throw error;
-    }
-  }, */
-  getSubscriptions: async (page = 1, limit = 10) => {
+   getSubscriptions: async (page = 1, limit = 10) => {
     set({ isLoading: true, error: null });
     try {
       const data = await adminRepository.getSubscriptions(page, limit);

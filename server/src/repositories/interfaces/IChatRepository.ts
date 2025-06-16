@@ -18,4 +18,5 @@ export interface IChatRepository {
   ): Promise<IChatMessage>;
 
   listConversations(participantId: string): Promise<IConversationResult[]>;
+  markMessagesAsRead(eventId: string, userId: string, otherId: string): Promise<void>;
 }

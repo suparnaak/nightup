@@ -18,6 +18,7 @@ export class ChatRepository implements IChatRepository {
   @inject(TYPES.HostRepository)
   private hostRepository: IHostRepository
  ){}
+  
   async fetchMessages(
       eventId: string,
       p1Id: string,
@@ -45,7 +46,6 @@ export class ChatRepository implements IChatRepository {
     return messages;
   }
 
-  
   async saveMessage(
     eventId: string,
     senderId: string,
@@ -66,6 +66,17 @@ export class ChatRepository implements IChatRepository {
     return message.save();
   }
 
+  async markMessagesAsRead(eventId: string, userId: string, otherId: string): Promise<void> {
+    await ChatMessage.updateMany(
+      { 
+        eventId: new Types.ObjectId(eventId),
+        senderId: new Types.ObjectId(otherId),
+        receiverId: new Types.ObjectId(userId),
+        isRead: false 
+      },
+      { $set: { isRead: true } }
+    );
+  }
  
   async listConversations(participantId: string): Promise<IConversationResult[]> {
     const pid = new Types.ObjectId(participantId);
@@ -159,8 +170,6 @@ export class ChatRepository implements IChatRepository {
     
     return result;
   }
-
-
 }
 
 //export default new ChatRepository();

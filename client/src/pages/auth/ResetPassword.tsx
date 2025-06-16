@@ -7,7 +7,6 @@ const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Retrieve email (and optionally verificationType) from navigation state
   const { email } = location.state || {};
 
   const [password, setPassword] = useState('');

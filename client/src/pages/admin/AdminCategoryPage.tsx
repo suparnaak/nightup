@@ -1,10 +1,12 @@
-// src/pages/admin/AdminCategoryPage.tsx
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import toast from "react-hot-toast";
 import Spinner from "../../components/common/Spinner";
-import { useCategoryStore, Category } from "../../store/categoryStore";
+import { useCategoryStore } from "../../store/categoryStore";
+import { Category } from "../../types/categoryTypes";
 import Pagination from "../../components/common/Pagination";
+import { DataTable } from "../../components/common/DataTable";
+import { ColumnDef } from "@tanstack/react-table";
 
 interface FormErrors {
   name?: string;
@@ -88,7 +90,35 @@ const AdminCategoryPage: React.FC = () => {
     }
   };
 
-  // Paginated items
+  // table columns
+  const columns: ColumnDef<Category>[] = [
+    {
+      accessorKey: "name",
+      header: "Name",
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      meta: {
+        headerClassName: "px-6 py-3 text-center text-sm font-semibold text-white",
+        cellClassName: "px-6 py-4 text-center",
+      },
+      cell: ({ row }) => (
+        <button
+          onClick={() => openModalForEdit(row.original)}
+          className="px-4 py-1 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition-colors text-xs"
+        >
+          Edit
+        </button>
+      ),
+    },
+  ];
+
+  // pagination
   const totalPages = Math.ceil(categories.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = categories.slice(startIndex, startIndex + itemsPerPage);
@@ -110,46 +140,14 @@ const AdminCategoryPage: React.FC = () => {
           <Spinner />
         ) : (
           <>
-            <div className="overflow-x-auto shadow-lg rounded-lg">
-              <table className="min-w-full bg-white divide-y divide-gray-200">
-                <thead className="bg-purple-600">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-white">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-white">
-                      Description
-                    </th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-white">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {currentItems.map((cat) => (
-                    <tr
-                      key={cat.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                        {cat.name}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-800">
-                        {cat.description}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => openModalForEdit(cat)}
-                          className="px-4 py-1 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition-colors text-xs"
-                        >
-                          Edit
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={columns}
+              data={currentItems}
+              headerRowClassName="bg-purple-600"
+              headerCellClassName="px-6 py-3 text-left text-sm font-semibold text-white"
+              rowClassName="hover:bg-gray-50 transition-colors"
+              cellClassName="px-6 py-4 whitespace-nowrap text-sm text-gray-800"
+            />
             {totalPages > 1 && (
               <Pagination
                 currentPage={currentPage}

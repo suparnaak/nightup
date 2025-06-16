@@ -1,22 +1,8 @@
 import { create } from "zustand";
 import { hostRepository } from "../services/hostService";
+import { HostSubscription, } from "../types/hostTypes";
+import { SubscriptionPlan } from "../types/subcriptionPlanTypes";
 
-export interface HostSubscription {
-  id?: string;      
-  _id: string;      
-  subscriptionPlan: SubscriptionPlan; 
-  startDate: string;        
-  endDate: string;          
-  status: "Active" | "Expired";
-  paymentId?: string;
-}
-
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  duration: string; 
-  price: number;
-}
 
 interface HostSubscriptionState {
   subscription: HostSubscription | null;

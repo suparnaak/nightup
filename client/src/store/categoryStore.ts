@@ -2,28 +2,15 @@ import { create } from "zustand";
 import { adminRepository } from "../services/adminService";
 import hostRepository from "../services/hostService";
 import { userRepository } from "../services/userService";
-
-
-export interface Category {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Pagination } from "../types/commonTypes";
+import { Category } from "../types/categoryTypes";
 
 interface CategoryState {
   categories: Category[];
   isLoading: boolean;
   error: string | null;
-  pagination: {
-    total: number;
-    page: number;
-    totalPages: number;
-    limit: number;
-  };
+  pagination: Pagination;
 
-  //getCategories: () => Promise<Category[]>;
   getCategories: (page?: number, limit?: number) => Promise<{
     categories: Category[];
     pagination: {
@@ -53,7 +40,7 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
   pagination: {
     total: 0,
     page: 1,
-    totalPages: 0,
+    pages: 0,
     limit: 10
   },
 //getting all the categoris for admin

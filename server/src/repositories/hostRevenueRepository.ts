@@ -255,6 +255,7 @@ export class HostRevenueRepository implements IHostRevenueRepository {
 }
 
 //export default new HostRevenueRepository(); */
+
 import mongoose, { PipelineStage } from "mongoose";
 import Booking, { IBooking } from "../models/booking";
 import { IHostRevenueRepository } from "./interfaces/IHostRevenueRepository";

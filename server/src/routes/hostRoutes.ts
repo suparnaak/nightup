@@ -73,12 +73,12 @@ router.get(
   hostRevCtr.generateHostRevenueReport.bind(hostRevCtr)
 );
 
-
+// Chat routes
 router.get("/conversations", authMiddleware(["host"]), blockCheckMiddleware, chatCtr.listConversations.bind(chatCtr));
 
 router.get("/chat/:otherId/event/:eventId",authMiddleware(["host"]), blockCheckMiddleware, chatCtr.fetchMessages.bind(chatCtr));
 router.post("/chat/:otherId/event/:eventId",authMiddleware(["host"]), blockCheckMiddleware, chatCtr.sendMessage.bind(chatCtr));
-
+router.patch("/chat/:otherId/event/:eventId/read", authMiddleware(["host"]), blockCheckMiddleware, chatCtr.markMessagesAsRead.bind(chatCtr));
 
 //cloudinary
 router.get(

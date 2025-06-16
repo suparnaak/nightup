@@ -127,14 +127,27 @@ const Home: React.FC = () => {
     ),
   ];
 
-  const loadMoreEvents = () => {
-    if (hasMore) {
-      useEventStore.setState({ currentPage: currentPage + 1 });
-      if (selectedCity) fetchEventsByCity(selectedCity);
-      else fetchAllEvents();
+ /*  const loadMoreEvents = () => {
+  if (hasMore) {
+    useEventStore.setState({ currentPage: currentPage + 1 });
+    if (selectedCity) {
+      fetchEventsByCity(selectedCity, true); 
+    } else {
+      fetchAllEvents(true); 
     }
-  };
-
+  }
+}; */
+const loadMoreEvents = () => {
+    
+  if (hasMore) {
+    useEventStore.setState({ currentPage: currentPage + 1 });
+    if (selectedCity) {
+      fetchEventsByCity(selectedCity, true); 
+    } else {
+      fetchAllEvents(true); 
+    }
+  }
+};
   const formatTime = (timeString: string) => {
     if (!timeString) return "";
     const date = new Date(timeString);
@@ -612,7 +625,7 @@ const Home: React.FC = () => {
           </div>
 
           {/* Load more button */}
-          {!isLoading &&
+         {/*} {!isLoading &&
             hasMore &&
             events.length > 0 &&
             currentPage < totalPages && (
@@ -624,7 +637,39 @@ const Home: React.FC = () => {
                   Load More Events
                 </button>
               </div>
-            )}
+            )}*/}
+            {!isLoading && hasMore && events.length > 0 && currentPage < totalPages && (
+  <div className="flex justify-center mt-8">
+    {/* <button
+      onClick={loadMoreEvents}
+      className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md shadow-md transition-all duration-300"
+    >
+      Load More Events (Page {currentPage + 1} of {totalPages})
+    </button> */}
+    <button
+  onClick={loadMoreEvents}
+  className="
+    inline-flex items-center
+    bg-purple-600 hover:bg-purple-700
+    text-white font-medium
+    px-4 py-2 rounded-full
+    shadow-lg hover:shadow-xl
+    transition
+  "
+>
+  <svg
+    className="w-5 h-5 mr-2"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none" viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    {/* simple chevron-down icon */}
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+  </svg>
+  More 
+</button>
+  </div>
+)}
 
           {/* Loading indicator for pagination */}
           {isLoading && events.length > 0 && (

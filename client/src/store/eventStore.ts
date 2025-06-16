@@ -1,52 +1,7 @@
 import { create } from "zustand";
 import { eventRepository } from "../services/eventService";
+import {  Event, EventFilters } from "../types/eventTypes";
 
-interface Ticket {
-  _id: string;
-  ticketType: string;
-  ticketPrice: number;
-  ticketCount: number;
-}
-
-interface Event {
-  _id: string;
-  title: string;
-  startTime: string;
-  endTime: string;
-  date: string;
-  hostId:
-    | {
-        _id: string;
-        name: string;
-      }
-    | string;
-  venueName: string;
-  venueCity: string;
-  venueState: string;
-  venueZip: string;
-  venueCapacity: number;
-  category: string;
-  artist: string;
-  description: string;
-  tickets: Ticket[];
-  eventImage: string;
-  additionalDetails: string;
-  isBlocked: boolean;
-  cancellationReason?: string;
-  location?: {
-    type: "Point";
-    coordinates: [number, number]; // [longitude, latitude] for geo location
-  };
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-}
-
-interface EventFilters {
-  category?: string;
-  date?: string;
-  venueCity?: string;
-}
 
 interface EventStore {
   events: Event[];
@@ -71,11 +26,11 @@ interface EventStore {
     eventData: Omit<Event, "_id" | "createdAt" | "updatedAt" | "__v">
   ) => Promise<void>;
   fetchEvents: () => Promise<void>;
-  fetchAllEvents: () => Promise<void>;
+  fetchAllEvents: (append?: boolean) => Promise<void>;
   fetchEventDetails: (id: string) => Promise<Event | null>;
   editEvent: (id: string, eventData: Partial<Event>) => Promise<void>;
   deleteEvent: (id: string, reason: string) => Promise<void>;
-  fetchEventsByCity: (city: string) => Promise<void>;
+  fetchEventsByCity: (city: string, append?: boolean) => Promise<void>;
   setSelectedCity: (city: string) => void;
   fetchEventsForAdmin: () => Promise<void>;
 }
@@ -87,7 +42,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
   selectedCity: null,
 
   currentPage: 1,
-  limit: 10,
+  limit: 2,
   totalEvents: 0,
   totalPages: 1,
   searchTerm: "",
@@ -116,7 +71,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
       throw error;
     }
   },
-
+//events for host
   fetchEvents: async () => {
     try {
       set({ isLoading: true, error: null });
@@ -130,33 +85,45 @@ export const useEventStore = create<EventStore>((set, get) => ({
     }
   },
 
-  fetchAllEvents: async () => {
-    try {
-      const { currentPage, limit, searchTerm, filters } = get();
-      set({ isLoading: true, error: null });
+   fetchAllEvents: async (append = false) => {
+  try {
+    const { currentPage, limit, searchTerm, filters } = get();
+    set({ isLoading: true, error: null });
 
-      const data = await eventRepository.fetchAllEvents(
-        currentPage,
-        limit,
-        searchTerm,
-        filters
-      );
+    console.log('Fetching events with params:', {
+      currentPage,
+      limit,
+      searchTerm,
+      filters,
+      append
+    });
 
-      set({
-        events: data.events,
-        totalEvents: data.totalCount,
-        totalPages: data.totalPages,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || "Failed to fetch all events",
-      });
-    }
-  },
+    const data = await eventRepository.fetchAllEvents(
+      currentPage,
+      limit,
+      searchTerm,
+      filters
+    );
+    
+    console.log('Received events:', data);
+    
+    set({
+      events: append ? [...get().events, ...data.events] : data.events,
+      totalEvents: data.totalCount,
+      totalPages: data.totalPages,
+      isLoading: false,
+    });
+  } catch (error: any) {
+    console.error('Error in fetchAllEvents:', error);
+    set({
+      isLoading: false,
+      error: error.response?.data?.message || "Failed to fetch all events",
+    });
+  }
+},
 
-  fetchEventsByCity: async (city: string) => {
+
+  fetchEventsByCity: async (city: string,append = false) => {
     try {
       const { currentPage, limit, searchTerm, filters } = get();
       set({ isLoading: true, error: null });
@@ -170,7 +137,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
       );
 
       set({
-        events: data.events,
+        events: append ? [...get().events, ...data.events] : data.events,
         totalEvents: data.totalCount,
         totalPages: data.totalPages,
         isLoading: false,
@@ -189,6 +156,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
       set({ isLoading: true, error: null });
       const event = await eventRepository.fetchEventDetails(id);
       set({ isLoading: false });
+      console.log("event details",event)
       return event;
     } catch (error: any) {
       set({
@@ -240,30 +208,33 @@ export const useEventStore = create<EventStore>((set, get) => ({
   setSelectedCity: (city: string) => {
     set({ selectedCity: city, currentPage: 1 });
   },
+
   //events listing at admin
   fetchEventsForAdmin: async () => {
-    try {
-      const { currentPage, limit } = get();
-      set({ isLoading: true, error: null });
+  try {
+    const { currentPage, limit } = get();
+    set({ isLoading: true, error: null });
 
-      const { events, totalCount } = await eventRepository.fetchEventsForAdmin(
-        currentPage,
-        limit
-      );
+    const data = await eventRepository.fetchEventsForAdmin(
+      currentPage,
+      limit
+    );
 
-      const totalPages = Math.ceil(totalCount / limit);
+    const events = data.events;
+    const { total, totalPages } = data.pagination;
 
-      set({
-        events,
-        totalEvents: totalCount,
-        totalPages,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      set({
-        isLoading: false,
-        error: error.response?.data?.message || "Failed to fetch admin events",
-      });
-    }
-  },
+    set({
+      events,
+      totalEvents: total,       
+      totalPages,                
+      isLoading: false,
+    });
+  } catch (error: any) {
+    set({
+      isLoading: false,
+      error: error.response?.data?.message || "Failed to fetch admin events",
+    });
+  }
+},
+
 }));

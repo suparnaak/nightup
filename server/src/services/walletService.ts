@@ -19,7 +19,6 @@ export class WalletService implements IWalletService {
     @inject(TYPES.PaymentService)
     private paymentService: IPaymentService
   ){}
-  //async getWallet(userId: string):Promise<IWallet | null> {
     async getWallet(userId: string, page: number = 1, limit: number = 10): Promise<{ wallet: IWallet | null, pagination: PaginationResult }> {
       const result = await this.walletRepository.getWallet(userId, page, limit);
       return result;

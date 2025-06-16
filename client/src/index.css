@@ -2,3 +2,8 @@
 .slow-spin {
   animation: spin 2s linear infinite !important;
 }
+@layer utilities {
+  .hover-pop:hover {
+    transform: scale(1.05);
+  }
+}

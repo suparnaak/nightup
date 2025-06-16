@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MapPin } from "lucide-react";
 
-// You might want to create an interface for city data
 interface City {
   id: string;
   name: string;
@@ -19,7 +18,6 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({ onSelect }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Function to fetch city suggestions based on input
   const fetchCitySuggestions = async (query: string) => {
     if (!query.trim()) {
       setSuggestions([]);
@@ -34,10 +32,9 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({ onSelect }) => {
       );
       const data = await response.json();
   
-      // Convert OpenStreetMap results to match your City type
       const cities = data.map((item: any) => ({
-        id: item.place_id.toString(),  // Convert place_id to string
-        name: item.display_name,       // Use display_name (full city name)
+        id: item.place_id.toString(),  
+        name: item.display_name,       
       }));
   
       setSuggestions(cities);
@@ -49,7 +46,6 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({ onSelect }) => {
     }
   };
 
-  // Debounce function to limit API calls
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCitySuggestions(inputValue);
@@ -58,7 +54,6 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({ onSelect }) => {
     return () => clearTimeout(timer);
   }, [inputValue]);
 
-  // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (

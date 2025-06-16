@@ -41,7 +41,6 @@ export class SavedEventRepository extends BaseRepository<ISavedEvent> implements
   }
 
   async getSavedEvents(userId: string): Promise<ISavedEvent[]> {
-    // Use the model directly for complex queries with population
     return await SavedEvent.find({ user: new Types.ObjectId(userId) })
       .populate('event', 'title eventImage date startTime endTime venueName venueCity')
       .exec();
@@ -67,7 +66,6 @@ export class SavedEventRepository extends BaseRepository<ISavedEvent> implements
   }
 
   async removeSavedEvent(userId: string, eventId: Types.ObjectId): Promise<boolean> {
-    // Use the model directly for complex queries with specific conditions
     const result = await SavedEvent.findOneAndDelete({ 
       user: new Types.ObjectId(userId), 
       event: eventId 

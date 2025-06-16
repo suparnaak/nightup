@@ -1,20 +1,6 @@
 import { create } from "zustand";
 import { adminRepository } from "../services/adminService";
-
-export interface RevenueData {
-  totalRevenue: number;
-  monthlyRevenue: { month: string; amount: number }[];
-  planRevenue: { planName: string; amount: number }[];
-  transactionTypes: { type: string; count: number; amount: number }[];
-  recentTransactions: Array<{
-    id: string;
-    hostName: string;
-    planName: string;
-    amount: number;
-    date: string;
-    type: string;
-  }>;
-}
+import { RevenueData } from "../types/adminTypes";
 
 interface AdminRevenueState {
   revenueData: RevenueData | null;

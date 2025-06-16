@@ -19,10 +19,15 @@ export class ReviewRepository extends BaseRepository<IReviewDocument> implements
     return await super.create(data);
   }
 
-  async findByBookingId(bookingId: string): Promise<IReviewDocument | null> {
-    return await this.findOne({ bookingId: new Types.ObjectId(bookingId) });
+ 
+ async findByBookingId(bookingId: string): Promise<IReviewDocument | null> {
+  if (!Types.ObjectId.isValid(bookingId)) {
+    return null;
   }
-
+  
+  const objectId = new Types.ObjectId(bookingId);
+  return await this.findOne({ bookingId: objectId });
+}
   async findByEventId(eventId: string): Promise<IReviewDocument[]> {
     const reviews = await this.find({ eventId: new Types.ObjectId(eventId) });
    

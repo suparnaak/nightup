@@ -7,7 +7,7 @@ export const adminRepository = {
     const response = await axiosAdminClient.get("/hosts", {
       params: { page, limit }
     });
-    console.log(response)
+    console.log("hosts with sub:",response.data)
     return response.data; 
   },
   // document verification
@@ -42,10 +42,7 @@ export const adminRepository = {
     return response.data;
   },
   // get all users
-  /* getUsers: async () => {
-    const response = await axiosAdminClient.get("/users");
-    return response.data;
-  }, */
+ 
   getUsers: async (page: number = 1, limit: number = 10) => {
     const response = await axiosAdminClient.get("/users", {
       params: { page, limit }
@@ -67,15 +64,12 @@ export const adminRepository = {
     return response.data;
   },
   // subscription management
- /*  getSubscriptions: async () => {
-    const response = await axiosAdminClient.get("/subscriptions");
-    return response.data;
-  }, */
+
   getSubscriptions: async (page = 1, limit = 10) => {
     const response = await axiosAdminClient.get("/subscriptions", {
       params: { page, limit }
     });
-    return response.data; // { subscriptions: [...], pagination: { total, page, totalPages, limit } }
+    return response.data; 
   },
   createSubscription: async (payload: {
     name: string;
@@ -97,15 +91,12 @@ export const adminRepository = {
     return response.data;
   },
   // coupon management
- /*  getCoupons: async () => {
-    const response = await axiosAdminClient.get("/coupons");
-    return response.data; // This should be the { success, coupons } object
-  }, */
+
   getCoupons: async (page = 1, limit = 10) => {
     const response = await axiosAdminClient.get("/coupons", {
       params: { page, limit }
     });
-    return response.data; // { success: true, coupons: [...], pagination: { total, page, totalPages, limit } }
+    return response.data; 
   },
   createCoupon: async (payload: {
     couponCode: string;
@@ -136,15 +127,12 @@ export const adminRepository = {
     return response.data;
   },
   //category management
-  /* getCategories: async () => {
-    const response = await axiosAdminClient.get("/event-types");
-    return response.data;
-  }, */
+
    getCategories: async (page = 1, limit = 10) => {
     const response = await axiosAdminClient.get("/event-types", {
       params: { page, limit }
     });
-    return response.data; // { categories: [...], pagination: { total, page, totalPages, limit } }
+    return response.data; 
   },
   createCategory: async (payload: {
     name: string;
@@ -175,7 +163,6 @@ export const adminRepository = {
     const { data } = await axiosAdminClient.get(`/revenue/report?period=${period}`, {
       responseType: 'blob'
     });
-    // Create a URL for the blob data to download
     const blob = new Blob([data], { type: 'application/pdf' });
     const reportUrl = URL.createObjectURL(blob);
     return { reportUrl };

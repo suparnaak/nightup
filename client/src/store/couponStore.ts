@@ -1,18 +1,7 @@
 import { create } from "zustand";
 import { adminRepository } from "../services/adminService";
 import { userRepository } from "../services/userService";
-
-export interface Coupon {
-  id: string;
-  couponCode: string;
-  couponAmount: number;
-  minimumAmount: number;
-  startDate: string; 
-  endDate: string;   
-  couponQuantity: number;
-  usedCount: number;
-  status: "active" | "expired" | "pending";
-}
+import { Coupon } from "../types/couponTypes";
 
 interface CouponState {
   coupons: Coupon[];
@@ -24,7 +13,6 @@ interface CouponState {
     totalPages: number;
     limit: number;
   };
-  //getCoupons: () => Promise<Coupon[]>;
   getCoupons: (page?: number, limit?: number) => Promise<Coupon[]>;
   getAvailableCoupons: (totalAmount?: number) => Promise<Coupon[]>; // for users while booking
   createCoupon: (payload: {
@@ -56,41 +44,20 @@ export const useCouponStore = create<CouponState>((set, get) => ({
     total: 0,
     page: 1,
     totalPages: 0,
-    limit: 10
+    limit: 10,
   },
 
-  /* getCoupons: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const data = await adminRepository.getCoupons();
-      console.log("Raw API response:", data);
-      
-      if (data.success && Array.isArray(data.coupons)) {
-        set({ coupons: data.coupons, isLoading: false });
-        return data.coupons;
-      } else {
-        throw new Error("Invalid response format");
-      }
-    } catch (error: any) {
-      console.error("getCoupons error details:", error);
-      set({
-        error: error.message || "Failed to load coupons",
-        isLoading: false,
-      });
-      throw error;
-    }
-  }, */
   getCoupons: async (page = 1, limit = 10) => {
     set({ isLoading: true, error: null });
     try {
       const data = await adminRepository.getCoupons(page, limit);
       console.log("Raw API response:", data);
-      
+
       if (data.success && Array.isArray(data.coupons)) {
-        set({ 
-          coupons: data.coupons, 
+        set({
+          coupons: data.coupons,
           pagination: data.pagination,
-          isLoading: false 
+          isLoading: false,
         });
         return data.coupons;
       } else {
@@ -118,9 +85,9 @@ export const useCouponStore = create<CouponState>((set, get) => ({
     try {
       const response = await adminRepository.createCoupon(payload);
       console.log("Create coupon response:", response);
-      
+
       if (response.success) {
-        await get().getCoupons(); 
+        await get().getCoupons();
         set({ isLoading: false });
         return response;
       } else {
@@ -177,13 +144,14 @@ export const useCouponStore = create<CouponState>((set, get) => ({
     }
   },
   //for users while booking
- /*  getAvailableCoupons: async () => {
+  getAvailableCoupons: async (totalAmount?: number) => {
+    console.log("amount", totalAmount);
     set({ isLoading: true, error: null });
     try {
-      const data = await userRepository.getAvailableCoupons();
+      const data = await userRepository.getAvailableCoupons(totalAmount);
       console.log("Public coupons:", data);
-  
-      set({ coupons: data, isLoading: false }); 
+
+      set({ coupons: data, isLoading: false });
       return data;
     } catch (error: any) {
       console.error("getAvailableCoupons error:", error);
@@ -193,24 +161,5 @@ export const useCouponStore = create<CouponState>((set, get) => ({
       });
       throw error;
     }
-  } */
-    getAvailableCoupons: async (totalAmount?: number) => {
-      console.log("amount",totalAmount)
-      set({ isLoading: true, error: null });
-      try {
-        const data = await userRepository.getAvailableCoupons(totalAmount);
-        console.log("Public coupons:", data);
-    
-        set({ coupons: data, isLoading: false }); 
-        return data;
-      } catch (error: any) {
-        console.error("getAvailableCoupons error:", error);
-        set({
-          error: error.message || "Failed to fetch available coupons",
-          isLoading: false,
-        });
-        throw error;
-      }
-    }
+  },
 }));
-

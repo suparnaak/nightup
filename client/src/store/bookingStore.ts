@@ -1,66 +1,15 @@
 import { create } from "zustand";
 import { bookingRepository } from "../services/bookingService";
-
-interface Booking {
-  _id: string;
-  eventId: {
-    _id: string;
-    title: string;
-    date: string;
-    venueName: string;
-    venueCity: string;
-    venueState: string;
-    eventImage?: string;
-  } | string;
-  userId: string;
-  tickets: Array<{
-    ticketType: string;
-    quantity: number;
-    price: number; 
-  }>;
-  totalAmount: number;
-  discountedAmount: number;
-  paymentId: string;
-  paymentStatus: string;
-  coupon?: {
-    code: string;
-    value: number;
-    type: string;
-  } | null;
-  paymentMethod: string;
-  status: "confirmed" | "cancelled";
-  createdAt: string;
-  updatedAt: string;
-  ticketNumber: string
-}
-
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  pages: number;
-}
-
-interface BookingReview {
-  _id:        string;
-  bookingId:  string;
-  eventId:    string;
-  eventTitle: string;                  
-  rating:     number;
-  review:     string;
-  createdAt:  string;
-  user: {
-    _id:   string;
-    name:  string;
-  };
-}
+import { Booking, BookingReview } from "../types/bookingTypes";
+import { Pagination } from "../types/commonTypes";
 
 interface BookingStore {
   bookings: Booking[];
   isLoading: boolean;
   error: string | null;
   pagination: Pagination;
-  reviews: BookingReview[]; 
+  reviews: BookingReview[];
+
   createBooking: (data: any) => Promise<void>;
   createOrder: (totalAmount: number) => Promise<string>;
   verifyPayment: (
@@ -73,6 +22,7 @@ interface BookingStore {
   ) => Promise<boolean>;
 
   fetchMyBookings: (page?: number, limit?: number) => Promise<void>;
+  
   cancelBooking: (bookingId: string, reason: string) => Promise<boolean>;
   fetchBookingsByEvent: (eventId: string, page?: number, limit?: number) => Promise<void>;
   fetchBookingsByEventAdmin: (eventId: string, page?: number, limit?: number) => Promise<void>;
@@ -99,7 +49,8 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
     total: 0,
     pages: 0,
   },
-  reviews: [], 
+  reviews: [],
+
   createBooking: async (data) => {
     try {
       set({ isLoading: true, error: null });
@@ -115,7 +66,8 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       throw error;
     }
   },
-  //razor pay order id creation or creating the payment
+
+  // Razorpay order creation
   createOrder: async (totalAmount) => {
     set({ isLoading: true, error: null });
     try {
@@ -131,14 +83,14 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
     }
   },
 
-  //razor payment verification
+  // Razorpay payment verification
   verifyPayment: async (paymentData, bookingData) => {
-    console.log("entering verify store")
+    console.log("entering verify store");
     set({ isLoading: true, error: null });
     try {
       const success = await bookingRepository.verifyPayment({
         ...paymentData,
-        ...bookingData,    
+        ...bookingData,
       });
       if (!success) throw new Error("Payment verification failed");
       set({ isLoading: false });
@@ -151,15 +103,16 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       throw err;
     }
   },
-  
+
   fetchMyBookings: async (page = 1, limit = 5) => {
     set({ isLoading: true, error: null });
     try {
       const result = await bookingRepository.getMyBookings(page, limit);
-      set({ 
-        bookings: result.bookings, 
-        pagination: result.pagination, 
-        isLoading: false 
+      console.log("store booking data", result);
+      set({
+        bookings: result.bookings,
+        pagination: result.pagination,
+        isLoading: false,
       });
     } catch (err: any) {
       set({
@@ -170,15 +123,16 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
     }
   },
   
-  //booking cancellation
+
+  // Booking cancellation
   cancelBooking: async (bookingId: string, reason: string) => {
     set({ isLoading: true, error: null });
     try {
       const success = await bookingRepository.cancelBooking(bookingId, reason);
       if (success) {
-        const updatedBookings = get().bookings.map(booking => 
-          booking._id === bookingId 
-            ? { ...booking, status: "cancelled" as "cancelled" } 
+        const updatedBookings = get().bookings.map((booking) =>
+          booking._id === bookingId
+            ? { ...booking, status: "cancelled", paymentStatus: "refunded" }
             : booking
         );
         set({ bookings: updatedBookings, isLoading: false });
@@ -192,16 +146,17 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       throw err;
     }
   },
-  //fetch bookings per event(for host)
-  
+
+  // Fetch bookings per event (for host)
   fetchBookingsByEvent: async (eventId, page = 1, limit = 10) => {
     set({ isLoading: true, error: null });
     try {
       const result = await bookingRepository.getBookingsByEvent(eventId, page, limit);
-      set({ 
-        bookings: result.bookings, 
+      console.log("current data from store:", result);
+      set({
+        bookings: result.bookings,
         pagination: result.pagination,
-        isLoading: false 
+        isLoading: false,
       });
     } catch (err: any) {
       set({
@@ -211,15 +166,16 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       throw err;
     }
   },
+
   fetchBookingsByEventAdmin: async (eventId: string, page = 1, limit = 10) => {
     set({ isLoading: true, error: null });
     try {
       const result = await bookingRepository.getBookingsByEventForAdmin(eventId, page, limit);
-      //console.log("bookings at admin",result)
-      set({ 
-        bookings: result.bookings, 
+      console.log("store data",result)
+      set({
+        bookings: result.bookings,
         pagination: result.pagination,
-        isLoading: false 
+        isLoading: false,
       });
     } catch (err: any) {
       set({
@@ -229,6 +185,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       throw err;
     }
   },
+
   getReviewByBookingId: async (bookingId) => {
     set({ isLoading: true, error: null });
     try {
@@ -243,6 +200,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       throw err;
     }
   },
+
   submitReview: async (bookingId, rating, review) => {
     set({ isLoading: true, error: null });
     try {
@@ -257,12 +215,13 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       set({ isLoading: false });
     }
   },
+
   fetchReviewsByHost: async (hostId: string) => {
     set({ isLoading: true, error: null });
     try {
       const reviews = await bookingRepository.getReviewsByHost(hostId);
-      console.log("reviews",reviews)
-      set({ reviews, isLoading: false }); 
+      console.log("reviews", reviews);
+      set({ reviews, isLoading: false });
     } catch (err: any) {
       set({
         isLoading: false,
@@ -271,5 +230,4 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       throw err;
     }
   },
-})); 
-
+}));

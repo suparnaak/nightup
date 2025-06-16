@@ -15,10 +15,10 @@ export const chatRepository = {
     const response = await client.post(`/chat/${hostId}/event/${eventId}`, { content });
     return response.data.message;
   },
+
   listConversations: async (role: 'user' | 'host') => {
     const client = role === 'host' ? axiosHostClient : axiosUserClient;
     const response = await client.get('/conversations', {
-      /* params: { participantId }, */
     });
     console.log(response.data)
     return response.data.conversations as Array<{
@@ -29,6 +29,11 @@ export const chatRepository = {
       updatedAt: string;
       unreadCount: number;
     }>;
+  },
+
+  markMessagesAsRead: async (otherId: string, eventId: string, role: 'user' | 'host') => {
+    const client = role === 'host' ? axiosHostClient : axiosUserClient;
+    await client.patch(`/chat/${otherId}/event/${eventId}/read`);
   },
 };
 

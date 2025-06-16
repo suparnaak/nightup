@@ -12,8 +12,10 @@ import {CouponController} from "../controllers/CouponController";
 import {CategoryController} from "../controllers/categoryController";
 import {ReviewController} from "../controllers/reviewController";
 import {ChatController} from "../controllers/chatController";
+import { NotificationController } from "../controllers/notificationController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { blockCheckMiddleware } from "../middlewares/blockCheckMiddleware";
+
 
 const router: Router = Router();
 
@@ -27,6 +29,7 @@ const chatCtr = container.get<ChatController>(TYPES.ChatController);
 const saveEveCtr = container.get<SavedEventController>(TYPES.SavedEventController);
 const coupCtr = container.get<CouponController>(TYPES.CouponController);
 const revCtr = container.get<ReviewController>(TYPES.ReviewController);
+const notifCtr = container.get<NotificationController>(TYPES.NotificationController);
 
 
 
@@ -71,6 +74,7 @@ router.delete('/saved-events/:eventId', authMiddleware(["user"]), blockCheckMidd
 router.get('/coupons', authMiddleware(["user"]),blockCheckMiddleware, coupCtr.getAvailableCoupons.bind(coupCtr));
 
 router.get('/bookings', authMiddleware(["user"]), blockCheckMiddleware, bookCtr.getMyBookings.bind(bookCtr));
+
 router.post('/bookings/create', authMiddleware(["user"]), blockCheckMiddleware, bookCtr.createBooking.bind(bookCtr));
 router.post('/bookings/create-order', authMiddleware(["user"]), blockCheckMiddleware, bookCtr.createOrder.bind(bookCtr));
 router.post('/bookings/verify', authMiddleware(["user"]), blockCheckMiddleware, bookCtr.verifyPayment.bind(bookCtr));
@@ -93,8 +97,28 @@ router.get(
   "/events/:eventId/reviews",
   revCtr.getReviewsByEvent.bind(revCtr)
 );
+
+// Chat routes
 router.get("/conversations", authMiddleware(["user"]), blockCheckMiddleware, chatCtr.listConversations.bind(chatCtr));
 router.get("/chat/:otherId/event/:eventId",authMiddleware(["user"]), blockCheckMiddleware, chatCtr.fetchMessages.bind(chatCtr));
 router.post("/chat/:otherId/event/:eventId",authMiddleware(["user"]), blockCheckMiddleware, chatCtr.sendMessage.bind(chatCtr));
+router.patch("/chat/:otherId/event/:eventId/read", authMiddleware(["user"]), blockCheckMiddleware, chatCtr.markMessagesAsRead.bind(chatCtr));
+
+//notificaitons
+router.get(
+  "/notifications",
+  authMiddleware(["user"]),blockCheckMiddleware,
+  notifCtr.list.bind(notifCtr)
+);
+router.get(
+  "/notifications/count",
+  authMiddleware(["user"]),blockCheckMiddleware,
+  notifCtr.countUnread.bind(notifCtr)
+);
+router.put(
+  "/notifications/:id/read",
+  authMiddleware(["user"]),blockCheckMiddleware,
+  notifCtr.markAsRead.bind(notifCtr)
+);
 
 export default router;

@@ -34,6 +34,8 @@ import WalletPage from "../pages/user/WalletPage";
 import MyBookingsPage from "../pages/user/MyBookingsPage"
 import SavedEventsPage from "../pages/user/SavedEventsPage";
 import BookingConfirmationPage from "../pages/user/BookingConfirmationPage";
+import NotificationsPage from "../pages/user/NotificationsPage";
+
 
 
 //admin specific
@@ -46,8 +48,7 @@ import AdminCategoryPage from "../pages/admin/AdminCategoryPage";
 import AdminEventsPage from "../pages/admin/AdminEvents";
 import AdminEventBookingsPage from '../pages/admin/AdminEventBookings'
 import UserInboxPage from "../pages/user/UserInboxPage";
-//import ConversationsPage from "../pages/user/MyConversations";
-//import ChatPage from "../pages/ChatPage";
+
 
 const AppRoutes = () => {
   return (
@@ -86,6 +87,7 @@ const AppRoutes = () => {
           <Route path="/user/bookings" element={<MyBookingsPage />} />
           <Route path="/user/saved-events" element={<SavedEventsPage />} />
           <Route path="/user/inbox" element={<UserInboxPage />} />
+          <Route path="/user/notification" element={<NotificationsPage />} />
         </Route>
         {/* host specific */}
         <Route element={<ProtectedRoute allowedRoles={["host"]} />}>

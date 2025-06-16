@@ -17,6 +17,7 @@ const TYPES = {
     UserController: Symbol.for("UserController"),
     UserProfileController: Symbol.for("UserProfileController"),
     WalletController: Symbol.for("WalletController"),
+    NotificationController: Symbol.for("NotificationController"),
   
     // Services
     AdminService:     Symbol.for("AdminService"),
@@ -37,6 +38,7 @@ const TYPES = {
     UserProfileService:    Symbol.for("UserProfileService"),
     UserService:    Symbol.for("UserService"),
     WalletService:    Symbol.for("WalletService"),
+    NotificationService: Symbol.for("NotificationService"),
 
     // Repositories
     AdminRepository:  Symbol.for("AdminRepository"),
@@ -54,6 +56,8 @@ const TYPES = {
     SubscriptionRepository: Symbol.for("SubscriptionRepository"),
     UserRepository: Symbol.for("UserRepository"),
     WalletRepository: Symbol.for("WalletRepository"),
+    NotificationRepository: Symbol.for("NotificationRepository"),
+
     
     
   };

@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
 import Button from "../../components/common/Button";
-//import { authRepository } from '../../repositories/authRepository';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();

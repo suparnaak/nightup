@@ -1,5 +1,3 @@
-import React from "react";
-
 export const Calendar = () => {
   return (
     <div className="border p-4 rounded">

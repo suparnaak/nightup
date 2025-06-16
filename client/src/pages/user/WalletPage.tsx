@@ -22,7 +22,7 @@ const WalletPage: React.FC = () => {
 
   const indexOfLastTx = currentPage * transactionsPerPage;
   const indexOfFirstTx = indexOfLastTx - transactionsPerPage;
-  const currentTransactions = wallet?.transactions.slice().reverse().slice(indexOfFirstTx, indexOfLastTx) || [];
+  const currentTransactions = wallet?.transactions.slice().slice(indexOfFirstTx, indexOfLastTx) || [];
   const totalPages = wallet ? Math.ceil(wallet.transactions.length / transactionsPerPage) : 0;
 
   const handleAddMoney = async () => {

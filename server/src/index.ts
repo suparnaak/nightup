@@ -1,14 +1,14 @@
 import express, { Application } from "express";
+import morgan from "morgan";
+import * as rfs from "rotating-file-stream";
+//import fs from "fs";
+import path from "path";
 import dotenv from "dotenv";
 dotenv.config();
 import cors from "cors"; 
 import connectDB from "./config/database";
 import cookieParser from "cookie-parser";
 import "./config/passport";
-
-
-
-
 import userRoutes from "./routes/userRoutes";
 import hostRoutes from "./routes/hostRoutes";
 import adminRoutes from "./routes/adminRoutes";
@@ -22,6 +22,15 @@ connectDB();
 const app: Application = express();
 
 app.use(cookieParser());
+
+//for morgan logs into a file
+const accessLogStream = rfs.createStream('access.log', {
+  interval: '1d', 
+  maxFiles: 30,   
+  path: path.join(__dirname, 'logs') 
+});
+app.use(morgan("dev"));
+app.use(morgan("combined", { stream: accessLogStream }));
 
 app.use(
   cors({

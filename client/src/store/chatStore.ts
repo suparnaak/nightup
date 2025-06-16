@@ -1,26 +1,7 @@
 import { create } from "zustand";
 import { chatRepository } from "../services/chatService";
 import { useAuthStore } from "./authStore";
-
-type ChatRole = "user" | "host";
-
-export interface Message {
-  id?: string;
-  senderId: string;
-  receiverId?: string;
-  eventId?: string;
-  content: string;
-  timestamp: string;
-}
-
-export interface Conversation {
-  eventId: string;
-  otherId: string;
-  otherName: string;
-  lastMessage: string;
-  updatedAt: string;
-  unreadCount: number;
-}
+import { ChatRole, Message, Conversation } from "../types/chatTypes";
 
 interface ChatStore {
   messages: Message[];
@@ -34,6 +15,7 @@ interface ChatStore {
   sendMessage: (hostId: string, eventId: string, content: string) => Promise<void>;
   listConversations: () => Promise<void>;
   setMessages: (newMessages: Message[] | ((prevMessages: Message[]) => Message[])) => void;
+  markMessagesAsRead: (otherId: string, eventId: string) => Promise<void>;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -96,6 +78,25 @@ export const useChatStore = create<ChatStore>((set) => ({
       set({ conversations: convos, isListLoading: false });
     } catch (err: any) {
       set({ isListLoading: false, listError: err.message || 'Failed to load conversations' });
+    }
+  },
+
+  markMessagesAsRead: async (otherId: string, eventId: string) => {
+    const { user } = useAuthStore.getState();
+    const roleRaw = user?.role;
+    const chatRole: ChatRole = roleRaw === "host" || roleRaw === "admin" ? "host" : "user";
+    try {
+      await chatRepository.markMessagesAsRead(otherId, eventId, chatRole);
+      // Update the conversation's unread count locally
+      set((state) => ({
+        conversations: state.conversations.map(conv => 
+          conv.eventId === eventId && conv.otherId === otherId
+            ? { ...conv, unreadCount: 0 }
+            : conv
+        )
+      }));
+    } catch (error: any) {
+      console.error('Failed to mark messages as read:', error);
     }
   },
 }));

@@ -1,27 +1,4 @@
-/* import mongoose from "mongoose";
 
-const eventTypeSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-    
-  },
-  {
-    timestamps: true, 
-  }
-);
-
-export const EventType = mongoose.model("EventType", eventTypeSchema);
- */
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IEventTypeDocument extends Document {

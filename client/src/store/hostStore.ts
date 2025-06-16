@@ -1,22 +1,6 @@
 import { create } from "zustand";
 import { hostRepository } from "../services/hostService";
-
-export interface HostProfile {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  hostType: string;
-  documentUrl: string;
-  documentStatus: "pending" | "approved" | "rejected";
-  rejectionReason?: string;
-  //subscriptionPlan: string;
-}
-
-export interface HostProfileResponse {
-  hostProfile: HostProfile;
-  message: string;
-}
+import { HostProfile, HostProfileResponse } from "../types/hostTypes";
 
 interface HostProfileState {
   host: HostProfile | null;

@@ -37,6 +37,8 @@ import { UserProfileController }     from "../../controllers/userProfileControll
 import { IUserProfileController }    from "../../controllers/interfaces/IUserProfileController";
 import { WalletController }          from "../../controllers/walletController";
 import { IWalletController }         from "../../controllers/interfaces/IWalletController";
+import { INotificationController } from "../../controllers/interfaces/INotificationController";
+import { NotificationController } from "../../controllers/notificationController";
 
 // Services & Interfaces
 import { AdminService }              from "../../services/adminSerivce"
@@ -73,6 +75,8 @@ import { ReviewService }             from "../../services/reviewService";
 import { IReviewService }            from "../../services/interfaces/IReviewService";
 import { SavedEventService }         from "../../services/savedEventService";
 import { ISavedEventService }        from "../../services/interfaces/ISavedEventService";
+import { NotificationService } from "../../services/NotificationService";
+import { INotificationService } from "../../services/interfaces/INotificationService";
 
 
 
@@ -109,6 +113,8 @@ import { WalletRepository }          from "../../repositories/walletRepository";
 import { IWalletRepository }         from "../../repositories/interfaces/IWalletRepository";
 import { IHostSubscriptionService } from "../../services/interfaces/IHostSubscriptionService";
 import { HostSubscriptionService } from "../../services/hostSubscriptionService";
+import { NotificationRepository } from "../../repositories/notificationRepository";
+import { INotificationRepository } from "../../repositories/interfaces/INotificationRepository";
 
 // Create the container
 const container = new Container();
@@ -131,6 +137,8 @@ container.bind<ISubscriptionController>(TYPES.SubscriptionController).to(Subscri
 container.bind<IUserController>(TYPES.UserController).to(UserController);
 container.bind<IUserProfileController>(TYPES.UserProfileController).to(UserProfileController);
 container.bind<IWalletController>(TYPES.WalletController).to(WalletController);
+container.bind<INotificationController>(TYPES.NotificationController).to(NotificationController);
+
 
 // Bind Services
 container.bind<IAdminService>(TYPES.AdminService).to(AdminService);
@@ -153,6 +161,7 @@ container.bind<IPaymentService>(TYPES.PaymentService).to(PaymentService);
 container.bind<IRevenueService>(TYPES.RevenueService).to(RevenueService);
 container.bind<IReviewService>(TYPES.ReviewService).to(ReviewService);
 container.bind<ISavedEventService>(TYPES.SavedEventService).to(SavedEventService);
+container.bind<INotificationService>(TYPES.NotificationService).to(NotificationService);
 
 // Bind Repositories
 container.bind<IAdminRepository>(TYPES.AdminRepository).to(AdminRepository);
@@ -170,5 +179,7 @@ container.bind<IReviewRepository>(TYPES.ReviewRepository).to(ReviewRepository);
 container.bind<ISavedEventRepository>(TYPES.SavedEventRepository).to(SavedEventRepository);
 container.bind<IUserRepository>(TYPES.UserRepository).to(UserRepository);
 container.bind<IWalletRepository>(TYPES.WalletRepository).to(WalletRepository);
+container.bind<INotificationRepository>(TYPES.NotificationRepository).to(NotificationRepository);
+
 
 export default container;

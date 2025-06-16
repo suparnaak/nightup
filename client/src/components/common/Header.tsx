@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import ProfileDropdown from "../user/ProfileDropdown";
 import HostProfileDropdown from "../host/HostProfileDropdown";
-import { MapPin } from "lucide-react";
 import {debounce} from 'lodash'
 import CityAutocomplete from "./CityAutocomplete";
 import { useEventStore } from "../../store/eventStore"

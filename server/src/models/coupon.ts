@@ -11,6 +11,8 @@ export interface ICoupon extends Document {
   usedCount: number;
   status: "inactive" | "active" | "expired";
   isBlocked: boolean;    
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const couponSchema: Schema = new Schema(

@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-
 const useLoading = (initialValue = false) => {
   const [loading, setLoading] = useState(initialValue);
   const startLoading = useCallback(() => setLoading(true), []);

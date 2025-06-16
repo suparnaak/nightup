@@ -1,32 +1,6 @@
 import { create } from "zustand";
 import hostRepository from "../services/hostService";
-
-export interface HostRevenueData {
-  totalRevenue: number;
-  monthlyRevenue: { month: string; amount: number }[];
-  eventRevenue: { eventId: string; eventName: string; amount: number; ticketsSold: number }[];
-  paymentMethods: { type: string; count: number; amount: number }[];
-  recentTransactions: Array<{
-    userName: string;
-    eventName: string;
-    ticketNumber: string;
-    amount: number;
-    status: string;
-    paymentStatus: string;
-    paymentMethod: string;
-    date: string;
-  }>;
-  cancellations: Array<{
-    cancelledBy: string;
-    count: number;
-    amount: number;
-  }>;
-  ticketTypes: Array<{
-    ticketType: string;
-    quantity: number;
-    revenue: number;
-  }>;
-}
+import { HostRevenueData } from "../types/hostTypes";
 
 interface HostRevenueState {
   revenueData: HostRevenueData | null;

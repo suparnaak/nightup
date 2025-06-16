@@ -1,36 +1,10 @@
 import { create } from "zustand";
 import { adminRepository } from "../services/adminService";
+import {  User, Host } from "../types/adminTypes";
 
-export interface BaseUser {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  isVerified: boolean;
-  isBlocked: boolean;
-  createdAt: string | number | Date;
-}
-
-export interface User extends BaseUser {}
-
-export interface Host extends BaseUser {
-  hostType: string;
-  subscriptionPlan: string;
-  subStatus: string;
-  documentUrl: string;
-  documentStatus: "pending" | "approved" | "rejected";
-  rejectionReason?: string;
-}
-/* export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  duration: string; // e.g., "Monthly", "6 Months", "Yearly"
-  price: number;
-} */
 interface AdminState {
   hosts: Host[];
   users: User[];
-  //subscriptions: SubscriptionPlan[];
   pagination: {
     total: number;
     page: number;
@@ -39,7 +13,6 @@ interface AdminState {
   };
   isLoading: boolean;
   error: string | null;
-  //getHosts: () => Promise<Host[]>;
   getHosts: (page?: number, limit?: number) => Promise<{ hosts: Host[], pagination: any }>;
   clearHosts: () => void;
   verifyDocument: (payload: {
@@ -65,28 +38,48 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     totalPages: 0
   },
 
+  
   getHosts: async (page: number = 1, limit: number = 10) => {
-    set({ isLoading: true, error: null });
-    try {
-      const data = await adminRepository.getHosts(page, limit);
-      const transformedHosts = data.hosts.map((host: any) => ({
-        id: host._id.toString(),
-        ...host,
-      }));
-      set({ 
-        hosts: transformedHosts, 
-        isLoading: false,
-        pagination: data.pagination
-      });
-      return { hosts: transformedHosts, pagination: data.pagination };
-    } catch (error: any) {
-      set({
-        error: error.response?.data?.message || "Failed to load hosts",
-        isLoading: false,
-      });
-      throw error;
-    }
-  },
+  set({ isLoading: true, error: null });
+
+  try {
+    const data = await adminRepository.getHosts(page, limit);
+    console.log(data.pagination)
+    const transformedHosts: Host[] = data.hosts.map((host: any) => ({
+      id:               host.id,
+      name:             host.name,
+      email:            host.email,
+      phone:            host.phone,
+      isVerified:       host.isVerified,
+      isBlocked:        host.isBlocked,
+      createdAt:        host.createdAt,
+      hostType:         host.hostType,
+
+      subscriptionPlan: host.currentPlan?.name ?? "None",
+      subStatus:        host.currentPlan?.status ?? "Not Subscribed",
+
+      documentUrl:      host.documentUrl,
+      documentStatus:   host.documentStatus,
+      rejectionReason:  host.rejectionReason,
+    }));
+
+    set({
+      hosts:      transformedHosts,
+      pagination: data.pagination,
+      isLoading:  false
+    });
+
+    return { hosts: transformedHosts, pagination: data.pagination };
+
+  } catch (error: any) {
+    set({
+      error:     error.response?.data?.message || "Failed to load hosts",
+      isLoading: false,
+    });
+    throw error;
+  }
+},
+
   clearHosts: () => set({ hosts: [] }),
 
  verifyDocument: async (payload: {
@@ -125,7 +118,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         hostId,
         newStatus,
       });
-      //await get().getHosts();
       set((state) => ({
         isLoading: false,
         hosts: state.hosts.map((h) =>
@@ -149,8 +141,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await adminRepository.getUsers(page, limit);
+      console.log(data)
       const transformedUsers = data.users.map((user: any) => ({
-        id: user._id.toString(),
+        id: user.id,
         ...user,
       }));
       set({ 
@@ -176,7 +169,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         userId,
         newStatus,
       });
-      //await get().getUsers();
       set((state) => ({
         isLoading: false,
         users: state.users.map((u) =>
@@ -197,4 +189,3 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   },
 }));
 
-//export default adminRepository;

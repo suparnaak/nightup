@@ -75,12 +75,13 @@ export class ReviewController implements IReviewController {
         return;
       }
       const { bookingId } = req.params;
+      //console.log("review by booking id",typeof(bookingId))
       const review = await this.reviewService.getReviewByBookingId(bookingId);
-  
+  //console.log("reviews fetched from service at controller",review)
       if (!review) {
-        res.status(STATUS_CODES.NOT_FOUND).json({
-          success: false,
-          message: MESSAGES.USER.ERROR.NO_REVIEW,
+        res.status(STATUS_CODES.SUCCESS).json({
+          success: true,
+          review: null,
         });
         return;
       }

@@ -1,19 +1,6 @@
 import { create } from "zustand";
 import { walletRepository } from "../services/walletService";
-
-export interface Transaction {
-  _id: string;
-  type: "credit" | "debit";
-  amount: number;
-  description?: string;
-  paymentId?: string;
-  date: string;
-}
-
-export interface Wallet {
-  balance: number;
-  transactions: Transaction[];
-}
+import { Transaction,Wallet } from "../types/walletTypes";
 
 interface WalletState {
   wallet: Wallet | null;
@@ -45,20 +32,7 @@ export const useWalletStore = create<WalletState>((set,get) => ({
     limit: 10,
     totalPages: 0
   },
-  /* getWallet: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const data = await walletRepository.getWallet();
-      set({ wallet: data.wallet, isLoading: false });
-      return data.wallet;
-    } catch (error: any) {
-      set({
-        error: error.response?.data?.message || "Failed to load wallet details",
-        isLoading: false,
-      });
-      return null;
-    }
-  }, */
+  
   setPage: (page: number) => {
     set(state => ({
       pagination: {
@@ -76,7 +50,7 @@ export const useWalletStore = create<WalletState>((set,get) => ({
         limit
       }
     }));
-    get().getWallet(1, limit); // Reset to first page when changing limit
+    get().getWallet(1, limit); 
   },
 
   getWallet: async (page = 1, limit = 10) => {

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-
 interface UseOtpTimerReturn {
   timeLeft: number;
   resetTimer: () => void;

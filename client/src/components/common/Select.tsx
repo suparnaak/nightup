@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-
+import React from "react";
 export const Select = ({ children }: { children: React.ReactNode }) => (
   <div className="relative inline-block">{children}</div>
 );

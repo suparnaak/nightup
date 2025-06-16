@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IEventDocument extends Document {
+  _id: Types.ObjectId;
   title: string;
   startTime: Date;
   endTime: Date;
@@ -28,6 +29,8 @@ export interface IEventDocument extends Document {
     type: "Point";
     coordinates: [number, number]; 
   };
+   createdAt: Date;
+  updatedAt: Date;
 }
 
 const eventSchema: Schema = new Schema(
@@ -61,6 +64,7 @@ const eventSchema: Schema = new Schema(
       type: { type: String, enum: ["Point"], default: "Point" },
       coordinates: { type: [Number] },
     },
+    
   },
   { timestamps: true }
 );

@@ -14,6 +14,7 @@ export class ChatService implements IChatService {
     private chatRepository:IChatRepository,
 
   ){}
+  
   async fetchMessages(
       eventId: string,
       userId: string,
@@ -42,7 +43,6 @@ export class ChatService implements IChatService {
       content
     );
 
-   
     const receiverRoom = `user-${receiverId}`;
     io.to(receiverRoom).emit('receiveMessage', msg);
 
@@ -53,6 +53,7 @@ export class ChatService implements IChatService {
     return this.chatRepository.listConversations(participantId);
   }
 
+  async markMessagesAsRead(eventId: string, userId: string, otherId: string): Promise<void> {
+    return this.chatRepository.markMessagesAsRead(eventId, userId, otherId);
+  }
 }
-
-//export default new ChatService();

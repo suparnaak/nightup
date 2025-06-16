@@ -36,12 +36,10 @@ const HostProfileManagement: React.FC = () => {
     confirmPassword: null as string | null,
   });
 
-  // Fetch profile data on mount
   useEffect(() => {
     getHostProfile().catch(console.error);
   }, []);
 
-  // Update form data when host data changes
   useEffect(() => {
     if (host) {
       setFormData((prev) => ({

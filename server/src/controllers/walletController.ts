@@ -5,6 +5,13 @@ import { Request, Response } from "express";
 import { IWalletService } from '../services/interfaces/IWalletSevice';
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { IWalletController } from "./interfaces/IWalletController";
+import { 
+  CreateWalletOrderDto, 
+  PaymentVerificationDto, 
+  PaginatedWalletResponseDto 
+} from "../dtos/wallet/WalletDTO";
+import { toPaginatedWalletResponseDto } from "../mappers/WalletMapper";
+
 interface AuthRequest extends Request {
     user?: {
       userId?: string;
@@ -31,13 +38,21 @@ export class WalletController implements IWalletController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       
-      const { wallet, pagination } = await this.walletService.getWallet(userId, page, limit);
+      //const { wallet, pagination } = await this.walletService.getWallet(userId, page, limit);
       
       //const wallet = await this.walletService.getWallet(userId);
-      res.status(STATUS_CODES.SUCCESS).json({
+      /* res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         wallet,
         pagination
+      }); */
+      const result = await this.walletService.getWallet(userId, page, limit);
+      
+      const walletResponse: PaginatedWalletResponseDto = toPaginatedWalletResponseDto(result);
+
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        ...walletResponse
       });
     } catch (error) {
       console.error("Get Wallet Error:", error);
@@ -58,9 +73,9 @@ export class WalletController implements IWalletController {
         });
         return;
       }
-      const { amount } = req.body;
-      console.log(amount)
-      if (!amount || amount <= 0) {
+      //const { amount } = req.body;
+      //console.log(amount)
+      /* if (!amount || amount <= 0) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
           message: MESSAGES.USER.ERROR.AMOUNT_INVALID,
@@ -68,6 +83,22 @@ export class WalletController implements IWalletController {
         return;
       }
       const order = await this.walletService.createOrder(userId, amount);
+      res.status(STATUS_CODES.SUCCESS).json({
+        success: true,
+        orderId: order.id,
+      }); */
+      const createOrderDto: CreateWalletOrderDto = {
+        amount: req.body.amount
+      };
+       if (!createOrderDto.amount || createOrderDto.amount <= 0) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: MESSAGES.USER.ERROR.AMOUNT_INVALID,
+        });
+        return;
+      }
+      const order = await this.walletService.createOrder(userId, createOrderDto.amount);
+      
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         orderId: order.id,
@@ -92,8 +123,39 @@ export class WalletController implements IWalletController {
         });
         return;
       }
-      const paymentData = req.body;
+      /* const paymentData = req.body;
       const success = await this.walletService.verifyPayment(userId, paymentData);
+      if (success) {
+        res.status(STATUS_CODES.SUCCESS).json({
+          success: true,
+          message: MESSAGES.USER.SUCCESS.WALLET_UPDATED,
+        });
+      } else {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: MESSAGES.COMMON.ERROR.PAYMENT_FAILED,
+        });
+      } */
+     const paymentVerificationDto: PaymentVerificationDto = {
+        razorpay_payment_id: req.body.razorpay_payment_id,
+        razorpay_order_id: req.body.razorpay_order_id,
+        razorpay_signature: req.body.razorpay_signature,
+        amount: req.body.amount
+      };
+
+      if (!paymentVerificationDto.razorpay_payment_id || 
+          !paymentVerificationDto.razorpay_order_id || 
+          !paymentVerificationDto.razorpay_signature || 
+          !paymentVerificationDto.amount) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: "Missing required payment verification data",
+        });
+        return;
+      }
+
+      const success = await this.walletService.verifyPayment(userId, paymentVerificationDto);
+      
       if (success) {
         res.status(STATUS_CODES.SUCCESS).json({
           success: true,
