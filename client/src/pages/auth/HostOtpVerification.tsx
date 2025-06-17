@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useOtpTimer from '../../hooks/useOtpTimer';
 import { authRepository } from '../../services/authService';
@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 interface LocationState {
   otpExpiry: string; 
   email: string;
+  verificationType: "emailVerification";
 }
 
 const OtpVerification: React.FC = () => {
@@ -57,12 +58,12 @@ const OtpVerification: React.FC = () => {
 
   const handleResendOtp = async () => {
     try {
-      const response = await authRepository.resendOtp(state.email);
+      const response = await authRepository.resendOtp(state.email,state.verificationType);
       if (response.data.success) {
         alert('OTP Resent Successfully!');
         if(response.data.otpExpiry) {
-          const newExpiry = new Date(response.data.otpExpiry).getTime();
-          const newTimeLeft = Math.floor((newExpiry - Date.now()) / 1000);
+/*           const newExpiry = new Date(response.data.otpExpiry).getTime();
+          const newTimeLeft = Math.floor((newExpiry - Date.now()) / 1000); */
           resetTimer();
         } else {
           resetTimer();

@@ -34,7 +34,7 @@ const BookingConfirmationPage: React.FC = () => {
 
   const { getWallet, wallet } = useWalletStore();
 
-  const { createBooking, createOrder, verifyPayment, isLoading } =
+  const { createBooking, createOrder, verifyPayment } =
     useBookingStore();
   const { openRazorpay } = useRazorpay();
 
@@ -132,7 +132,7 @@ const BookingConfirmationPage: React.FC = () => {
 
   const handleProceedToPayment = async () => {
     try {
-      const subtotal = calculateSubtotal();
+      //const subtotal = calculateSubtotal();
       const discount = calculateDiscount();
       const total = calculateTotal();
 
@@ -167,7 +167,7 @@ const BookingConfirmationPage: React.FC = () => {
         };
 
         try {
-          const bookingPromise = new Promise(async (resolve, reject) => {
+          const bookingPromise = new Promise(async (resolve) => {
             await new Promise((res) => setTimeout(res, 2000));
 
             const result = await createBooking(walletBookingData);

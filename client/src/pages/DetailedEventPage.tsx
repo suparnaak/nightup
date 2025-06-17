@@ -60,7 +60,7 @@ const DetailedEventPage: React.FC = () => {
   const messageEndRef = useRef<HTMLDivElement>(null);
 
   const [event, setEvent] = useState<any>(null);
-  const [hostReviews, setHostReviews] = useState<any[]>([]);
+  //const [hostReviews, setHostReviews] = useState<any[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

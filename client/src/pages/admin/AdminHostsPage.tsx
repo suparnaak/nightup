@@ -46,7 +46,7 @@ const AdminHostsPage: React.FC = () => {
   const [togglingStatus, setTogglingStatus] = useState<{ [id: string]: boolean }>({});
   const [verifyingStatus, setVerifyingStatus] = useState<{ [id: string]: boolean }>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const limit=10
 
   useEffect(() => {
     getHosts(currentPage, limit).catch((err) => console.error(err));

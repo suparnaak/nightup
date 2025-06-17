@@ -26,7 +26,7 @@ const HostAddEvent: React.FC = () => {
   const [venueZip, setVenueZip] = useState("");
   const [venueCapacity, setVenueCapacity] = useState<number>(0);
   const [categoryId, setCategoryId] = useState<string>("");
-  const [categoryName, setCategoryName] = useState<string>("");
+  //const [categoryName, setCategoryName] = useState<string>("");
   const [artist, setArtist] = useState("");
   const [description, setDescription] = useState("");
   const [tickets, setTickets] = useState([
@@ -305,22 +305,20 @@ const HostAddEvent: React.FC = () => {
           <div>
             <label className="block text-gray-700">Category</label>
             <select
-              value={categoryId}
-              onChange={(e) => {
-                const id = e.target.value;
-                setCategoryId(id);
-                const sel = categories.find((c) => c.id === id);
-                setCategoryName(sel?.name || "");
-              }}
-              className="w-full border border-gray-300 p-2 rounded"
-            >
-              <option value="">Select a category</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+  value={categoryId}
+  onChange={(e) => {
+    setCategoryId(e.target.value);
+    // Remove the setCategoryName calls
+  }}
+  className="w-full border border-gray-300 p-2 rounded"
+>
+  <option value="">Select a category</option>
+  {categories.map((cat) => (
+    <option key={cat.id} value={cat.id}>
+      {cat.name}
+    </option>
+  ))}
+</select>
             {formErrors.categoryId && (
               <p className="text-red-500 text-sm mt-1">
                 {formErrors.categoryId}

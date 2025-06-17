@@ -37,7 +37,7 @@ const AdminEventBookings: React.FC = () => {
     ? bookings[0].event.title 
     : '';
 
-  const goToFirstPage = () => setCurrentPage(1);
+  //const goToFirstPage = () => setCurrentPage(1);
 
   if (isLoading) {
     return (

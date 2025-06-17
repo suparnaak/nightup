@@ -35,7 +35,8 @@ const HostEventBookingsPage: React.FC = () => {
   const [selectedBooking, setSelectedBooking] =
     useState<ExtendedBooking | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [pageSize, setPageSize] = useState(10);
+  //const [pageSize, setPageSize] = useState(10);
+  const pageSize = 10
 
   useEffect(() => {
     if (eventId) {

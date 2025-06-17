@@ -5,7 +5,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { useAuthStore } from "../../store/authStore";
 import { useUserStore } from "../../store/userStore";
-import { User, Settings, Phone, Mail, Edit2, Key, CheckCircle, X } from 'lucide-react';
+import { User,  Phone, Mail, Edit2, Key,  X } from 'lucide-react';
 
 const Profile: React.FC = () => {
   const { user, setUser } = useAuthStore();

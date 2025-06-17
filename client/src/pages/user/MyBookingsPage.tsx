@@ -232,14 +232,14 @@ const MyBookingsPage: React.FC = () => {
   const [isCancelling, setIsCancelling] = useState(false);
   const [localBookings, setLocalBookings] = useState(bookings);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  //const [pageSize, setPageSize] = useState(5);
   const [bookingReviewStatus, setBookingReviewStatus] = useState<
     Record<string, boolean>
   >({});
   const [loadingReviewStatus, setLoadingReviewStatus] = useState<
     Record<string, boolean>
   >({});
-
+const pageSize = 5
   useEffect(() => {
     setLocalBookings(bookings);
   }, [bookings]);

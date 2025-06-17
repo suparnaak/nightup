@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import HostLayout from "../../layouts/HostLayout";
 import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useHostSubscriptionStore } from "../../store/hostSubscriptionStore";
 import { useRazorpay } from "../../hooks/useRazorpay";
-import { FaCheckCircle, FaTimesCircle, FaClock } from "react-icons/fa"; 
 import { Crown, Clock, Calendar, CheckCircle, AlertCircle, ArrowUpRight } from 'lucide-react';
 
 const HostSubscriptionPage: React.FC = () => {

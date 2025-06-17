@@ -16,60 +16,7 @@ export class AdminController implements IAdminController {
     private adminService: IAdminService
   ) {}
   async login(req: Request, res: Response): Promise<void> {
-   /*  try {
-      const { email, password } = req.body;
-
-      if (!email || !password) {
-        res.status(STATUS_CODES.BAD_REQUEST).json({
-          success: false,
-          message: MESSAGES.COMMON.ERROR.MISSING_FIELDS,
-        });
-        return;
-      }
-
-      const result = await this.adminService.login(email, password);
-
-      if (!result.success) {
-        res.status(STATUS_CODES.BAD_REQUEST).json({
-          success: false,
-          message: result.message,
-        });
-        return;
-      }
-      const accessTokenCookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict' as 'strict',
-        maxAge: 1 * 60 * 60 * 1000, // 1 hour
-      };
-      const refreshTokenCookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict' as 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      };
-
-      res
-        .cookie('token', result.token, accessTokenCookieOptions)
-        .cookie('refreshToken', result.refreshToken, refreshTokenCookieOptions)
-        .status(STATUS_CODES.SUCCESS)
-        .json({
-          success: true,
-          message: MESSAGES.COMMON.SUCCESS.LOGIN || "Login successful",
-          admin: result.admin,
-        });
-
-    } catch (error) {
-      console.error("Admin Login Error:", error);
-      const errMessage =
-        error instanceof Error
-          ? error.message
-          : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
-      res.status(STATUS_CODES.SERVER_ERROR).json({
-        success: false,
-        message: errMessage,
-      });
-    } */
+  
    try {
       const dto = req.body as AdminLoginDTO;
       const { email, password } = dto;
@@ -151,40 +98,7 @@ export class AdminController implements IAdminController {
   }
    
   //document verification
-   /* async verifyDocument(req: Request, res: Response): Promise<void> {
-    try {
-      const { hostId, action, rejectionReason } = req.body;
-      if (!hostId || !action) {
-        res.status(STATUS_CODES.BAD_REQUEST).json({
-          success: false,
-          message: MESSAGES.COMMON.ERROR.MISSING_FIELDS,
-        });
-        return;
-      }
-      // Pass rejectionReason along (it will be ignored for approvals)
-      const result = await this.adminService.verifyDocument(hostId, action, rejectionReason);
-      
-      if (!result.success) {
-        res.status(STATUS_CODES.BAD_REQUEST).json({
-          success: false,
-          message: result.message || MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-        });
-        return;
-      }
-      
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        message: result.message,
-      });
-    } catch (error) {
-      console.error("Verify Document Error:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({
-        success: false,
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-      });
-    }
-  }  */
- async verifyDocument(req: Request, res: Response): Promise<void> {
+   async verifyDocument(req: Request, res: Response): Promise<void> {
     try {
       const dto = req.body as VerifyDocumentRequestDTO;
       const { hostId, action, rejectionReason } = dto;

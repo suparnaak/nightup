@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Wallet, Book, Bookmark, StickyNote, Inbox, Bell } from 'lucide-react';
+import { LogOut, User, Wallet, Book, Bookmark, StickyNote, Inbox } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useChatStore } from '../../store/chatStore';
 import { useNotificationStore } from '../../store/notificationStore';
