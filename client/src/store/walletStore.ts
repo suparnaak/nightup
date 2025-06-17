@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { walletRepository } from "../services/walletService";
-import { Transaction,Wallet } from "../types/walletTypes";
+import { Wallet } from "../types/walletTypes";
 
 interface WalletState {
   wallet: Wallet | null;

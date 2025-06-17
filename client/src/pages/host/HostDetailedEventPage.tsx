@@ -8,7 +8,7 @@ import { useEventStore } from "../../store/eventStore";
 const HostDetailedEventPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { fetchEventDetails, deleteEvent } = useEventStore();
+  const { fetchEventDetails } = useEventStore();
 
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);

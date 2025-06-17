@@ -312,7 +312,6 @@ const HostAddEvent: React.FC = () => {
                 const sel = categories.find((c) => c.id === id);
                 setCategoryName(sel?.name || "");
               }}
-              /* required */
               className="w-full border border-gray-300 p-2 rounded"
             >
               <option value="">Select a category</option>

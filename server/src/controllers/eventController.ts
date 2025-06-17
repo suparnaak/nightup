@@ -9,7 +9,7 @@ import { MESSAGES, STATUS_CODES } from "../utils/constants";
 import NodeGeocoder, { Options as GeocoderOptions } from "node-geocoder";
 import { CreateEventDto, EventResponseDto, UpdateEventDto } from '../dtos/event/EventDTO';
 import { EventMapper } from '../mappers/EventMapper';
-
+import fetch from 'node-fetch';
 const geocoderOptions: GeocoderOptions = {
   provider: "openstreetmap",
 };

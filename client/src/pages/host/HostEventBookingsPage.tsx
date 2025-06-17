@@ -77,11 +77,11 @@ const HostEventBookingsPage: React.FC = () => {
     }
   };
 
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+ /*  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSize = +e.target.value;
     setPageSize(newSize);
     if (eventId) fetchBookingsByEvent(eventId, 1, newSize);
-  };
+  }; */
 
   const renderDetailsModal = () => {
     if (!selectedBooking) return null;

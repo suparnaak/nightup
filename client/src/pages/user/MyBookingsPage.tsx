@@ -21,7 +21,7 @@ import Spinner from "../../components/common/Spinner";
 import toast from "react-hot-toast";
 import Pagination from "../../components/common/Pagination";
 import { isPast } from "date-fns"; 
-import { Booking } from "../../types/bookingTypes";
+
 
 const StatusBadge = ({ status }: { status: string }) => {
   const statusConfig = {

@@ -21,7 +21,7 @@ interface HostSubscriptionState {
   ) => Promise<boolean>;
 }
 
-export const useHostSubscriptionStore = create<HostSubscriptionState>((set, get) => ({
+export const useHostSubscriptionStore = create<HostSubscriptionState>((set) => ({
   subscription: null,
   availablePlans: [],
   isLoading: false,

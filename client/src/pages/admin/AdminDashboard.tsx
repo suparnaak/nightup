@@ -188,7 +188,7 @@ const AdminDashboard: React.FC = () => {
                       `${planName}: ${(percent * 100).toFixed(0)}%`
                     }
                   >
-                    {revenueData.planRevenue.map((entry, index) => (
+                    {revenueData.planRevenue.map(( _,index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}

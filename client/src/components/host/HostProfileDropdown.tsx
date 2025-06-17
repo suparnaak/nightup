@@ -94,7 +94,7 @@ const HostProfileDropdown: React.FC = () => {
           </Link>
           <Link
             to="/host/inbox"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"
+            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"
             onClick={() => setIsOpen(false)}
           >
             <span>Inbox</span>

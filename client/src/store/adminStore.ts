@@ -25,7 +25,7 @@ interface AdminState {
   
 }
 
-export const useAdminStore = create<AdminState>((set, get) => ({
+export const useAdminStore = create<AdminState>((set) => ({
   hosts: [],
   users: [],
   subscriptions: [],

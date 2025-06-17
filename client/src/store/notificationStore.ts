@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { notificationRepository } from "../services/notificationService";
-import { io } from "socket.io-client"; 
+//import { io } from "socket.io-client"; 
 import { Notification } from "../types/notificationTypes";
 
 interface NotificationStore {
@@ -14,7 +14,7 @@ interface NotificationStore {
   addNotification: (notif: Notification) => void;
 }
 
-export const useNotificationStore = create<NotificationStore>((set, get) => ({
+export const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],
   unreadCount: 0,
   isLoading: false,
