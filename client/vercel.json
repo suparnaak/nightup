@@ -1,5 +1,12 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.suparnaak.info/api/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/"
+    }
   ]
 }
