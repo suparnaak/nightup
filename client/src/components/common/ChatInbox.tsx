@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useLayoutEffect, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useChatStore } from "../../store/chatStore";
 import { useAuthStore } from "../../store/authStore";
 import { io } from "../../config/SocketClient";
@@ -36,12 +36,10 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
     senderId: string | undefined 
   }>>(new Map());
   
-  // Emoji picker state
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   
-  // scroll refs and state
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [isUserAtBottom, setIsUserAtBottom] = useState(true);
@@ -51,7 +49,6 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
 
   const getConversationKey = (otherId: string, eventId: string) => `${otherId}-${eventId}`;
 
-  // Close emoji picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -70,7 +67,6 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
     };
   }, []);
 
-  // scroll detection with debouncing
   const checkIfAtBottom = useCallback(() => {
     if (!messagesContainerRef.current) return true;
     
@@ -80,37 +76,33 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
     return isAtBottom;
   }, []);
 
- 
   const scrollToBottom = useCallback((smooth = false) => {
     if (!messagesContainerRef.current) return;
     
+    const container = messagesContainerRef.current;
     isScrollingRef.current = true;
     
-    const scrollToBottomImmediate = () => {
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    const doScroll = () => {
+      if (smooth) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth'
+        });
+      } else {
+        container.scrollTop = container.scrollHeight;
       }
-      
-      
-      setTimeout(() => {
-        isScrollingRef.current = false;
-      }, 100);
     };
-
-    if (smooth) {
-      messagesContainerRef.current.scrollTo({
-        top: messagesContainerRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-      
-      
-      setTimeout(scrollToBottomImmediate, 500);
-    } else {
-      scrollToBottomImmediate();
-    }
+    
+    doScroll();
+    
+    setTimeout(() => {
+      isScrollingRef.current = false;
+      if (container.scrollTop < container.scrollHeight - container.clientHeight - 10) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, smooth ? 500 : 50);
   }, []);
 
-  
   const handleScroll = useCallback(() => {
     if (isScrollingRef.current) return;
     
@@ -121,7 +113,7 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
     scrollTimeoutRef.current = setTimeout(() => {
       const isAtBottom = checkIfAtBottom();
       setIsUserAtBottom(isAtBottom);
-    }, 50);
+    }, 100); 
   }, [checkIfAtBottom]);
 
   useEffect(() => {
@@ -149,20 +141,24 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
     listConversations();
   }, [listConversations]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const messageCount = messages.length;
     const wasNewMessageAdded = messageCount > lastMessageCountRef.current;
     
-    if (wasNewMessageAdded && isUserAtBottom) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
+    if (wasNewMessageAdded && messageCount > 0) {
+      const lastMsg = messages[messages.length - 1];
+      const isMyMessage = lastMsg?.senderId === currentUserId;
+      
+      if (isMyMessage || isUserAtBottom) {
+        setTimeout(() => {
           scrollToBottom(false);
-        });
-      });
+          setIsUserAtBottom(true);
+        }, 10);
+      }
     }
     
     lastMessageCountRef.current = messageCount;
-  }, [messages, isUserAtBottom, scrollToBottom]);
+  }, [messages, isUserAtBottom, scrollToBottom, currentUserId]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -173,40 +169,69 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
     
     const handleNewMessage = (msg: any) => {
       console.log('Received message via socket:', msg);
-      
-      const senderKey = getConversationKey(msg.senderId, msg.eventId);
+
+      const senderKey   = getConversationKey(msg.senderId,   msg.eventId);
       const receiverKey = getConversationKey(msg.receiverId, msg.eventId);
-      
+
       setLastMessages(prev => {
-        const newMap = new Map(prev);
-        const conversationKey = msg.senderId === currentUserId ? receiverKey : senderKey;
-        newMap.set(conversationKey, {
+        const next = new Map(prev);
+        const convKey = msg.senderId === currentUserId ? receiverKey : senderKey;
+        next.set(convKey, {
           content: msg.content,
           timestamp: msg.timestamp,
           senderId: msg.senderId
         });
-        return newMap;
+        return next;
       });
-      
-      const isCurrentConversation = selectedEventId && selectedOtherId && 
-          msg.eventId === selectedEventId && 
-          ((msg.senderId === currentUserId && msg.receiverId === selectedOtherId) ||
-           (msg.senderId === selectedOtherId && msg.receiverId === currentUserId));
-      
+
+      const isCurrentConversation = Boolean(
+        selectedEventId === msg.eventId &&
+        ((msg.senderId === currentUserId && msg.receiverId === selectedOtherId) ||
+         (msg.senderId === selectedOtherId   && msg.receiverId === currentUserId))
+      );
+
       if (isCurrentConversation) {
-        console.log('Adding message to current conversation');
-        setMessages((prevMessages: any) => [...prevMessages, msg]);
-        
-        const isMessageToCurrentUser = msg.receiverId === currentUserId;
-        const isFromSelectedContact = msg.senderId === selectedOtherId;
-        
-        if (isMessageToCurrentUser && isFromSelectedContact) {
-          console.log('Marking message as read since conversation is active');
-          markMessagesAsRead(selectedOtherId, selectedEventId);
+        const isMyMessage = msg.senderId === currentUserId;
+
+        setMessages(prev => {
+          if (isMyMessage) {
+            const idx = prev.findIndex(m =>
+              m.isTemporary &&
+              m.senderId === msg.senderId &&
+              m.content  === msg.content  &&
+              Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 5000
+            );
+            if (idx !== -1) {
+              const copy = [...prev];
+              copy[idx] = { ...msg, _id: msg._id || msg.id };
+              return copy;
+            }
+          }
+
+          const duplicate = prev.some(m =>
+            m._id === msg._id ||
+            (m.senderId === msg.senderId &&
+             m.receiverId === msg.receiverId &&
+             m.content  === msg.content &&
+             Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 1000)
+          );
+          if (duplicate) return prev;
+
+          return [...prev, msg];
+        });
+
+        if (isMyMessage) {
+          setIsUserAtBottom(true);
+        } else if (checkIfAtBottom()) {
+          setIsUserAtBottom(true);
+        }
+
+        if (msg.receiverId === currentUserId) {
+          markMessagesAsRead(selectedOtherId!, selectedEventId!);
         }
       }
-      
-      setTimeout(() => listConversations(), 100);
+
+      setTimeout(() => listConversations(), 300);
     };
 
     const handleUserOnline = (userId: string) => {
@@ -271,7 +296,7 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
         clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [currentUserId, selectedEventId, selectedOtherId, setMessages, listConversations, markMessagesAsRead]);
+  }, [currentUserId, selectedEventId, selectedOtherId, setMessages, listConversations, markMessagesAsRead, checkIfAtBottom]);
 
   const openConversation = async (otherId: string, eventId: string, otherName: string) => {
     if (selectedOtherId && selectedEventId) {
@@ -285,7 +310,7 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
     setSelectedOtherId(otherId);
     setSelectedEventId(eventId);
     setSelectedOtherName(otherName);
-    setIsUserAtBottom(true);
+    setIsUserAtBottom(true); 
     
     io.emit('joinConversation', {
       userId: currentUserId,
@@ -298,7 +323,8 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
     
     setTimeout(() => {
       scrollToBottom(false);
-    }, 200);
+      setIsUserAtBottom(true);
+    }, 100);
   };
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
@@ -309,17 +335,19 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
     e.preventDefault();
     if (!newMessage.trim() || !selectedOtherId || !selectedEventId) return;
 
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
     const tempMsg = {
-      _id: `temp-${Date.now()}`,
+      _id: tempId,
       senderId: currentUserId!,
       receiverId: selectedOtherId,
       eventId: selectedEventId,
       content: newMessage.trim(),
       timestamp: new Date().toISOString(),
+      isTemporary: true
     };
 
     setIsUserAtBottom(true);
-    
+
     setMessages(prev => [...prev, tempMsg]);
 
     const convKey = getConversationKey(selectedOtherId, selectedEventId);
@@ -333,14 +361,17 @@ export function ChatInbox({ Layout }: ChatInboxProps) {
       return next;
     });
 
+    const content = newMessage.trim();
     setNewMessage("");
     setShowEmojiPicker(false);
 
-    sendMessage(selectedOtherId, selectedEventId, tempMsg.content)
+    sendMessage(selectedOtherId, selectedEventId, content)
       .catch(err => {
         console.error("Failed to send message:", err);
+        setMessages(prev => prev.filter(m => m._id !== tempId));
+        setNewMessage(content);
       });
-  }, [newMessage, selectedOtherId, selectedEventId, currentUserId, setMessages, sendMessage]);
+  }, [newMessage, selectedOtherId, selectedEventId, currentUserId, setMessages, setLastMessages, sendMessage]);
   
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);

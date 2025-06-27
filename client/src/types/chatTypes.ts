@@ -1,12 +1,13 @@
 export type ChatRole = "user" | "host";
 
 export interface Message {
-  id?: string;
+  _id?: string;
   senderId: string;
   receiverId?: string;
   eventId?: string;
   content: string;
   timestamp: string;
+  isTemporary?: boolean;
 }
 
 export interface Conversation {

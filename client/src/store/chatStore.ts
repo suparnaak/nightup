@@ -62,7 +62,9 @@ export const useChatStore = create<ChatStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const newMessage = await chatRepository.sendMessage(hostId, eventId, content, chatRole);
-      set((state) => ({ messages: [...state.messages, newMessage], isLoading: false }));
+      set({ isLoading: false });
+       return newMessage;
+      //set((state) => ({ messages: [...state.messages, newMessage], isLoading: false }));
     } catch (error: any) {
       set({ isLoading: false, error: error.message || "Failed to send message" });
     }
