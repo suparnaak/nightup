@@ -53,4 +53,3 @@ export class WalletService implements IWalletService {
   }
 }
 
-//export default new WalletService();

@@ -12,9 +12,7 @@ export class SubscriptionService implements ISubscriptionService {
     @inject(TYPES.SubscriptionRepository)
     private subscriptionRepository: ISubscriptionRepository
   ){}
-  /* async getSubscriptions(): Promise<ISubscriptionPlan[]> {
-    return await this.subscriptionRepository.getSubscriptions();
-  } */
+
  async getSubscriptions(page?: number, limit?: number): Promise<{
     subscriptions: ISubscriptionPlan[];
     pagination: {
@@ -47,4 +45,3 @@ export class SubscriptionService implements ISubscriptionService {
   }
 }
 
-//export default new SubscriptionService();

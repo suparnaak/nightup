@@ -10,10 +10,11 @@ import {
   validatePassword,
   validateConfirmPassword,
 } from "../../utils/validationUtils";
+import { SignupData } from "../../types/authTypes";
 
 const HostSignup: React.FC = () => {
   const navigate = useNavigate();
-  const { hostSignup, isLoading, error } = useAuthStore();
+  const { signup, isLoading, error } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -33,7 +34,9 @@ const HostSignup: React.FC = () => {
     hostType: null as string | null,
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFormErrors((prev) => ({ ...prev, [name]: null }));
@@ -49,7 +52,8 @@ const HostSignup: React.FC = () => {
         formData.password,
         formData.confirmPassword
       ),
-      hostType: formData.hostType.trim() === "" ? "Host type is required" : null,
+      hostType:
+        formData.hostType.trim() === "" ? "Host type is required" : null,
     };
 
     setFormErrors(errors);
@@ -63,18 +67,20 @@ const HostSignup: React.FC = () => {
     if (!validateForm()) return;
 
     try {
-      const response = await hostSignup(
-        formData.name,
-        formData.email,
-        formData.phone,
-        formData.password,
-        formData.confirmPassword,
-        formData.hostType
-      );
+      const signupData: SignupData = {
+        ...formData,
+        role: "host",
+      };
+      const response = await signup(signupData);
       console.log("Host signup response:", response);
 
       navigate("/host/verify-otp", {
-        state: { otpExpiry: response.otpExpiry, email: response.host.email },
+        state: {
+          otpExpiry: response.otpExpiry,
+          email: response.user.email,
+          verificationType: "emailVerification",
+          role: "host",
+        },
       });
     } catch (error) {
       console.error("Host signup failed:", error);
@@ -152,7 +158,9 @@ const HostSignup: React.FC = () => {
                 {/* Add more options as needed */}
               </select>
               {formErrors.hostType && (
-                <p className="text-red-500 text-sm mt-1">{formErrors.hostType}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {formErrors.hostType}
+                </p>
               )}
             </div>
             <Input

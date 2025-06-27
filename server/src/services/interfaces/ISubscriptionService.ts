@@ -1,7 +1,6 @@
 import { ISubscriptionPlan } from "../../models/subscriptionPlan";
 
 export interface ISubscriptionService {
-  //getSubscriptions(): Promise<ISubscriptionPlan[]>;
   getSubscriptions(page?: number, limit?: number): Promise<{
     subscriptions: ISubscriptionPlan[];
     pagination: {

@@ -1,40 +1,65 @@
 import axiosClient from "../api/axiosUserClient";
 import axiosHostClient from "../api/axiosHostClient";
 import axiosAdminClient from "../api/axiosAdminClient";
-import { SignupData, HostSignupData, LoginData } from "../types/authTypes";
+import { SignupData, LoginData } from "../types/authTypes";
+
+function getAxiosByRole(role: string) {
+  switch (role) {
+    case "user":
+      return axiosClient;
+    case "host":
+      return axiosHostClient;
+    case "admin":
+      return axiosAdminClient;
+    default:
+      throw new Error(`Unsupported role: ${role}`);
+  }
+}
 
 export const authRepository = {
-  // methods for user
-  signup: async (userData: SignupData) => {
-    const response = await axiosClient.post("/signup", userData);
+  signup: async (signupData: SignupData) => {
+    const axios = getAxiosByRole(signupData.role);
+    const response = await axios.post("/signup", signupData);
     return response.data;
   },
 
   login: async (credentials: LoginData) => {
-    const response = await axiosClient.post("/login", credentials);
+    const axios = getAxiosByRole(credentials.role);
+    const response = await axios.post("/login", credentials);
     return response.data;
   },
+
   verifyOtp: async ({
     email,
     otp,
     verificationType,
+    role = "user",
   }: {
     email: string;
     otp: string;
     verificationType: string;
+    role?: string;
   }) => {
-    const response = await axiosClient.post("/verify-otp", {
+    const axios = getAxiosByRole(role);
+    console.log("role:-", role);
+    const response = await axios.post("/verify-otp", {
       email,
       otp,
       verificationType,
+      role,
     });
     return response.data;
   },
-
-  resendOtp: async (email: string, verificationType: string) => {
-    const response = await axiosClient.post("/resend-otp", {
+  resendOtp: async (
+    email: string,
+    verificationType: string,
+    role: string = "user"
+  ) => {
+    const axios = getAxiosByRole(role);
+    const response = await axios.post("/resend-otp", {
       email,
       verificationType,
+      role,
     });
     return response.data;
   },
@@ -63,36 +88,13 @@ export const authRepository = {
   },
   getCurrentUser: async () => {
     try {
-      const response = await axiosClient.get("/me", {
-      });
+      const response = await axiosClient.get("/me", {});
       return response.data;
     } catch (error) {
-      
       throw error;
     }
   },
 
-  // Host methods
-  hostSignup: async (hostData: HostSignupData) => {
-    const response = await axiosHostClient.post("/signup", hostData);
-    return response.data;
-  },
-
-  hostLogin: async (credentials: LoginData) => {
-    const response = await axiosHostClient.post("/login", credentials);
-    return response.data;
-  },
-
-  hostVerifyOtp: async ({ email, otp }: { email: string; otp: string }) => {
-    const response = await axiosHostClient.post("/verify-otp", { email, otp });
-    return response.data;
-  },
-
-  //admins methdods
-  adminLogin: async (credentials: LoginData) => {
-    const response = await axiosAdminClient.post("/login", credentials);
-    return response.data;
-  },
   logout: async () => {
     const response = await axiosClient.post("/logout");
     return response.data;

@@ -44,7 +44,6 @@ const AdminCouponPage: React.FC = () => {
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 

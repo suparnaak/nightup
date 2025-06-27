@@ -15,10 +15,12 @@ import {ChatController} from "../controllers/chatController";
 import { NotificationController } from "../controllers/notificationController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { blockCheckMiddleware } from "../middlewares/blockCheckMiddleware";
+import { AuthController } from "../controllers/authController";
 
 
 const router: Router = Router();
 
+const authCtr = container.get<AuthController>(TYPES.AuthController);
 const userCtr = container.get<UserController>(TYPES.UserController);
 const userProfCtr = container.get<UserProfileController>(TYPES.UserProfileController);
 const eveCtr = container.get<EventController>(TYPES.EventController);
@@ -34,22 +36,22 @@ const notifCtr = container.get<NotificationController>(TYPES.NotificationControl
 
 
 // User endpoints -auth
-router.post("/signup", userCtr.signup.bind(userCtr));
-router.post("/verify-otp", userCtr.verifyOtp.bind(userCtr));
-router.post("/resend-otp", userCtr.resendOtp.bind(userCtr));
-router.post("/login", userCtr.login.bind(userCtr));
-router.post("/refresh-token", userCtr.refreshToken.bind(userCtr));
-router.post("/logout", userCtr.logout.bind(userCtr));
+router.post("/signup", authCtr.signup.bind(authCtr));
+router.post("/verify-otp", authCtr.verifyOtp.bind(authCtr));
+router.post("/resend-otp", authCtr.resendOtp.bind(authCtr));
+router.post("/login", authCtr.login.bind(authCtr));
+router.post("/refresh-token", authCtr.refreshToken.bind(authCtr));
+router.post("/logout", authCtr.logout.bind(authCtr));
 
-router.post("/forgot-password", userCtr.forgotPassword.bind(userCtr));
-router.post("/reset-password", userCtr.resetPassword.bind(userCtr));
+router.post("/forgot-password", authCtr.forgotPassword.bind(authCtr));
+router.post("/reset-password", authCtr.resetPassword.bind(authCtr));
 
 // Google authentication endpoints
 router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 // Google callback route
 router.get("/auth/google/callback", 
   passport.authenticate("google", { session: false, failureRedirect: "/login" }),
-  userCtr.googleCallback.bind(userCtr)
+  authCtr.googleCallback.bind(authCtr)
 );
 
 //user profile

@@ -20,7 +20,6 @@ export class NotificationController implements INotificationController {
     private notificationService: INotificationService
   ) {}
 
-  /** GET /notifications */
   public async list(req: AuthRequest, res: Response): Promise<void> {
     const userId = req.user?.userId;
     if (!userId) {
@@ -41,7 +40,6 @@ export class NotificationController implements INotificationController {
     }
   }
 
-  /** GET /notifications/count */
   public async countUnread(req: AuthRequest, res: Response): Promise<void> {
     const userId = req.user?.userId;
     if (!userId) {
@@ -62,7 +60,6 @@ export class NotificationController implements INotificationController {
     }
   }
 
-  /** PUT /notifications/:id/read */
   public async markAsRead(req: AuthRequest, res: Response): Promise<void> {
     const { id } = req.params;
     if (!id) {

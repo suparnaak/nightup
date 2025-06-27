@@ -19,11 +19,8 @@ const Breadcrumbs: React.FC = () => {
   const { fetchEventDetails } = useEventStore();
 
   // -- Generators --
-  const getHome = (): Breadcrumb[] => [
-    { path: ROUTES.HOME, label: "Home" },
-  ];
+  const getHome = (): Breadcrumb[] => [{ path: ROUTES.HOME, label: "Home" }];
 
-   
   // Public Event
   const getEventDetail = (id: string, title: string): Breadcrumb[] => [
     ...getHome(),
@@ -55,7 +52,7 @@ const Breadcrumbs: React.FC = () => {
     ...getHome(),
     { path: ROUTES.USER_BOOKINGS, label: "Bookings" },
   ];
-   // User Inbox
+  // User Inbox
   const getUserInbox = (): Breadcrumb[] => [
     ...getHome(),
     { path: ROUTES.USER_INBOX, label: "Inbox" },
@@ -180,7 +177,10 @@ const Breadcrumbs: React.FC = () => {
     },
     {
       pattern: new RegExp(`^${ROUTES.HOST_EVENTS_ADD}/?$`),
-      getBreadcrumb: () => [...getHostEvents(), { path: ROUTES.HOST_EVENTS_ADD, label: "Add Event" }],
+      getBreadcrumb: () => [
+        ...getHostEvents(),
+        { path: ROUTES.HOST_EVENTS_ADD, label: "Add Event" },
+      ],
     },
     {
       pattern: /^\/host\/events\/([^/]+)\/?$/,
@@ -237,7 +237,7 @@ const Breadcrumbs: React.FC = () => {
       },
     },
 
-    // Admin 
+    // Admin
     {
       pattern: new RegExp(`^${ROUTES.ADMIN_DASHBOARD}/?$`),
       getBreadcrumb: () => getAdminDashboard(),

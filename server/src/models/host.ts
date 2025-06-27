@@ -14,7 +14,6 @@ export interface IHost extends Document {
   rejectionReason?: string;
   documentUploadedAt?: Date;
   documentVerifiedAt?: Date;
-  //subStatus: "Not Subscribed" | "Active" | "Expired";
   otp: string;
   otpExpiry?: Date;
   role?: "user" | "host" | "admin";

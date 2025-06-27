@@ -12,9 +12,11 @@ import {HostRevenueController} from "../controllers/hostRevenueController"
 import {ChatController} from "../controllers/chatController";
 import CloudinaryController from "../controllers/cloudinaryController";
 import { blockCheckMiddleware } from "../middlewares/blockCheckMiddleware";
+import { AuthController } from "../controllers/authController";
 
 const router: Router = Router();
 
+const authCtr = container.get<AuthController>(TYPES.AuthController);
 const hostCtr = container.get<HostController>(TYPES.HostController);
 const hostProfCtr = container.get<HostProfileController>(TYPES.HostProfileController);
 const hostSubCtr = container.get<HostSubscriptionController>(TYPES.HostSubscriptionController);
@@ -25,11 +27,11 @@ const hostRevCtr = container.get<HostRevenueController>(TYPES.HostRevenueControl
 const chatCtr = container.get<ChatController>(TYPES.ChatController);
 
 
-router.post("/signup", hostCtr.signup.bind(hostCtr));
-router.post("/login", hostCtr.login.bind(hostCtr));
-router.post("/verify-otp", hostCtr.verifyOtp.bind(hostCtr));
-router.post("/resend-otp", hostCtr.resendOtp.bind(hostCtr));
-router.post("/refresh-token", hostCtr.refreshToken.bind(hostCtr));
+router.post("/signup", authCtr.signup.bind(authCtr));
+router.post("/login", authCtr.login.bind(authCtr));
+router.post("/verify-otp", authCtr.verifyOtp.bind(authCtr));
+router.post("/resend-otp", authCtr.resendOtp.bind(authCtr));
+router.post("/refresh-token", authCtr.refreshToken.bind(authCtr));
 
 router.get("/profile", authMiddleware(["host"]), blockCheckMiddleware, hostProfCtr.getHostProfile.bind(hostProfCtr));
 router.patch("/profile/update", authMiddleware(["host"]), blockCheckMiddleware, hostProfCtr.updateHostProfile.bind(hostProfCtr));

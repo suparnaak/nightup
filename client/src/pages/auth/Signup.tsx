@@ -11,6 +11,7 @@ import {
   validatePassword,
   validateConfirmPassword,
 } from "../../utils/validationUtils";
+import { SignupData } from "../../types/authTypes";
 
 
 const Signup: React.FC = () => {
@@ -63,12 +64,12 @@ const Signup: React.FC = () => {
     if (!validateForm()) return;
 
     try {
+      const signupData: SignupData = {
+  ...formData,
+  role: "user"
+};
       const response = await signup(
-        formData.name,
-        formData.email,
-        formData.phone,
-        formData.password,
-        formData.confirmPassword
+        signupData
       );
       navigate("/verify-otp", {
         state: { otpExpiry: response.otpExpiry, email: response.user.email,verificationType: "emailVerification" },

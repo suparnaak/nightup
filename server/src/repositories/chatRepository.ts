@@ -1,11 +1,9 @@
-import 'reflect-metadata';
+
 import { injectable, inject } from 'inversify';
 import TYPES from '../config/di/types';
 import { Types } from 'mongoose';
 import ChatMessage, { IChatMessage } from "../models/chatMessage";
 import { IConversationResult } from '../services/interfaces/IChatService';
-import User from "../models/user"; 
-import Host from "../models/host"; 
 import { IUserRepository } from './interfaces/IUserRepository';
 import { IHostRepository } from './interfaces/IHostRepository';
 import { IChatRepository } from './interfaces/IChatRepository';

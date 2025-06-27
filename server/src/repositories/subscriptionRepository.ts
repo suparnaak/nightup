@@ -1,37 +1,3 @@
-/* import "reflect-metadata";
-import { injectable } from "inversify";
-import SubscriptionPlan, { ISubscriptionPlan } from "../models/subscriptionPlan";
-import { ISubscriptionRepository } from "./interfaces/ISubscriptionRepository";
-
-@injectable()
-export class SubscriptionRepository implements ISubscriptionRepository {
- 
-  async getSubscriptions(): Promise<ISubscriptionPlan[]> {
-    return SubscriptionPlan.find().sort({ createdAt: -1 });
-  }
-
-  
-  async createSubscription(
-    payload: { name: string; duration: string; price: number }
-  ): Promise<ISubscriptionPlan> {
-    const subscription = new SubscriptionPlan(payload);
-    return subscription.save();
-  }
-
-  
-  async updateSubscription(
-    id: string,
-    payload: { name?: string; duration?: string; price?: number }
-  ): Promise<ISubscriptionPlan | null> {
-    return SubscriptionPlan.findByIdAndUpdate(id, payload, { new: true });
-  }
-
-  async deleteSubscription(id: string): Promise<void> {
-    await SubscriptionPlan.findByIdAndDelete(id);
-  }
-}
- */
-import "reflect-metadata";
 import { injectable } from "inversify";
 import SubscriptionPlan, { ISubscriptionPlan } from "../models/subscriptionPlan";
 import { ISubscriptionRepository } from "./interfaces/ISubscriptionRepository";
@@ -43,10 +9,6 @@ export class SubscriptionRepository extends BaseRepository<ISubscriptionPlan> im
     super(SubscriptionPlan);
   }
 
-  
-  /* async getSubscriptions(): Promise<ISubscriptionPlan[]> {
-    return await SubscriptionPlan.find().sort({ createdAt: -1 });
-  } */
   async getSubscriptions(page: number = 1, limit: number = 10): Promise<{
     subscriptions: ISubscriptionPlan[];
     pagination: {

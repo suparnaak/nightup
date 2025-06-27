@@ -1,19 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Wallet, Book, Bookmark, StickyNote, Inbox } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
-import { useChatStore } from '../../store/chatStore';
-import { useNotificationStore } from '../../store/notificationStore';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  LogOut,
+  User,
+  Wallet,
+  Book,
+  Bookmark,
+  StickyNote,
+  Inbox,
+} from "lucide-react";
+import { useAuthStore } from "../../store/authStore";
+import { useChatStore } from "../../store/chatStore";
+import { useNotificationStore } from "../../store/notificationStore";
 
 const ProfileDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuthStore();
+  console.log("user data:", user);
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Chat badge
   const { conversations, listConversations } = useChatStore();
-  const chatUnread = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+  const chatUnread = conversations.reduce(
+    (sum, conv) => sum + (conv.unreadCount || 0),
+    0
+  );
 
   // Notification badge
   const { unreadCount: notifUnread, fetchUnreadCount } = useNotificationStore();
@@ -25,37 +37,48 @@ const ProfileDropdown: React.FC = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleOptionClick = (option: string) => {
     setIsOpen(false);
     switch (option) {
-      case 'bookings':      return navigate('/user/bookings');
-      case 'savedEvents':   return navigate('/user/saved-events');
-      case 'profile':       return navigate('/user/profile');
-      case 'inbox':         return navigate('/user/inbox');
-      case 'notifications': return navigate('/user/notification');
-      case 'wallet':        return navigate('/user/wallet');
-      case 'logout':
+      case "bookings":
+        return navigate("/user/bookings");
+      case "savedEvents":
+        return navigate("/user/saved-events");
+      case "profile":
+        return navigate("/user/profile");
+      case "inbox":
+        return navigate("/user/inbox");
+      case "notifications":
+        return navigate("/user/notification");
+      case "wallet":
+        return navigate("/user/wallet");
+      case "logout":
         logout();
-        return navigate('/login');
+        return navigate("/login");
     }
   };
 
   const avatarUrl = user?.email
-    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6B46C1&color=fff`
-    : '/assets/images/default-avatar.png';
+    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        user.name
+      )}&background=6B46C1&color=fff`
+    : "/assets/images/default-avatar.png";
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={() => setIsOpen(o => !o)}
+        onClick={() => setIsOpen((o) => !o)}
         className="relative flex items-center focus:outline-none"
       >
         <img
@@ -80,25 +103,25 @@ const ProfileDropdown: React.FC = () => {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
           <button
-            onClick={() => handleOptionClick('bookings')}
+            onClick={() => handleOptionClick("bookings")}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             <Book className="mr-2 h-4 w-4" /> Bookings
           </button>
           <button
-            onClick={() => handleOptionClick('savedEvents')}
+            onClick={() => handleOptionClick("savedEvents")}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             <Bookmark className="mr-2 h-4 w-4" /> Saved Events
           </button>
           <button
-            onClick={() => handleOptionClick('profile')}
+            onClick={() => handleOptionClick("profile")}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             <User className="mr-2 h-4 w-4" /> Profile
           </button>
           <button
-            onClick={() => handleOptionClick('inbox')}
+            onClick={() => handleOptionClick("inbox")}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 relative"
           >
             <Inbox className="mr-2 h-4 w-4" /> Inbox
@@ -109,7 +132,7 @@ const ProfileDropdown: React.FC = () => {
             )}
           </button>
           <button
-            onClick={() => handleOptionClick('notifications')}
+            onClick={() => handleOptionClick("notifications")}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 relative"
           >
             <StickyNote className="mr-2 h-4 w-4" /> Notifications
@@ -120,13 +143,13 @@ const ProfileDropdown: React.FC = () => {
             )}
           </button>
           <button
-            onClick={() => handleOptionClick('wallet')}
+            onClick={() => handleOptionClick("wallet")}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             <Wallet className="mr-2 h-4 w-4" /> Wallet
           </button>
           <button
-            onClick={() => handleOptionClick('logout')}
+            onClick={() => handleOptionClick("logout")}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             <LogOut className="mr-2 h-4 w-4" /> Logout

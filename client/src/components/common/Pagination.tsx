@@ -18,7 +18,9 @@ const Pagination: React.FC<PaginationProps> = ({
   const nextDisabled = currentPage >= totalPages;
 
   return (
-    <div className={`mt-6 flex items-center justify-center space-x-2 ${className}`}>
+    <div
+      className={`mt-6 flex items-center justify-center space-x-2 ${className}`}
+    >
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={prevDisabled}

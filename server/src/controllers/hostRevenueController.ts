@@ -76,4 +76,3 @@ export class HostRevenueController implements IHostRevenueController {
   }
 }
 
-//export default new HostRevenueController();

@@ -5,6 +5,8 @@ import TYPES from "./types"
 
 import { AdminController }           from "../../controllers/adminController";
 import { IAdminController }          from "../../controllers/interfaces/IAdminController";
+import { AuthController } from "../../controllers/authController";
+import { IAuthController } from "../../controllers/interfaces/IAuthController";
 import { BookingController }         from "../../controllers/bookingController";
 import { IBookingController }        from "../../controllers/interfaces/IBookingController";
 import { CategoryController }        from "../../controllers/categoryController";
@@ -43,6 +45,8 @@ import { NotificationController } from "../../controllers/notificationController
 // Services & Interfaces
 import { AdminService }              from "../../services/adminSerivce"
 import { IAdminService }             from "../../services/interfaces/IAdminService";
+import { AuthService } from "../../services/authService";
+import { IAuthService } from "../../services/interfaces/IAuthService";
 import { BookingService }            from "../../services/bookingService";
 import { IBookingService }           from "../../services/interfaces/IBookingService";
 import { CategoryService }           from "../../services/categoryService";
@@ -83,6 +87,8 @@ import { INotificationService } from "../../services/interfaces/INotificationSer
 // Repositories & Interfaces
 import { AdminRepository }           from "../../repositories/adminRepository";
 import { IAdminRepository }          from "../../repositories/interfaces/IAdminRepository";
+import { AuthRepository } from "../../repositories/authRepository";
+import { IAuthRepository } from "../../repositories/interfaces/IAuthRepository";
 import { BookingRepository }         from "../../repositories/bookingRepository";
 import { IBookingRepository }        from "../../repositories/interfaces/IBookingRepository";
 import { CategoryRepository }        from "../../repositories/categoryRepository";
@@ -121,6 +127,7 @@ const container = new Container();
 
 // Bind Controllers
 container.bind<IAdminController>(TYPES.AdminController).to(AdminController);
+container.bind<IAuthController>(TYPES.AuthController).to(AuthController);
 container.bind<IBookingController>(TYPES.BookingController).to(BookingController);
 container.bind<ICategoryController>(TYPES.CategoryController).to(CategoryController);
 container.bind<IChatController>(TYPES.ChatController).to(ChatController);
@@ -142,6 +149,7 @@ container.bind<INotificationController>(TYPES.NotificationController).to(Notific
 
 // Bind Services
 container.bind<IAdminService>(TYPES.AdminService).to(AdminService);
+container.bind<IAuthService>(TYPES.AuthService).to(AuthService);
 container.bind<IBookingService>(TYPES.BookingService).to(BookingService);
 container.bind<ICategoryService>(TYPES.CategoryService).to(CategoryService);
 container.bind<IChatService>(TYPES.ChatService).to(ChatService);
@@ -165,6 +173,7 @@ container.bind<INotificationService>(TYPES.NotificationService).to(NotificationS
 
 // Bind Repositories
 container.bind<IAdminRepository>(TYPES.AdminRepository).to(AdminRepository);
+container.bind<IAuthRepository>(TYPES.AuthRepository).to(AuthRepository);
 container.bind<IBookingRepository>(TYPES.BookingRepository).to(BookingRepository);
 container.bind<ICategoryRepository>(TYPES.CategoryRepository).to(CategoryRepository);
 container.bind<IChatRepository>(TYPES.ChatRepository).to(ChatRepository);

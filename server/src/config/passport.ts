@@ -12,23 +12,22 @@ passport.use(
     },
     async (accessToken, refreshToken, profile: Profile, done) => {
       try {
-        // Find if the user exists or not
+        // user exists or not
         let user = await User.findOne({ email: profile.emails?.[0].value });
 
         if (user) {
-          // Update googleId if not already set
           if (!user.googleId) {
             user.googleId = profile.id;
             await user.save();
           }
         } else {
-          // Create a new user
+          // Creates a new user
           user = await User.create({
             googleId: profile.id,
             name: profile.displayName,
             email: profile.emails?.[0].value,
-            password: "", 
-            isVerified: true, 
+            password: "",
+            isVerified: true,
           });
         }
         return done(null, user);

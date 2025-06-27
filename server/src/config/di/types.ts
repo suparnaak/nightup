@@ -2,6 +2,7 @@ const TYPES = {
     // Controllers
     AdminController:  Symbol.for("AdminController"),
     BookingController: Symbol.for("BookingController"),
+    AuthController:  Symbol.for("AuthController"),
     CategoryController: Symbol.for("CategoryController"),
     ChatController: Symbol.for("ChatController"),
     CouponController: Symbol.for("CouponController"),
@@ -21,6 +22,7 @@ const TYPES = {
   
     // Services
     AdminService:     Symbol.for("AdminService"),
+    AuthService:     Symbol.for("AuthService"),
     BookingService:    Symbol.for("BookingService"),
     CategoryService:    Symbol.for("CategoryService"),
     ChatService:    Symbol.for("ChatService"),
@@ -42,6 +44,7 @@ const TYPES = {
 
     // Repositories
     AdminRepository:  Symbol.for("AdminRepository"),
+    AuthRepository:  Symbol.for("AuthRepository"),
     BookingRepository: Symbol.for("BookingRepository"),
     CategoryRepository: Symbol.for("CategoryRepository"),
     ChatRepository: Symbol.for("ChatRepository"),

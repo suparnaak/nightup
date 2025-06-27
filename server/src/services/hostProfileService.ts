@@ -27,7 +27,6 @@ export class HostProfileService implements IHostProfileService {
       documentUrl: host.documentUrl,
       documentStatus: host.documentStatus,
       rejectionReason: host.rejectionReason || "",
-      //subscriptionPlan: host.subStatus === "Active" ? "Subscribed" : host.subStatus,
     };
     return hostProfile;
   }
@@ -69,7 +68,6 @@ export class HostProfileService implements IHostProfileService {
       documentUrl: updatedHost.documentUrl,
       documentStatus: updatedHost.documentStatus,
       rejectionReason: updatedHost.rejectionReason || "",
-      //subscriptionPlan: updatedHost.subStatus === "Active" ? "Subscribed" : updatedHost.subStatus,
     };
   
     return {
@@ -81,4 +79,3 @@ export class HostProfileService implements IHostProfileService {
   
 }
 
-//export default new HostProfileService();

@@ -14,12 +14,10 @@ export class NotificationRepository implements INotificationRepository {
   return await NotificationModel.find({ user: userId }).sort({ createdAt: -1 });
 }
 
-// Count unread notifications for a user
 async countUnread(userId: string): Promise<number> {
   return await NotificationModel.countDocuments({ user: userId, read: false });
 }
 
-// Mark a specific notification as read
 async markAsRead(notificationId: string): Promise<void> {
   await NotificationModel.updateOne({ _id: notificationId }, { $set: { read: true } });
 }

@@ -3,7 +3,7 @@ import {
   flexRender,
   useReactTable,
   getCoreRowModel,
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
 
 interface DataTableProps<T> {
   columns: ColumnDef<T, any>[];
@@ -34,9 +34,9 @@ export function DataTable<T>({
     <div className="overflow-x-auto shadow-lg rounded-lg">
       <table className={tableClassName}>
         <thead>
-          {table.getHeaderGroups().map(headerGroup => (
+          {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id} className={headerRowClassName}>
-              {headerGroup.headers.map(header => {
+              {headerGroup.headers.map((header) => {
                 const meta: any = header.column.columnDef.meta;
                 const customClass = meta?.headerClassName;
                 return (
@@ -55,20 +55,14 @@ export function DataTable<T>({
           ))}
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {table.getRowModel().rows.map(row => (
+          {table.getRowModel().rows.map((row) => (
             <tr key={row.id} className={rowClassName}>
-              {row.getVisibleCells().map(cell => {
+              {row.getVisibleCells().map((cell) => {
                 const meta: any = cell.column.columnDef.meta;
                 const customClass = meta?.cellClassName;
                 return (
-                  <td
-                    key={cell.id}
-                    className={customClass || cellClassName}
-                  >
-                    {flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext()
-                    )}
+                  <td key={cell.id} className={customClass || cellClassName}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 );
               })}

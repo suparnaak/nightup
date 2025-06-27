@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import Input from "../../components/common/Input";
@@ -7,7 +7,13 @@ import { validateEmail, validatePassword } from "../../utils/validationUtils";
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
-  const { adminLogin, isLoading, error } = useAuthStore();
+  const { login, isLoading, error } = useAuthStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    useEffect(() => {
+        if (isAuthenticated) {
+          navigate("/admin/dashboard", { replace: true });
+        }
+      }, [isAuthenticated, navigate]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -37,7 +43,7 @@ const AdminLogin: React.FC = () => {
     if (!validateForm()) return;
 
     try {
-      await adminLogin(formData.email, formData.password);
+      await login(formData.email, formData.password, 'admin');
       navigate("/admin/dashboard");
     } catch (err) {
       console.error("Admin login failed:", err);

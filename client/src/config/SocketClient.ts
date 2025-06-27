@@ -15,7 +15,7 @@ io.on("connect", () => {
   const auth = useAuthStore.getState();
   const user = auth.user;
   if (user?.role === "user") {
-    const userId = user.id;               
+    const userId = user.id;
     io.emit("joinUserRoom", userId);
     console.log(`Joined notification room: user-${userId}`);
 

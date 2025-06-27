@@ -1,13 +1,12 @@
 import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
 const axiosAdminClient = axios.create({
-  baseURL:`${API_URL}/api/admin`, 
+  baseURL: `${API_URL}/api/admin`,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, 
+  withCredentials: true,
 });
-
 
 axiosAdminClient.interceptors.request.use(
   (config) => {
@@ -16,12 +15,11 @@ axiosAdminClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-
 axiosAdminClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {

@@ -10,10 +10,12 @@ import { authMiddleware } from "../middlewares/authMiddleware";
 import {EventController} from "../controllers/eventController";
 import {BookingController} from "../controllers/bookingController";
 import {RevenueController} from "../controllers/revenueController";
+import { AuthController } from "../controllers/authController";
 
 
 const router: Router = Router();
 const adCtr = container.get<AdminController>(TYPES.AdminController);
+const authCtr = container.get<AuthController>(TYPES.AuthController);
 const subCtr = container.get<SubscriptionController>(TYPES.SubscriptionController)
 const coupCtr = container.get<CouponController>(TYPES.CouponController)
 const catCtr = container.get<CategoryController>(TYPES.CategoryController)
@@ -21,9 +23,8 @@ const eveCtr = container.get<EventController>(TYPES.EventController)
 const bookCtr = container.get<BookingController>(TYPES.BookingController)
 const revCtr = container.get<RevenueController>(TYPES.RevenueController)
 
-router.post("/login", adCtr.login.bind(adCtr));
-router.post("/refresh-token", adCtr.refreshToken.bind(adCtr));
-//router.post("/logout", AdminController.logout);
+router.post("/login", authCtr.login.bind(authCtr));
+router.post("/refresh-token", authCtr.refreshToken.bind(authCtr));
 router.get("/hosts", authMiddleware(["admin"]), adCtr.getHosts.bind(adCtr));
 router.post("/hosts/verify-document", authMiddleware(["admin"]), adCtr.verifyDocument.bind(adCtr))
 router.post("/hosts/toggle-block", authMiddleware(["admin"]), adCtr.hostToggleStatus.bind(adCtr))

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
@@ -7,11 +7,17 @@ import Button from "../../components/common/Button";
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
-
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/home", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const validateForm = (): boolean => {
     if (!email || !password) {
@@ -43,7 +49,7 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      const data = await login(email, password);
+      const data = await login(email, password, 'user');
       console.log(data);
       if (data.success) {
         toast.success("Logged in successfully!");

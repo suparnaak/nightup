@@ -8,17 +8,13 @@ const GoogleAuthCallback: React.FC = () => {
   const { googleLogin } = useAuthStore();
   console.log("GoogleAuthCallback rendered", location.search);
   useEffect(() => {
-    // Parse the query parameters from the URL
     const query = new URLSearchParams(location.search);
     const token = query.get("token");
 
     if (token) {
-      // Call the store method to update auth state
       googleLogin(token);
-      // Optionally, you might want to remove the query parameters from the URL or navigate away.
       navigate("/");
     } else {
-      // If there's no token, redirect to login page or show an error.
       navigate("/login");
     }
   }, [location.search, navigate, googleLogin]);

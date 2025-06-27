@@ -226,4 +226,3 @@ async createUpgradeOrder(req: AuthRequest, res: Response): Promise<void> {
   }
 }
 
-//export default new HostSubscriptionController();

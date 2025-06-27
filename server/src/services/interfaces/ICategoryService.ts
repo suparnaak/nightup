@@ -1,7 +1,6 @@
 import { IEventTypeDocument } from "../../models/eventTypes";
 
 export interface ICategoryService {
-   //getAllCategories(): Promise<IEventTypeDocument[]>
     getAllCategories(page?: number, limit?: number): Promise<{
     categories: IEventTypeDocument[],
     pagination: {

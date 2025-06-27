@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import Input from "../../components/common/Input";
@@ -7,7 +7,13 @@ import { validateEmail, validatePassword } from "../../utils/validationUtils";
 
 const HostLogin: React.FC = () => {
   const navigate = useNavigate();
-  const { hostLogin, isLoading, error } = useAuthStore();
+  const { login, isLoading, error } = useAuthStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  useEffect(() => {
+      if (isAuthenticated) {
+        navigate("/host/dashboard", { replace: true });
+      }
+    }, [isAuthenticated, navigate]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -44,7 +50,7 @@ const HostLogin: React.FC = () => {
     if (!validateForm()) return;
 
     try {
-      await hostLogin(formData.email, formData.password);
+      await login(formData.email, formData.password, 'host');
       navigate("/host/dashboard");
     } catch (err) {
       console.error("Host login failed:", err);

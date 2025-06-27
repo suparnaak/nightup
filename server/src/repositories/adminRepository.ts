@@ -14,4 +14,3 @@ export class AdminRepository extends BaseRepository<IAdmin> implements IAdminRep
     return await this.update(adminId, { refreshToken });
 }
 }
-  //export default new AdminRepository();

@@ -16,30 +16,7 @@ export class CategoryController implements ICategoryController {
     private categoryService: ICategoryService
   ) {}
 
-  /* async getAllCategories(req: Request, res: Response): Promise<void> {
-    try {
-      const categories = await this.categoryService.getAllCategories();
-      console.log(categories);
-      const payload = categories.map((cat: IEventTypeDocument) => ({
-        id: String(cat._id), 
-        name: cat.name,
-        description: cat.description,
-        createdAt: cat.createdAt,
-        updatedAt: cat.updatedAt,
-      }));
-      
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        categories: payload,
-      });
-    } catch (error) {
-      console.error("Get Categories Error:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({
-        success: false,
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-      });
-    }
-  } */
+  
  async getAllCategories(req: Request, res: Response): Promise<void> {
   try {
     const page = parseInt(req.query.page as string) || 1;
@@ -69,8 +46,6 @@ export class CategoryController implements ICategoryController {
   }
 }
 
-
-  
   async createCategory(req: Request, res: Response): Promise<void> {
     try {
       const { name, description } = req.body;
@@ -159,4 +134,3 @@ export class CategoryController implements ICategoryController {
 
 }
 
-//export default new CategoryController();

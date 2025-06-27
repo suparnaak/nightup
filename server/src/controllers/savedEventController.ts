@@ -127,4 +127,3 @@ export class SavedEventController implements ISavedEventController {
   }
 }
 
-//export default new SavedEventController();

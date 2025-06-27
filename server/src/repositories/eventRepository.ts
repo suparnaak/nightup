@@ -1,9 +1,9 @@
-import { Types } from 'mongoose';
-import { injectable } from 'inversify';
-import Event, { IEventDocument } from '../models/events';
-import Booking from '../models/booking';
-import { IEventRepository } from './interfaces/IEventRepository';
-import { BaseRepository } from './baseRepository/baseRepository';
+import { Types } from "mongoose";
+import { injectable } from "inversify";
+import Event, { IEventDocument } from "../models/events";
+import Booking from "../models/booking";
+import { IEventRepository } from "./interfaces/IEventRepository";
+import { BaseRepository } from "./baseRepository/baseRepository";
 
 @injectable()
 export class EventRepository
@@ -19,7 +19,9 @@ export class EventRepository
   }
 
   async getEventsByHostId(hostId: Types.ObjectId): Promise<IEventDocument[]> {
-    return this.model.find({ hostId }).sort({ date: -1 }) as Promise<IEventDocument[]>;
+    return this.model.find({ hostId }).sort({ date: -1 }) as Promise<
+      IEventDocument[]
+    >;
   }
 
   async getAllEvents(query: {
@@ -30,42 +32,32 @@ export class EventRepository
     date?: string;
     city?: string;
   }): Promise<{ events: IEventDocument[]; total: number }> {
-    const {
-      page = 1,
-      limit = 2,
-      search,
-      category,
-      date,
-      city,
-    } = query;
+    const { page = 1, limit = 2, search, category, date, city } = query;
     const skip = (page - 1) * limit;
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     const filter: any = {
       isBlocked: false,
-      $or: [
-        { date: { $gt: today } },
-        { date: today, endTime: { $gte: now } },
-      ],
+      $or: [{ date: { $gt: today } }, { date: today, endTime: { $gte: now } }],
     };
-    
+
     if (search) {
       filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { artist: { $regex: search, $options: 'i' } },
-        { venueName: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } },
+        { title: { $regex: search, $options: "i" } },
+        { artist: { $regex: search, $options: "i" } },
+        { venueName: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
       ];
     }
-    
-    if (category && category !== 'All Categories') filter.category = category;
-    
+
+    if (category && category !== "All Categories") filter.category = category;
+
     if (date) {
       const d = new Date(date);
       filter.date = { $gte: d, $lt: new Date(d.getTime() + 86400000) };
     }
-    
+
     if (city) filter.venueCity = city;
 
     const total = await this.count(filter);
@@ -75,18 +67,18 @@ export class EventRepository
       .skip(skip)
       .limit(limit)
       .lean();
-      
+
     return { events: events as IEventDocument[], total };
   }
-  
+
   async getEventsByCity(city: string): Promise<IEventDocument[]> {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     return this.model
       .find({
         isBlocked: false,
-        venueCity: { $regex: new RegExp(city, 'i') },
+        venueCity: { $regex: new RegExp(city, "i") },
         $or: [
           { date: { $gt: today } },
           { date: today, endTime: { $gte: now } },
@@ -97,23 +89,16 @@ export class EventRepository
   }
 
   async getEventById(eventId: Types.ObjectId): Promise<IEventDocument | null> {
-    /* const doc = await super.findById(eventId);
+    const doc = await this.model
+      .findById(eventId)
+      .populate("hostId", "name email")
+      .lean<IEventDocument & { hostId: { _id: Types.ObjectId } }>();
+
     if (!doc) return null;
-    
-    return (await this.model.populate(doc, { 
-      path: 'hostId', 
-      select: 'name email' 
-    })) as IEventDocument; */
-     const doc = await this.model
-    .findById(eventId)
-    .populate('hostId', 'name email')
-    .lean< IEventDocument & { hostId: { _id: Types.ObjectId } } >();  
 
-  if (!doc) return null;
-
-  doc.hostId = doc.hostId._id;
-console.log("repository event details",doc)
-  return doc as IEventDocument;
+    doc.hostId = doc.hostId._id;
+    console.log("repository event details", doc);
+    return doc as IEventDocument;
   }
 
   async findByIdWithHost(eventId: string): Promise<IEventDocument | null> {
@@ -122,26 +107,26 @@ console.log("repository event details",doc)
       if (!doc) return null;
 
       const populatedDoc = await this.model.populate(doc, {
-        path: 'hostId',
-        select: 'name email'
+        path: "hostId",
+        select: "name email",
       });
 
       return populatedDoc;
     } catch (error) {
-      console.error('Error finding event with host:', error);
+      console.error("Error finding event with host:", error);
       return null;
     }
   }
-async findByIdPopulated(eventId: string): Promise<IEventDocument | null> {
+  async findByIdPopulated(eventId: string): Promise<IEventDocument | null> {
     try {
       const doc = await this.model
         .findById(eventId)
-        .populate('hostId', 'name email')
+        .populate("hostId", "name email")
         .exec();
-      
+
       return doc as IEventDocument;
     } catch (error) {
-      console.error('Error finding populated event:', error);
+      console.error("Error finding populated event:", error);
       return null;
     }
   }
@@ -173,18 +158,18 @@ async findByIdPopulated(eventId: string): Promise<IEventDocument | null> {
     limit: number
   ): Promise<{ events: IEventDocument[]; total: number }> {
     const skip = (page - 1) * limit;
-    
+
     const [events, total] = await Promise.all([
       this.model
         .find()
         .skip(skip)
         .limit(limit)
         .sort({ date: -1 })
-        .populate('hostId', 'name')
+        .populate("hostId", "name")
         .lean(),
       this.count({}),
     ]);
-    
+
     return { events: events as IEventDocument[], total };
   }
 }

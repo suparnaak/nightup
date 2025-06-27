@@ -1,28 +1,44 @@
-import 'reflect-metadata';
-import { injectable, inject } from 'inversify';
-import TYPES from '../config/di/types';
+import "reflect-metadata";
+import { injectable, inject } from "inversify";
+import TYPES from "../config/di/types";
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 import { IEventController } from "./interfaces/IEventController";
-import { IEventService } from '../services/interfaces/IEventService';
+import { IEventService } from "../services/interfaces/IEventService";
 import { MESSAGES, STATUS_CODES } from "../utils/constants";
 import NodeGeocoder, { Options as GeocoderOptions } from "node-geocoder";
-import { CreateEventDto, EventResponseDto, UpdateEventDto } from '../dtos/event/EventDTO';
-import { EventMapper } from '../mappers/EventMapper';
-import fetch from 'node-fetch';
+import { CreateEventDto, UpdateEventDto } from "../dtos/event/EventDTO";
+
 const geocoderOptions: GeocoderOptions = {
   provider: "openstreetmap",
+  timeout: 15000,
 };
 
 const geocoder = NodeGeocoder(geocoderOptions);
-
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+async function safeGeocode(address: string): Promise<any> {
+  try {
+    await sleep(1000);
+    const result = await geocoder.geocode(address);
+    return result;
+  } catch (error: any) {
+    console.warn("Geocoding failed, retrying...", error.message);
+    await sleep(3000);
+    try {
+      const result = await geocoder.geocode(address);
+      return result;
+    } catch (retryError) {
+      console.error("Geocoding failed after retry:", retryError);
+      return null;
+    }
+  }
+}
 interface AuthRequest extends Request {
   user?: {
     userId?: string;
     type?: string;
   };
 }
-
 @injectable()
 export class EventController implements IEventController {
   constructor(
@@ -40,9 +56,6 @@ export class EventController implements IEventController {
           .json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
         return;
       }
-
-      console.log("Received event data:", req.body);
-
       const {
         title,
         startTime,
@@ -106,9 +119,9 @@ export class EventController implements IEventController {
         isBlocked: isBlocked || false,
       };
 
-      // Geocoding
       const fullAddress = `${venueZip}, ${venueCity}, ${venueState}`;
-      const geoRes = await geocoder.geocode(fullAddress);
+      const geoRes = await safeGeocode(fullAddress);
+
       if (geoRes && geoRes.length > 0) {
         const { latitude, longitude } = geoRes[0];
         createEventDto.location = {
@@ -116,7 +129,7 @@ export class EventController implements IEventController {
           coordinates: [Number(longitude), Number(latitude)],
         };
       } else {
-        console.error("Geocoding failed for address:", fullAddress);
+        console.log("Geocoding failed, creating event without coordinates");
       }
 
       const eventResponseDto = await this.eventService.addEvent(createEventDto);
@@ -212,7 +225,6 @@ export class EventController implements IEventController {
       }
 
       const event = await this.eventService.getEventDetails(eventId);
-console.log("event details:", event)
       if (!event) {
         res.status(STATUS_CODES.NOT_FOUND).json({
           message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND,
@@ -252,49 +264,61 @@ console.log("event details:", event)
       }
 
       const updateEventDto: UpdateEventDto = { ...req.body };
-if (req.body.date) {
+
+      if (req.body.date) {
         const parsedDate = new Date(req.body.date);
         if (isNaN(parsedDate.valueOf())) {
-           res
+          res
             .status(STATUS_CODES.BAD_REQUEST)
-            .json({ message: 'Invalid date format.' });
-            return
+            .json({ message: "Invalid date format." });
+          return;
         }
         updateEventDto.date = parsedDate;
       }
+
       if (req.body.startTime) {
         const baseDate = updateEventDto.date ?? new Date();
         const isoDay = baseDate.toISOString().slice(0, 10);
         const parsedStart = new Date(`${isoDay}T${req.body.startTime}`);
         if (isNaN(parsedStart.valueOf())) {
-           res
+          res
             .status(STATUS_CODES.BAD_REQUEST)
-            .json({ message: 'Invalid startTime for given date.' });
-            return
+            .json({ message: "Invalid startTime for given date." });
+          return;
         }
         updateEventDto.startTime = parsedStart;
         if (!req.body.date) {
           updateEventDto.date = new Date(isoDay);
         }
       }
-       if (req.body.endTime) {
+
+      if (req.body.endTime) {
         const baseDate = updateEventDto.date ?? new Date();
         const isoDay = baseDate.toISOString().slice(0, 10);
         const parsedEnd = new Date(`${isoDay}T${req.body.endTime}`);
         if (isNaN(parsedEnd.valueOf())) {
-           res
+          res
             .status(STATUS_CODES.BAD_REQUEST)
-            .json({ message: 'Invalid endTime for given date.' });
-            return
+            .json({ message: "Invalid endTime for given date." });
+          return;
         }
         updateEventDto.endTime = parsedEnd;
         if (!req.body.date) {
           updateEventDto.date = new Date(isoDay);
         }
       }
-      if (updateEventDto.venueZip || updateEventDto.venueCity || updateEventDto.venueState) {
-        const fullAddress = `${updateEventDto.venueZip || ''}, ${updateEventDto.venueCity || ''}, ${updateEventDto.venueState || ''}`;
-        const geoRes = await geocoder.geocode(fullAddress);
+
+      // Simple geocoding for updates
+      if (
+        updateEventDto.venueZip ||
+        updateEventDto.venueCity ||
+        updateEventDto.venueState
+      ) {
+        const fullAddress = `${updateEventDto.venueZip || ""}, ${
+          updateEventDto.venueCity || ""
+        }, ${updateEventDto.venueState || ""}`;
+        const geoRes = await safeGeocode(fullAddress);
+
         if (geoRes && geoRes.length > 0) {
           const { latitude, longitude } = geoRes[0];
           updateEventDto.location = {
@@ -304,7 +328,10 @@ if (req.body.date) {
         }
       }
 
-      const updatedEvent = await this.eventService.editEvent(eventId, updateEventDto);
+      const updatedEvent = await this.eventService.editEvent(
+        eventId,
+        updateEventDto
+      );
       if (!updatedEvent) {
         res
           .status(STATUS_CODES.NOT_FOUND)
@@ -324,9 +351,7 @@ if (req.body.date) {
       });
     }
   }
- 
 
-   
   async deleteEvent(req: AuthRequest, res: Response): Promise<void> {
     try {
       const hostIdStr = req.user?.userId;
@@ -355,7 +380,7 @@ if (req.body.date) {
       }
 
       const updatedEvent = await this.eventService.deleteEvent(eventId, reason);
-      
+
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         event: updatedEvent,
@@ -375,9 +400,10 @@ if (req.body.date) {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 2;
 
-      const result = await this.eventService.getAllEventsForAdmin({ page, limit });
-      console.log("events for admin", result);
-
+      const result = await this.eventService.getAllEventsForAdmin({
+        page,
+        limit,
+      });
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         message: MESSAGES.ADMIN.SUCCESS.EVENTS_FETCHED,

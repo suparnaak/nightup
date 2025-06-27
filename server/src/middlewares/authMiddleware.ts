@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import { STATUS_CODES, MESSAGES } from '../utils/constants';
+import { Request, Response, NextFunction } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { STATUS_CODES, MESSAGES } from "../utils/constants";
 
 const jwtSecret = process.env.JWT_SECRET;
 
@@ -18,7 +18,7 @@ export const authMiddleware = (allowedRoles: string[] = []) => {
       const token = req.cookies.token;
 
       if (!token) {
-         res.status(STATUS_CODES.UNAUTHORIZED).json({
+        res.status(STATUS_CODES.UNAUTHORIZED).json({
           message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
         });
         return;
@@ -26,29 +26,29 @@ export const authMiddleware = (allowedRoles: string[] = []) => {
 
       const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
 
-      const userId = decoded.userId || decoded.hostId || decoded.adminId;
+      const userId = decoded.id;
       const type = decoded.type;
 
       if (!userId || !type) {
-         res.status(STATUS_CODES.UNAUTHORIZED).json({
+        res.status(STATUS_CODES.UNAUTHORIZED).json({
           message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
         });
         return;
       }
 
-      req.user = { userId, type };
+      (req as AuthRequest).user = { userId, type };
 
       if (allowedRoles.length > 0 && !allowedRoles.includes(type)) {
-         res.status(STATUS_CODES.FORBIDDEN).json({
-          message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
+        res.status(STATUS_CODES.FORBIDDEN).json({
+          message: MESSAGES.COMMON.ERROR.FORBIDDEN,
         });
         return;
       }
 
       next();
     } catch (error) {
-      console.error('Auth Middleware Error:', error);
-       res.status(STATUS_CODES.UNAUTHORIZED).json({
+      console.error("Auth Middleware Error:", error);
+      res.status(STATUS_CODES.UNAUTHORIZED).json({
         message: MESSAGES.COMMON.ERROR.UNAUTHORIZED,
       });
     }

@@ -61,4 +61,3 @@ export class HostProfileController implements IHostProfileController {
   }
 }
 
-//export default new HostProfileController();

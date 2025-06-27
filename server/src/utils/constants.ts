@@ -1,12 +1,18 @@
 export const PASSWORD_RULES = {
   MIN_LENGTH: 6,
 };
+export const OTP_TTL = 30;
+
+export const ROLES = ['admin', 'user', 'host'] as const;
+export type Role = typeof ROLES[number];
+
 export const MESSAGES = {
   COMMON: {
     SUCCESS: {
       REGISTERED: "Registered successfully. OTP sent to email for verification.",
       PAYMENT_SUCCESSFUL: "Payment successful.",
       OTP_VERIFIED: "OTP verified",
+      OTP_SENT: "OTP sent",
       OTP_RESENT: "A new OTP has been sent to your email.",
       LOGIN:"Login successfull",
       PASSWORD_RESET:"Your password reset successfully, you can Login.",
@@ -27,6 +33,7 @@ export const MESSAGES = {
       MISSING_FIELDS: "All fields are required.",
       UNAUTHORIZED: "Unauthorized access.",
       UNAUTHENTICATED: "You are not authenticated.",
+      FORBIDDEN:"Access Forbidden",
       UNKNOWN_ERROR: "An unknown error occurred. Please try again later.",
       ACCOUNT_NOT_VERIFIED: "Account not verified. Please verify your email.",
       NOT_FOUND: "Email not found.",
@@ -51,6 +58,7 @@ export const MESSAGES = {
       MESSAGE_REQUIRED: 'Message content is required',
       CHAT_FAILED: 'Failed to send message',
       CHAT_LIST_FAILED: 'Failed to list conversations',
+      INVALID_ROLE:'Invalid Role',
     },
   },
 
@@ -152,17 +160,6 @@ export const MESSAGES = {
     }
   }
 };
-
-/* export const STATUS_CODES = {
-  SUCCESS: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  NOT_FOUND: 404,
-  SERVER_ERROR: 500,
-  FORBIDDEN:403,
-  CONFLICT:409
-}; */
 
 export enum STATUS_CODES {
   SUCCESS = 200,

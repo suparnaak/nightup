@@ -89,9 +89,7 @@ export class EventService implements IEventService {
   }
 
   async getEventDetails(eventId: string): Promise<EventResponseDto | null> {
-    /* const eventObjectId = new Types.ObjectId(eventId);
-    const event = await this.eventRepository.getEventById(eventObjectId);
-    return event ? EventMapper.toResponse(event) : null; */
+    
     const event = await this.eventRepository.findByIdPopulated(eventId);
     if (!event) return null;
 
@@ -100,12 +98,7 @@ export class EventService implements IEventService {
 
   //edit event
   async editEvent(eventId: string, updateEventDto: UpdateEventDto): Promise<EventResponseDto | null> {
-    /* const eventObjectId = new Types.ObjectId(eventId);
-    
-    const updateData = EventMapper.toUpdatePersistence(updateEventDto);
-
-    const updatedEvent = await this.eventRepository.editEvent(eventObjectId, updateData);
-    return updatedEvent ? EventMapper.toResponse(updatedEvent) : null; */
+   
     const eventObjectId = new Types.ObjectId(eventId);
     const updateData = EventMapper.toUpdatePersistence(updateEventDto);
 
@@ -129,28 +122,15 @@ export class EventService implements IEventService {
     return EventMapper.toResponse(updatedEvent);
   }
 
-/*   async deleteEvent(eventId: string, reason: string): Promise<EventResponseDto> {
-    const eventObjectId = new Types.ObjectId(eventId);
-    
-    const updatedEvent = await this.eventRepository.blockEvent(eventObjectId, reason);
-    if (!updatedEvent) {
-      throw new Error(MESSAGES.COMMON.ERROR.NO_EVENT_FOUND);
-    }
 
-    await this.bookingRepository.cancelAndRefundBookings(eventObjectId, reason);
-    
-    return EventMapper.toResponse(updatedEvent);
-  } */
  async deleteEvent(eventId: string, reason: string): Promise<EventResponseDto> {
   const eventObjectId = new Types.ObjectId(eventId);
   
-  // Get the event details before blocking it (to access title for notification)
   const event = await this.eventRepository.getEventById(eventObjectId);
   if (!event) {
     throw new Error(MESSAGES.COMMON.ERROR.NO_EVENT_FOUND);
   }
 
-  // Get user IDs who have bookings for this event before cancelling
   const userIds = await this.bookingRepository.findUserIdsByEvent(eventId);
   
   const updatedEvent = await this.eventRepository.blockEvent(eventObjectId, reason);
@@ -158,10 +138,8 @@ export class EventService implements IEventService {
     throw new Error(MESSAGES.COMMON.ERROR.NO_EVENT_FOUND);
   }
 
-  // Cancel and refund bookings
   await this.bookingRepository.cancelAndRefundBookings(eventObjectId, reason);
   
-  // Send notifications to users about event cancellation
   if (userIds.length > 0) {
     const notifications: CreateNotificationDto[] = userIds.map((uid) => ({
       user: uid.toString(),

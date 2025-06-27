@@ -8,43 +8,43 @@ import { ICategoryService } from "./interfaces/ICategoryService";
 import { MESSAGES } from "../utils/constants";
 
 @injectable()
-export class CategoryService implements ICategoryService{
+export class CategoryService implements ICategoryService {
   constructor(
     @inject(TYPES.CategoryRepository)
     private categoryRepository: ICategoryRepository
-  ){}
- /*  async getAllCategories(): Promise<IEventTypeDocument[]> {
+  ) {}
+
+  async getAllCategories(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{
+    categories: IEventTypeDocument[];
+    pagination: {
+      total: number;
+      page: number;
+      totalPages: number;
+      limit: number;
+    };
+  }> {
     try {
-      return await this.categoryRepository.findAll();
+      return await this.categoryRepository.findAll(page, limit);
     } catch (error) {
       console.error("Error in CategoryService.getAllCategories:", error);
       throw error;
     }
-  } */
- async getAllCategories(page: number = 1, limit: number = 10): Promise<{
-  categories: IEventTypeDocument[],
-  pagination: {
-    total: number,
-    page: number, 
-    totalPages: number,
-    limit: number
   }
-}> {
-  try {
-    return await this.categoryRepository.findAll(page, limit);
-  } catch (error) {
-    console.error("Error in CategoryService.getAllCategories:", error);
-    throw error;
-  }
-}
-
-
-
-  async createCategory(data: { name: string; description: string }): Promise<IEventTypeDocument> {
+  async createCategory(data: {
+    name: string;
+    description: string;
+  }): Promise<IEventTypeDocument> {
     try {
-      const existingCategory = await this.categoryRepository.findByName(data.name);
+      const existingCategory = await this.categoryRepository.findByName(
+        data.name
+      );
       if (existingCategory) {
-        const error: any = new Error(MESSAGES.ADMIN.ERROR.NO_DUPLICATE_CATEGORY);
+        const error: any = new Error(
+          MESSAGES.ADMIN.ERROR.NO_DUPLICATE_CATEGORY
+        );
         error.code = "DUPLICATE_NAME";
         throw error;
       }
@@ -76,7 +76,9 @@ export class CategoryService implements ICategoryService{
       if (existingCategory.name !== data.name) {
         const nameExists = await this.categoryRepository.findByName(data.name);
         if (nameExists) {
-          const error: any = new Error(MESSAGES.ADMIN.ERROR.NO_DUPLICATE_CATEGORY);
+          const error: any = new Error(
+            MESSAGES.ADMIN.ERROR.NO_DUPLICATE_CATEGORY
+          );
           error.code = "DUPLICATE_NAME";
           throw error;
         }

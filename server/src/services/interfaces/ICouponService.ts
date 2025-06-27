@@ -1,6 +1,5 @@
 import { ICoupon } from "../../models/coupon";
 export interface ICouponService {
-    //getCoupons(): Promise<ICoupon[]>
      getCoupons(page?: number, limit?: number): Promise<{
     coupons: ICoupon[];
     pagination: {

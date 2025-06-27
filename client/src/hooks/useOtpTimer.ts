@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 interface UseOtpTimerReturn {
   timeLeft: number;
-  resetTimer: () => void;
+  resetTimer: (newTime?: number) => void;
   isExpired: boolean;
 }
 
 const useOtpTimer = (initialTime: number = 300): UseOtpTimerReturn => {
   const [timeLeft, setTimeLeft] = useState<number>(initialTime);
+  const [origTime, setOrigTime] = useState<number>(initialTime);
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -16,9 +17,17 @@ const useOtpTimer = (initialTime: number = 300): UseOtpTimerReturn => {
     return () => clearInterval(intervalId);
   }, [timeLeft]);
 
-  const resetTimer = useCallback(() => {
-    setTimeLeft(initialTime);
-  }, [initialTime]);
+  const resetTimer = useCallback(
+    (newTime?: number) => {
+      if (typeof newTime === "number") {
+        setOrigTime(newTime);
+        setTimeLeft(newTime);
+      } else {
+        setTimeLeft(origTime);
+      }
+    },
+    [origTime]
+  );
 
   return {
     timeLeft,

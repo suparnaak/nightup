@@ -17,7 +17,7 @@ export interface ISavedEvent extends Document {
 const savedEventSchema: Schema = new Schema(
   {
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    event: { type: Schema.Types.ObjectId, ref: "Event", required: true }, // Changed from eventId to event
+    event: { type: Schema.Types.ObjectId, ref: "Event", required: true }, 
     title: { type: String, required: true },
     eventImage: { type: String },
     date: { type: Date },

@@ -4,12 +4,12 @@ import { Request, Response } from "express";
 import TYPES from "../config/di/types";
 import { IUserService } from "../services/interfaces/IUserService";
 import { IUserController } from "./interfaces/IUserController";
-import {
+/* import {
   UserSignupDTO,
   UserLoginDTO,
   OtpVerificationDTO,
   PasswordResetDTO,
-} from "../dtos/user/UserDTO";
+} from "../dtos/user/UserDTO"; */
 import { MESSAGES, STATUS_CODES, PASSWORD_RULES } from "../utils/constants";
 import { isRequired, isEmail } from "../utils/validators";
 import { UserMapper } from "../mappers/UserMapper";
@@ -21,18 +21,22 @@ export class UserController implements IUserController {
     private userService: IUserService
   ) {}
 
-  async signup(req: Request, res: Response): Promise<void> {
+  /* async signup(req: Request, res: Response): Promise<void> {
     try {
       const dto: UserSignupDTO = req.body;
 
       const { name, email, phone, password, confirmPassword } = dto;
       if (!name || !email || !phone || !password || !confirmPassword) {
-        res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.MISSING_FIELDS });
+        res
+          .status(STATUS_CODES.BAD_REQUEST)
+          .json({ message: MESSAGES.COMMON.ERROR.MISSING_FIELDS });
         return;
       }
 
       if (password !== confirmPassword) {
-        res.status(STATUS_CODES.BAD_REQUEST).json({ message: MESSAGES.COMMON.ERROR.PASSWORD_MISMATCH });
+        res
+          .status(STATUS_CODES.BAD_REQUEST)
+          .json({ message: MESSAGES.COMMON.ERROR.PASSWORD_MISMATCH });
         return;
       }
 
@@ -45,7 +49,10 @@ export class UserController implements IUserController {
         otpExpiry: user.otpExpiry,
       });
     } catch (error) {
-      const errMessage = error instanceof Error ? error.message : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
+      const errMessage =
+        error instanceof Error
+          ? error.message
+          : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
       res.status(STATUS_CODES.BAD_REQUEST).json({ message: errMessage });
     }
   }
@@ -62,8 +69,13 @@ export class UserController implements IUserController {
 
       res.status(STATUS_CODES.SUCCESS).json(result);
     } catch (error) {
-      const errMessage = error instanceof Error ? error.message : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
-      res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: errMessage });
+      const errMessage =
+        error instanceof Error
+          ? error.message
+          : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
+      res
+        .status(STATUS_CODES.BAD_REQUEST)
+        .json({ success: false, message: errMessage });
     }
   }
 
@@ -73,8 +85,13 @@ export class UserController implements IUserController {
       const result = await this.userService.resendOtp(email, verificationType);
       res.status(STATUS_CODES.SUCCESS).json(result);
     } catch (error) {
-      const errMessage = error instanceof Error ? error.message : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
-      res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: errMessage });
+      const errMessage =
+        error instanceof Error
+          ? error.message
+          : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
+      res
+        .status(STATUS_CODES.BAD_REQUEST)
+        .json({ success: false, message: errMessage });
     }
   }
 
@@ -86,96 +103,86 @@ export class UserController implements IUserController {
       }
       const result = await this.userService.processGoogleAuth(profile);
       res
-        .cookie("token", result.token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", maxAge: 3600000, path: "/" })
-        .cookie("refreshToken", result.refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", maxAge: 7 * 24 * 60 * 60 * 1000, path: "/" });
-      res.redirect(`${process.env.CORS_ORIGIN}/auth/google/callback?token=${result.token}`);
+        .cookie("token", result.token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 3600000,
+          path: "/",
+        })
+        .cookie("refreshToken", result.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+          path: "/",
+        });
+      res.redirect(
+        `${process.env.CORS_ORIGIN}/auth/google/callback?token=${result.token}`
+      );
     } catch (error) {
       console.error("Google auth callback error:", error);
       res.redirect(`${process.env.CORS_ORIGIN}/login?error=google_auth_failed`);
     }
-  }
+  } */
 
   async getProfile(req: Request, res: Response): Promise<void> {
     if (!req.user) {
-      res.status(STATUS_CODES.UNAUTHORIZED).json({ message: MESSAGES.COMMON.ERROR.UNAUTHENTICATED });
+      res
+        .status(STATUS_CODES.UNAUTHORIZED)
+        .json({ message: MESSAGES.COMMON.ERROR.UNAUTHENTICATED });
       return;
     }
-    console.log(req.user)
+    console.log(req.user);
     res.status(STATUS_CODES.SUCCESS).json({ user: req.user });
   }
-
-  async login(req: Request, res: Response): Promise<void> {
-    try {
-      const dto: UserLoginDTO = req.body;
-      const errors: Record<string, string> = {};
-      if (!isRequired(dto.email)) errors.email = MESSAGES.COMMON.ERROR.INVALID_EMAIL;
-      if (!isRequired(dto.password)) errors.password = MESSAGES.COMMON.ERROR.MISSING_FIELDS;
-      if (Object.keys(errors).length) {
-        res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: MESSAGES.COMMON.ERROR.MISSING_FIELDS, errors });
-        return;
-      }
-      const result = await this.userService.login(dto);
-      if (!result.success) {
-        const status = result.otpRequired ? STATUS_CODES.FORBIDDEN : STATUS_CODES.BAD_REQUEST;
-        res.status(status).json(result);
-        return;
-      }
-      res
-        .cookie("token", result.token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", maxAge: 3600000 })
-        .cookie("refreshToken", result.refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 })
-        .status(STATUS_CODES.SUCCESS)
-        .json(result);
-    } catch (error) {
-      const errMessage = error instanceof Error ? error.message : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
-      res.status(STATUS_CODES.SERVER_ERROR).json({ success: false, message: errMessage });
-    }
-  }
-
-  async refreshToken(req: Request, res: Response): Promise<void> {
-    try {
-      const token = req.cookies.refreshToken;
-      if (!token) throw new Error(MESSAGES.COMMON.ERROR.REFRESH_TOKEN_MISSING);
-      const result = await this.userService.refreshToken(token);
-      res.cookie('token', result.token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 3600000 });
-      res.status(STATUS_CODES.SUCCESS).json(result);
-    } catch (error) {
-      const errMessage = error instanceof Error ? error.message : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
-      res.status(STATUS_CODES.UNAUTHORIZED).json({ success: false, message: errMessage });
-    }
-  }
-
-  async logout(req: Request, res: Response): Promise<void> {
-    res
-      .clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' })
-      .clearCookie('refreshToken', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' })
-      .status(STATUS_CODES.SUCCESS)
-      .json({ success: true, message: MESSAGES.COMMON.SUCCESS.LOGOUT });
-  }
-
-  async forgotPassword(req: Request, res: Response): Promise<void> {
+  /* async forgotPassword(req: Request, res: Response): Promise<void> {
     try {
       const { email } = req.body;
       if (!email) throw new Error(MESSAGES.COMMON.ERROR.MISSING_FIELDS);
       const result = await this.userService.forgotPassword(email);
-      res.status(result.success ? STATUS_CODES.SUCCESS : STATUS_CODES.BAD_REQUEST).json(result);
+      res
+        .status(
+          result.success ? STATUS_CODES.SUCCESS : STATUS_CODES.BAD_REQUEST
+        )
+        .json(result);
     } catch (error) {
-      const errMessage = error instanceof Error ? error.message : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
-      res.status(STATUS_CODES.SERVER_ERROR).json({ success: false, message: errMessage });
+      const errMessage =
+        error instanceof Error
+          ? error.message
+          : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
+      res
+        .status(STATUS_CODES.SERVER_ERROR)
+        .json({ success: false, message: errMessage });
     }
-  }
+  } */
 
-  async resetPassword(req: Request, res: Response): Promise<void> {
+  /* async resetPassword(req: Request, res: Response): Promise<void> {
     try {
       const dto: PasswordResetDTO & { confirmPassword: string } = req.body;
       if (dto.password !== dto.confirmPassword) {
-        res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: MESSAGES.COMMON.ERROR.PASSWORD_MISMATCH });
+        res
+          .status(STATUS_CODES.BAD_REQUEST)
+          .json({
+            success: false,
+            message: MESSAGES.COMMON.ERROR.PASSWORD_MISMATCH,
+          });
         return;
       }
       const result = await this.userService.resetPassword(dto);
-      res.status(result.success ? STATUS_CODES.SUCCESS : STATUS_CODES.BAD_REQUEST).json(result);
+      res
+        .status(
+          result.success ? STATUS_CODES.SUCCESS : STATUS_CODES.BAD_REQUEST
+        )
+        .json(result);
     } catch (error) {
-      const errMessage = error instanceof Error ? error.message : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
-      res.status(STATUS_CODES.SERVER_ERROR).json({ success: false, message: errMessage });
+      const errMessage =
+        error instanceof Error
+          ? error.message
+          : MESSAGES.COMMON.ERROR.UNKNOWN_ERROR;
+      res
+        .status(STATUS_CODES.SERVER_ERROR)
+        .json({ success: false, message: errMessage });
     }
-  }
+  } */
 }

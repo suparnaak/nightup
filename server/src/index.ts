@@ -1,7 +1,6 @@
 import express, { Application } from "express";
 import morgan from "morgan";
 import * as rfs from "rotating-file-stream";
-//import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 dotenv.config();
@@ -23,7 +22,6 @@ const app: Application = express();
 
 app.use(cookieParser());
 
-//for morgan logs into a file
 const accessLogStream = rfs.createStream('access.log', {
   interval: '1d', 
   maxFiles: 30,   
@@ -63,3 +61,4 @@ const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
   console.log(` Server + Socket.IO running on port ${PORT}`);
 });
+ 

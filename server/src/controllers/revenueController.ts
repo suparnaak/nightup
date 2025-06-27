@@ -49,4 +49,3 @@ export class RevenueController implements IRevenueController {
   }
 }
 
-//export default new RevenueController();

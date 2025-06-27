@@ -32,21 +32,21 @@ export interface UserAuthResponseDTO {
   user?: UserDTO;
 }
 
-export interface OtpVerificationDTO {
+/* export interface OtpVerificationDTO {
   email: string;
   otp: string;
   verificationType: 'emailVerification' | 'passwordReset';
-}
+} */
 
-export interface OtpResponseDTO {
+/* export interface OtpResponseDTO {
   success: boolean;
   message: string;
   email?: string;
   otpExpiry?: Date;
   user?: UserDTO;
-}
+} */
 
-export interface PasswordResetDTO {
+/* export interface PasswordResetDTO {
   email: string;
   password: string;
-}
+} */

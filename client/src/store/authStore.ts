@@ -1,25 +1,24 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { authRepository } from '../services/authService';
-import {jwtDecode} from 'jwt-decode';
-import { User } from '../types/userTypes';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { authRepository } from "../services/authService";
+import { jwtDecode } from "jwt-decode";
+import { User } from "../types/userTypes";
+import { SignupData } from "../types/authTypes";
 
 interface AuthState {
   user: User | null;
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
-
-  // Auth related
-  signup: (name: string, email: string, phone: string, password: string, confirmPassword: string) => Promise<any>;
-  hostSignup: (name: string, email: string, phone: string, password: string, confirmPassword: string, hostType: string) => Promise<any>;
-  login: (email: string, password: string) => Promise<any>;
-  hostLogin: (email: string, password: string) => Promise<any>;
-  adminLogin: (email: string, password: string) => Promise<any>;
-  
+  signup: (signupData: SignupData) => Promise<any>;
+  login: (email: string, password: string, role: string) => Promise<any>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<any>;
-  resetPassword: (email: string, password: string, confirmPassword: string) => Promise<any>;
+  resetPassword: (
+    email: string,
+    password: string,
+    confirmPassword: string
+  ) => Promise<any>;
   googleLogin: (token: string) => void;
   getGoogleAuthUrl: () => string;
   setUser: (user: User | null) => void;
@@ -33,94 +32,53 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      signup: async (name, email, phone, password, confirmPassword) => {
+      signup: async (signupData) => {
         try {
           set({ isLoading: true, error: null });
-          const response = await authRepository.signup({
-            name,
-            email,
-            phone,
-            password,
-            confirmPassword,
-          });
-          console.log(response)
+          const response = await authRepository.signup(signupData);
+          console.log("▷ signup response:", response);
+
           set({
             user: response.user,
             isAuthenticated: false,
             isLoading: false,
           });
+
           return response;
         } catch (error: any) {
           set({
             isLoading: false,
-            error: error.response?.data?.message || 'Signup failed. Please try again.',
+            error:
+              error.response?.data?.message ||
+              `${signupData.role} signup failed. Please try again.`,
           });
           throw error;
         }
       },
 
-      hostSignup: async (name, email, phone, password, confirmPassword, hostType) => {
+      login: async (email, password, role) => {
         try {
           set({ isLoading: true, error: null });
-          const response = await authRepository.hostSignup({
-            name,
+          const response = await authRepository.login({
             email,
-            phone,
             password,
-            confirmPassword,
-            hostType,
+            role,
           });
-          console.log(response)
-          set({
-            user: response.host,
-            isAuthenticated: false,
-            isLoading: false,
-          });
-          return response;
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.message || 'Host signup failed. Please try again.',
-          });
-          throw error;
-        }
-      },
+          console.log("▷ login response:", response);
 
-      login: async (email: string, password: string) => {
-        try {
-          set({ isLoading: true, error: null });
-          const response = await authRepository.login({ email, password });
           set({
             user: response.user,
             isAuthenticated: true,
             isLoading: false,
           });
+
           return response;
         } catch (error: any) {
           set({
             isLoading: false,
-            error: error.response?.data?.message || 'User login failed. Please try again.',
-          });
-          throw error;
-        }
-      },
-
-  
-
-      hostLogin: async (email: string, password: string) => {
-        try {
-          set({ isLoading: true, error: null });
-          const response = await authRepository.hostLogin({ email, password });
-          set({
-            user: response.host,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-          return response;
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.message || 'Host login failed. Please try again.',
+            error:
+              error.response?.data?.message ||
+              `${role} login failed. Please try again.`,
           });
           throw error;
         }
@@ -135,7 +93,9 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           set({
             isLoading: false,
-            error: error.response?.data?.message || 'Failed to send reset link. Please try again.',
+            error:
+              error.response?.data?.message ||
+              "Failed to send reset link. Please try again.",
           });
           throw error;
         }
@@ -157,25 +117,6 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      adminLogin: async (email: string, password: string) => {
-        try {
-          set({ isLoading: true, error: null });
-          const response = await authRepository.adminLogin({ email, password });
-          set({
-            user: response.admin,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-          return response;
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.message || 'Admin login failed. Please try again.',
-          });
-          throw error;
-        }
-      },
-
       logout: async () => {
         try {
           set({ isLoading: true, error: null });
@@ -188,7 +129,9 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           set({
             isLoading: false,
-            error: error.response?.data?.message || 'Logout failed. Please try again.',
+            error:
+              error.response?.data?.message ||
+              "Logout failed. Please try again.",
           });
           throw error;
         }
@@ -198,12 +141,12 @@ export const useAuthStore = create<AuthState>()(
           const decoded: any = jwtDecode(token);
           const user = {
             id: decoded.userId,
-            name: decoded.name,      
-            email: decoded.email,    
+            name: decoded.name,
+            email: decoded.email,
             phone: decoded.phone || "",
             role: decoded.role || "user",
           };
-      
+
           set({
             user,
             isAuthenticated: true,
@@ -218,9 +161,12 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user: User | null) => set({ user }),
     }),
     {
-      name: "auth-storage", 
+      name: "auth-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );

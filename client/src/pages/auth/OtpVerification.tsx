@@ -8,6 +8,7 @@ interface LocationState {
   otpExpiry: string;
   email: string;
   verificationType: "emailVerification" | "passwordReset";
+  role: "user" | "host";
 }
 
 const OtpVerification: React.FC = () => {
@@ -43,7 +44,8 @@ const OtpVerification: React.FC = () => {
         const response = await authRepository.verifyOtp({
           email: state.email,
           otp,
-          verificationType: state.verificationType
+          role: "user",
+          verificationType: state.verificationType,
         });
 
         if (response.success) {
@@ -55,12 +57,11 @@ const OtpVerification: React.FC = () => {
           toast.error("Invalid OTP");
           setError("Invalid OTP");
         }
-
       } else if (state.verificationType === "passwordReset") {
         const response = await authRepository.verifyOtp({
           email: state.email,
           otp,
-          verificationType: state.verificationType
+          verificationType: state.verificationType,
         });
 
         if (response.success) {
@@ -73,7 +74,6 @@ const OtpVerification: React.FC = () => {
           setError("Invalid OTP");
         }
       }
-
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong!");
@@ -85,18 +85,19 @@ const OtpVerification: React.FC = () => {
     try {
       const response = await authRepository.resendOtp(
         state.email,
-        state.verificationType
+        state.verificationType,
+        state.role
       );
-  
-      if (response.data.success) {
+
+      if (response.success) {
         toast.success("OTP Resent Successfully!");
-  
-        if (response.data.otpExpiry) {
-          resetTimer();
-        } else {
-          resetTimer();
-        }
-  
+        const newSecs = Math.max(
+          0,
+          Math.floor(
+            (new Date(response.otpExpiry).getTime() - Date.now()) / 1000
+          )
+        );
+        resetTimer(newSecs);
         setError("");
       } else {
         toast.error("Failed to resend OTP.");
@@ -107,7 +108,6 @@ const OtpVerification: React.FC = () => {
       setError("Something went wrong while resending OTP!");
     }
   };
-  
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -116,8 +116,7 @@ const OtpVerification: React.FC = () => {
           Verify Your OTP
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Enter the OTP sent to your registered email. This OTP is valid for 5
-          minutes.
+          Enter the OTP sent to your registered email.
         </p>
       </div>
 

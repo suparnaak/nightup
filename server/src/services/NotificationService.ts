@@ -9,7 +9,6 @@ import TYPES from '../config/di/types';
 
 @injectable()
 export class NotificationService implements INotificationService {
-  //constructor(private repository: INotificationRepository) {}
   constructor(
       @inject(TYPES.NotificationRepository)
       private notificationRepository: INotificationRepository,
@@ -23,7 +22,6 @@ export class NotificationService implements INotificationService {
     
     const responseDtos = savedNotifications.map(toNotificationResponseDto);
     
-    // Emit to all users via Socket.IO
     responseDtos.forEach(respDto => {
       io.to(`user-${respDto.user}`).emit("eventNotification", {
         notificationId: respDto.notificationId,
@@ -42,12 +40,10 @@ export class NotificationService implements INotificationService {
   return notifications.map(toNotificationResponseDto);
 }
 
-// Count unread notifications for a specific user
 async getUnreadCount(userId: string): Promise<number> {
   return await this.notificationRepository.countUnread(userId);
 }
 
-// Mark a notification as read by ID
 async markRead(notificationId: string): Promise<void> {
   await this.notificationRepository.markAsRead(notificationId);
 }

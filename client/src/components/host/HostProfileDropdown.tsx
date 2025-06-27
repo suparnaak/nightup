@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
-import { useChatStore } from "../../store/chatStore"; 
+import { useChatStore } from "../../store/chatStore";
 
 const HostProfileDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,8 +9,8 @@ const HostProfileDropdown: React.FC = () => {
   const navigate = useNavigate();
 
   const { user, logout } = useAuthStore();
-  const { conversations, listConversations } = useChatStore(); 
-  
+  const { conversations, listConversations } = useChatStore();
+
   const userName = user?.name || "Host";
   const initials = userName
     .split(" ")
@@ -21,11 +21,11 @@ const HostProfileDropdown: React.FC = () => {
 
   // for unread count
   const totalUnreadCount = conversations.reduce(
-    (sum, conv) => sum + (conv.unreadCount || 0), 
+    (sum, conv) => sum + (conv.unreadCount || 0),
     0
   );
 
-  // conversation fetching
+  // conversation to list
   useEffect(() => {
     listConversations();
   }, [listConversations]);
@@ -64,7 +64,7 @@ const HostProfileDropdown: React.FC = () => {
         {initials}
         {totalUnreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-            {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+            {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
           </span>
         )}
       </button>

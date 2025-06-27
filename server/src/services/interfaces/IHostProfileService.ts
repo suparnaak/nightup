@@ -4,13 +4,9 @@ export interface HostProfile {
   email: string;
   phone: string;
   hostType: string;
-  documentUrl: string; // URL for the license document
-  // Replacing adminVerified with a more descriptive status
+  documentUrl: string; 
   documentStatus: "pending" | "approved" | "rejected";
-  // Optional field to store a rejection reason if the document is rejected
   rejectionReason?: string;
-  //subscriptionPlan: string;
-  // Add other fields as needed
 }
 
 export interface HostProfileResponse {

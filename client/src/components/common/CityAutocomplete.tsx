@@ -23,20 +23,20 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({ onSelect }) => {
       setSuggestions([]);
       return;
     }
-  
+
     setIsLoading(true);
-  
+
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1&limit=5`
       );
       const data = await response.json();
-  
+
       const cities = data.map((item: any) => ({
-        id: item.place_id.toString(),  
-        name: item.display_name,       
+        id: item.place_id.toString(),
+        name: item.display_name,
       }));
-  
+
       setSuggestions(cities);
     } catch (error) {
       console.error("Error fetching city suggestions:", error);
@@ -57,7 +57,7 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({ onSelect }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        suggestionsRef.current && 
+        suggestionsRef.current &&
         !suggestionsRef.current.contains(event.target as Node) &&
         inputRef.current &&
         !inputRef.current.contains(event.target as Node)
@@ -102,7 +102,7 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({ onSelect }) => {
       </div>
 
       {showSuggestions && (
-        <div 
+        <div
           ref={suggestionsRef}
           className="absolute z-10 mt-1 w-full bg-gray-800 border border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto"
         >
