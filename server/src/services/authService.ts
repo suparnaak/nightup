@@ -38,7 +38,6 @@ export class AuthService implements IAuthService {
   ) {}
   async login(dto: LoginDTO): Promise<AuthResponseDTO> {
     const { role, email, password } = dto;
-    console.log("role", role);
     const entity = await this.authRepository.findByEmailAndRole(email, role);
     if (!entity) {
       return {
@@ -72,6 +71,7 @@ export class AuthService implements IAuthService {
       entity, 
       token,
       refreshToken,
+      role,
     });
   }
 
@@ -133,7 +133,7 @@ export class AuthService implements IAuthService {
     } else {
       if (await this.hostRepository.findByEmail(email))
         throw new Error(MESSAGES.COMMON.ERROR.EMAIL_IN_USE);
-      if (!hostType) throw new Error("Host type required");
+      if (!hostType) throw new Error(MESSAGES.HOST.ERROR.HOSTTYPE_REQUIRED);
 
       entity = await this.hostRepository.createHost({
         name,

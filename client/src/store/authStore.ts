@@ -64,8 +64,6 @@ export const useAuthStore = create<AuthState>()(
             password,
             role,
           });
-          console.log("▷ login response:", response);
-
           set({
             user: response.user,
             isAuthenticated: true,
