@@ -37,11 +37,6 @@ const hostSchema: Schema = new Schema(
     rejectionReason: { type: String, default: "" },
     documentUploadedAt: { type: Date },
     documentVerifiedAt: { type: Date },
-    /* subStatus: {
-      type: String,
-      enum: ["Not Subscribed", "Active", "Expired"],
-      default: "Not Subscribed",
-    }, */
     otp: { type: String, default: "" },
     otpExpiry: { type: Date },
     role: { type: String, enum: ["user", "host", "admin"], default: "host" },

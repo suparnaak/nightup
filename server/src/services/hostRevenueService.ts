@@ -245,4 +245,3 @@ export class HostRevenueService implements IHostRevenueService {
   }
 }
 
-//export default new HostRevenueService();

@@ -127,7 +127,6 @@ export class HostSubscriptionController implements IHostSubscriptionController{
 async createUpgradeOrder(req: AuthRequest, res: Response): Promise<void> {
   try {
     const { planId, amount, currentSubscriptionId } = req.body;
-    console.log("body",req.body)
     if (!req.user?.userId) {
       res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
@@ -173,7 +172,6 @@ async createUpgradeOrder(req: AuthRequest, res: Response): Promise<void> {
         });
         return;
       }
-            console.log("incoming",req.body)
       const { 
         razorpay_payment_id, 
         razorpay_order_id, 

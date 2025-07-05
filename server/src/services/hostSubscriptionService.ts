@@ -239,4 +239,3 @@ export class HostSubscriptionService implements IHostSubscriptionService {
   }
 }
 
-//export default new HostSubscriptionService();

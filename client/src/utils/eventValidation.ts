@@ -59,7 +59,7 @@ export const validateTicketsCapacity = (
     0
   );
   if (totalTickets > capacity) {
-    return "Total number of tickets cannot exceed venue capacity.";
+    return "Total number of tickets cannot exceed Total Tickets available.";
   }
   return null;
 };

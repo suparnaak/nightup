@@ -238,7 +238,7 @@ export class EventController implements IEventController {
         event,
       });
     } catch (error: any) {
-      console.error("Error fetching event details:", error);
+      console.error(MESSAGES.COMMON.ERROR.FAILED_TO_RETRIEVE, error);
       res.status(STATUS_CODES.SERVER_ERROR).json({
         message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
       });
@@ -270,7 +270,7 @@ export class EventController implements IEventController {
         if (isNaN(parsedDate.valueOf())) {
           res
             .status(STATUS_CODES.BAD_REQUEST)
-            .json({ message: "Invalid date format." });
+            .json({ message: MESSAGES.COMMON.ERROR.INVALID_DATE });
           return;
         }
         updateEventDto.date = parsedDate;
@@ -283,7 +283,7 @@ export class EventController implements IEventController {
         if (isNaN(parsedStart.valueOf())) {
           res
             .status(STATUS_CODES.BAD_REQUEST)
-            .json({ message: "Invalid startTime for given date." });
+            .json({ message: MESSAGES.HOST.ERROR.INVALID_DATE });
           return;
         }
         updateEventDto.startTime = parsedStart;
@@ -299,7 +299,7 @@ export class EventController implements IEventController {
         if (isNaN(parsedEnd.valueOf())) {
           res
             .status(STATUS_CODES.BAD_REQUEST)
-            .json({ message: "Invalid endTime for given date." });
+            .json({ message: MESSAGES.HOST.ERROR.INVALID_END_TIME});
           return;
         }
         updateEventDto.endTime = parsedEnd;
@@ -308,7 +308,6 @@ export class EventController implements IEventController {
         }
       }
 
-      // Simple geocoding for updates
       if (
         updateEventDto.venueZip ||
         updateEventDto.venueCity ||
@@ -374,7 +373,7 @@ export class EventController implements IEventController {
 
       if (!reason || typeof reason !== "string") {
         res.status(STATUS_CODES.BAD_REQUEST).json({
-          message: "Cancellation reason is required.",
+          message: MESSAGES.HOST.ERROR.REQUIRED_CANCEL_REASON,
         });
         return;
       }

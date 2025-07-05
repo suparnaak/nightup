@@ -23,10 +23,10 @@ export class RevenueService implements IRevenueService {
       startDate.setFullYear(2025, 3, 1);
     }
 
-    const totalRevenue = await this.revenueRepository.getTotalRevenue(
-      startDate,
-      endDate
-    );
+    const subscriptionRevenue = await this.revenueRepository.getTotalRevenue(startDate, endDate);
+    const platformFeeRevenue  = await this.revenueRepository.getPlatformFeeRevenue(startDate, endDate);
+    const totalRevenue = subscriptionRevenue + platformFeeRevenue;
+
     const monthlyRevenue = await this.revenueRepository.getMonthlyRevenue(
       startDate,
       endDate
@@ -44,6 +44,7 @@ export class RevenueService implements IRevenueService {
     return {
       totalRevenue,
       monthlyRevenue,
+      platformFeeRevenue,
       planRevenue,
       transactionTypes,
       recentTransactions,
@@ -239,4 +240,3 @@ export class RevenueService implements IRevenueService {
   }
 }
 
-//export default new RevenueService();

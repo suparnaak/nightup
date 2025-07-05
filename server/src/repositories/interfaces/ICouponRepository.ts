@@ -40,4 +40,9 @@ export interface ICouponRepository extends IBaseRepository<ICoupon> {
     userId: string,
     minimumAmount?: number
   ): Promise<ICoupon[]>;
+
+  couponUsage(
+    couponId: Types.ObjectId,
+    delta: number
+  ): Promise<void>
 }

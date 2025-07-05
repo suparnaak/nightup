@@ -51,6 +51,7 @@ export class BookingMapper {
       couponId: booking.couponId ? this.extractId(booking.couponId) : null,
       totalAmount: booking.totalAmount,
       discountedAmount: booking.discountedAmount,
+      platformFee: booking.platformFee,
       status: booking.status,
       paymentMethod: booking.paymentMethod,
       paymentStatus: booking.paymentStatus,

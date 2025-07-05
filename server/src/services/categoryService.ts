@@ -92,4 +92,3 @@ export class CategoryService implements ICategoryService {
   }
 }
 
-//export default new CategoryService();

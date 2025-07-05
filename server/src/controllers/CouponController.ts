@@ -126,8 +126,7 @@ export class CouponController implements ICouponController {
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         message:
-          MESSAGES.ADMIN.SUCCESS.COUPON_CREATED ||
-          "Coupon created successfully",
+          MESSAGES.ADMIN.SUCCESS.COUPON_CREATED ,
         coupon: couponResponse,
       });
     } catch (error) {
@@ -230,8 +229,7 @@ export class CouponController implements ICouponController {
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         message:
-          MESSAGES.ADMIN.SUCCESS.COUPON_UPDATED ||
-          "Coupon updated successfully",
+          MESSAGES.ADMIN.SUCCESS.COUPON_UPDATED ,
         coupon: couponResponse,
       });
     } catch (error) {
@@ -251,8 +249,7 @@ export class CouponController implements ICouponController {
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         message:
-          MESSAGES.ADMIN.SUCCESS.COUPON_DELETED ||
-          "Coupon deleted successfully",
+          MESSAGES.ADMIN.SUCCESS.COUPON_DELETED ,
       });
     } catch (error) {
       console.error("Delete Coupon Error:", error);

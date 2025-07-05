@@ -31,9 +31,7 @@ const BookingConfirmationPage: React.FC = () => {
   const { fetchEventDetails } = useEventStore();
   const { isAuthenticated, user } = useAuthStore();
   const { getAvailableCoupons } = useCouponStore();
-
   const { getWallet, wallet } = useWalletStore();
-
   const { createBooking, createOrder, verifyPayment } =
     useBookingStore();
   const { openRazorpay } = useRazorpay();
@@ -48,6 +46,8 @@ const BookingConfirmationPage: React.FC = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("razorpay");
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+
+  const PLATFORM_FEE = 10;
 
   useEffect(() => {
     const fetchWalletData = async () => {
@@ -285,11 +285,14 @@ const BookingConfirmationPage: React.FC = () => {
       : Math.min(appliedCoupon.value, subtotal);
   };
 
+  const calculatePlatformFee = () => PLATFORM_FEE;
+
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const discount = calculateDiscount();
+    const fee      = calculatePlatformFee();
 
-    return subtotal - discount;
+    return subtotal - discount+fee;
   };
 
   const handleApplyCoupon = (coupon: any) => {
@@ -670,7 +673,11 @@ const BookingConfirmationPage: React.FC = () => {
                           <span>-₹{calculateDiscount()}</span>
                         </div>
                       )}
-
+                      {/* Platform Fee */}
+ <div className="flex justify-between text-gray-600">
+   <span>Platform Fee</span>
+   <span>₹{calculatePlatformFee()}</span>
+ </div>
                       <div className="border-t border-gray-300 my-2 pt-2 flex justify-between items-center">
                         <span className="font-semibold text-gray-900">
                           Total Amount

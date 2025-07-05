@@ -15,7 +15,6 @@ export class SavedEventRepository extends BaseRepository<ISavedEvent> implements
   }
 
   async isEventSaved(userId: string, eventId: Types.ObjectId): Promise<boolean> {
-    console.log("repository isevent saved", eventId);
     const existingEvent = await this.findOne({ 
       user: new Types.ObjectId(userId), 
       event: eventId 
@@ -24,7 +23,6 @@ export class SavedEventRepository extends BaseRepository<ISavedEvent> implements
   }
 
   async saveEvent(userId: string, eventId: Types.ObjectId, title: string): Promise<ISavedEvent> {
-    console.log("event id repository", eventId);
     const savedEvent = new SavedEvent({ 
       user: new Types.ObjectId(userId), 
       event: eventId, 

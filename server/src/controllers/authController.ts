@@ -183,7 +183,6 @@ export class AuthController implements IAuthController {
     try {
       const dto = req.body as VerifyOtpDTO;
       const { email, otp, verificationType, role = "user" } = dto;
-      console.log("verif type", verificationType);
       if (!email || !otp || !verificationType) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
@@ -259,7 +258,6 @@ export class AuthController implements IAuthController {
         throw new Error(MESSAGES.USER.ERROR.NO_GOOGLE_AUTH);
       }
       const result = await this.authService.processGoogleAuth(profile);
-      console.log("controller-google profile", result);
       const accessOpts = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",

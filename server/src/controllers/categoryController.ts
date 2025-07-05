@@ -53,7 +53,7 @@ export class CategoryController implements ICategoryController {
       if (!isRequired(name) || !isRequired(description)) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: MESSAGES.ADMIN.ERROR.INVALID_CATEGORY_NAME || "Name and description are required.",
+          message: MESSAGES.ADMIN.ERROR.REQUIRED_CAT_NAME_DESC,
         });
         return;
       }
@@ -62,7 +62,7 @@ export class CategoryController implements ICategoryController {
       
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: MESSAGES.ADMIN.SUCCESS.CATEGORY_CREATED || "Event type created successfully",
+        message: MESSAGES.ADMIN.SUCCESS.CATEGORY_CREATED,
         category,
       });
     } catch (error: any) {
@@ -71,7 +71,7 @@ export class CategoryController implements ICategoryController {
       if (error.code === "DUPLICATE_NAME") {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: "An event type with this name already exists",
+          message: MESSAGES.ADMIN.ERROR.NO_DUPLICATE_CATEGORY,
         });
         return;
       }
@@ -94,7 +94,7 @@ export class CategoryController implements ICategoryController {
       if (!isRequired(name) || !isRequired(description)) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: MESSAGES.ADMIN.ERROR.INVALID_CATEGORY_NAME || "Name and description are required.",
+          message: MESSAGES.ADMIN.ERROR.REQUIRED_CAT_NAME_DESC,
         });
         return;
       }
@@ -103,7 +103,7 @@ export class CategoryController implements ICategoryController {
 
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: MESSAGES.ADMIN.SUCCESS.CATEGORY_UPDATED || "Event type updated successfully",
+        message: MESSAGES.ADMIN.SUCCESS.CATEGORY_UPDATED ,
         category,
       });
     } catch (error: any) {
@@ -120,7 +120,7 @@ export class CategoryController implements ICategoryController {
       if (error.code === "DUPLICATE_NAME") {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: "An event type with this name already exists",
+          message: MESSAGES.ADMIN.ERROR.NO_DUPLICATE_CATEGORY,
         });
         return;
       }

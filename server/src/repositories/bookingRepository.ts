@@ -5,6 +5,7 @@ import Booking, { IBooking } from "../models/booking";
 import { IBookingRepository } from "./interfaces/IBookingRepository";
 import { IWalletRepository } from "./interfaces/IWalletRepository";
 import { BaseRepository } from "./baseRepository/baseRepository";
+import { CANCEL_REFUND, CANCEL_REASON, MESSAGES, PLATFORM_FEE } from "../utils/constants";
 
 @injectable()
 export class BookingRepository
@@ -19,7 +20,11 @@ export class BookingRepository
   }
 
   async createBooking(data: Partial<IBooking>): Promise<IBooking> {
-    const created = await this.create(data);
+    const bookingData: Partial<IBooking> = {
+      ...data,
+      platformFee: PLATFORM_FEE,
+    };
+    const created = await this.create(bookingData);
     const populated = await this.model
       .findById(created._id)
       .populate({
@@ -28,7 +33,7 @@ export class BookingRepository
       })
       .lean();
     if (!populated) {
-      throw new Error("Failed to retrieve created booking");
+      throw new Error(MESSAGES.COMMON.ERROR.FAILED_TO_RETRIEVE);
     }
     return populated as IBooking;
   }
@@ -128,16 +133,16 @@ export class BookingRepository
     for (const booking of confirmed) {
       await this.walletRepository.updateWalletBalance(
         booking.userId.toString(),
-        booking.discountedAmount,
+        booking.totalAmount,
         booking.paymentId,
-        "Refund for event cancellation"
+        CANCEL_REFUND
       );
       booking.status = "cancelled";
       booking.paymentStatus = "refunded";
       booking.cancellation = {
         cancelledBy: "host",
         cancelledAt: new Date(),
-        reason: `Event cancelled: ${reason}`,
+        reason: `${CANCEL_REASON} ${reason}`,
       };
       await booking.save();
     }

@@ -4,4 +4,5 @@ export interface IRevenueRepository {
     getPlanRevenue(startDate: Date, endDate: Date): Promise<any[]>;
     getTransactionTypes(startDate: Date, endDate: Date): Promise<any[]>;
     getRecentTransactions(): Promise<any[]>;
+    getPlatformFeeRevenue(startDate: Date, endDate: Date): Promise<number>;
   }

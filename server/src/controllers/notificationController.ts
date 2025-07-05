@@ -73,7 +73,7 @@ export class NotificationController implements INotificationController {
       await this.notificationService.markRead(id);
       res
         .status(STATUS_CODES.SUCCESS)
-        .json({ message: "Notification marked as read" });
+        .json({ message: MESSAGES.COMMON.SUCCESS.MARK_READ  });
     } catch (err: any) {
       console.error("Notification markAsRead error:", err);
       res

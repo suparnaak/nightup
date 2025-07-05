@@ -6,6 +6,7 @@ export interface Ticket {
 }
 
 export interface Event {
+  categoryId: string;
   _id: string;
   title: string;
   startTime: string;

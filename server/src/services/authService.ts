@@ -45,6 +45,13 @@ export class AuthService implements IAuthService {
         message: MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS,
       };
     }
+    if (role !== "admin" && (entity as IUser | IHost).isBlocked) {
+    return {
+      success: false,
+      message: MESSAGES.COMMON.ERROR.BLOCKED,  
+    };
+  }
+
 
     const match = await bcrypt.compare(password, entity.password);
     if (!match) {
@@ -53,7 +60,7 @@ export class AuthService implements IAuthService {
         message: MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS,
       };
     }
-
+    
     const token = jwt.sign(
       { id: entity._id, type: role },
       process.env.JWT_SECRET!,
@@ -159,11 +166,9 @@ export class AuthService implements IAuthService {
   }
 
   async verifyOtp(dto: VerifyOtpDTO): Promise<AuthResponseDTO> {
-    console.log("dto:", dto);
     const { email, otp, verificationType, role = "user" } = dto;
     const repo =
       role.toLowerCase() === "host" ? this.hostRepository : this.userRepository;
-    console.log("repo used", repo);
     const entity = await repo.findByEmail(email);
     if (!entity) {
       return { success: false, message: MESSAGES.COMMON.ERROR.INVALID_EMAIL };
@@ -188,14 +193,12 @@ export class AuthService implements IAuthService {
         };
       }
       if (role === "user") {
-        console.log("going at user");
         await this.userRepository.updateUser(entity._id, {
           isVerified: true,
           otp: "",
           otpExpiry: undefined,
         });
       } else {
-        console.log("going with host");
         await this.hostRepository.updateHost(entity._id, {
           isVerified: true,
           otp: "",
@@ -245,7 +248,6 @@ export class AuthService implements IAuthService {
     }
 
     await sendOtpEmail(email, otp);
-    console.log("Resend OTP:", otp);
     return AuthMapper.toAuthResponse({
       success: true,
       message: MESSAGES.COMMON.SUCCESS.OTP_RESENT,

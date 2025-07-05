@@ -26,7 +26,6 @@ const HostAddEvent: React.FC = () => {
   const [venueZip, setVenueZip] = useState("");
   const [venueCapacity, setVenueCapacity] = useState<number>(0);
   const [categoryId, setCategoryId] = useState<string>("");
-  //const [categoryName, setCategoryName] = useState<string>("");
   const [artist, setArtist] = useState("");
   const [description, setDescription] = useState("");
   const [tickets, setTickets] = useState([
@@ -110,7 +109,7 @@ const HostAddEvent: React.FC = () => {
     e.preventDefault();
     setError("");
     if (!validateForm()) return;
-     if (!user) {
+    if (!user) {
       toast.error("You must be logged in to create an event");
       return;
     }
@@ -131,7 +130,7 @@ const HostAddEvent: React.FC = () => {
         venueState,
         venueZip,
         venueCapacity,
-        categoryId, 
+        categoryId,
         category: selectedCat?.name || "",
         artist,
         description,
@@ -287,7 +286,7 @@ const HostAddEvent: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="block text-gray-700">Venue Capacity</label>
+            <label className="block text-gray-700">Total Tickets</label>
             <input
               type="number"
               value={venueCapacity}
@@ -305,20 +304,20 @@ const HostAddEvent: React.FC = () => {
           <div>
             <label className="block text-gray-700">Category</label>
             <select
-  value={categoryId}
-  onChange={(e) => {
-    setCategoryId(e.target.value);
-    // Remove the setCategoryName calls
-  }}
-  className="w-full border border-gray-300 p-2 rounded"
->
-  <option value="">Select a category</option>
-  {categories.map((cat) => (
-    <option key={cat.id} value={cat.id}>
-      {cat.name}
-    </option>
-  ))}
-</select>
+              value={categoryId}
+              onChange={(e) => {
+                setCategoryId(e.target.value);
+                // Remove the setCategoryName calls
+              }}
+              className="w-full border border-gray-300 p-2 rounded"
+            >
+              <option value="">Select a category</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
             {formErrors.categoryId && (
               <p className="text-red-500 text-sm mt-1">
                 {formErrors.categoryId}
@@ -438,23 +437,75 @@ const HostAddEvent: React.FC = () => {
             )}
           </div>
           {/* Event Image Upload */}
+
           <div>
-            <label className="block text-gray-700">Event Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="w-full"
-            />
-            {eventImagePreview && (
-              <div className="mt-2">
-                <img
-                  src={eventImagePreview}
-                  alt="Preview"
-                  className="w-48 h-auto rounded"
+            <label className="block text-gray-700 mb-2">Event Image</label>
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <label
+                  htmlFor="event-image-upload"
+                  className="cursor-pointer group"
+                >
+                  <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-purple-400 group-hover:bg-purple-50 transition-all">
+                    {eventImagePreview ? (
+                      <img
+                        src={eventImagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <svg
+                        className="w-8 h-8 text-gray-400 group-hover:text-purple-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                </label>
+                <input
+                  id="event-image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
                 />
               </div>
-            )}
+              <div className="flex-1">
+                <label htmlFor="event-image-upload" className="cursor-pointer">
+                  <div className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 inline-flex items-center space-x-2 transition-colors">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                    <span className="text-sm text-gray-700">
+                      {eventImageFile ? "Change Image" : "Upload Image"}
+                    </span>
+                  </div>
+                </label>
+                {eventImageFile && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    Selected: {eventImageFile.name}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
           {/* Additional Details */}
           <div>

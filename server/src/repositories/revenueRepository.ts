@@ -1,6 +1,7 @@
 import { BaseRepository } from "./baseRepository/baseRepository";
 import Subscription, { ISubscription } from "../models/subscription";
 import { IRevenueRepository } from "./interfaces/IRevenueRepository";
+import Booking from '../models/booking'
 
 export class RevenueRepository extends BaseRepository<ISubscription> implements IRevenueRepository {
   constructor() {
@@ -194,6 +195,24 @@ export class RevenueRepository extends BaseRepository<ISubscription> implements 
       };
     }));
   }
+ async getPlatformFeeRevenue(startDate: Date, endDate: Date): Promise<number> {
+  const result = await Booking.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate, $lte: endDate },
+        paymentStatus: "paid"
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalPlatformFee: { $sum: "$platformFee" }
+      }
+    }
+  ]);
+
+  return result[0]?.totalPlatformFee || 0;
+}
 }
 
 export default RevenueRepository;

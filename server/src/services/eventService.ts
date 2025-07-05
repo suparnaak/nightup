@@ -31,7 +31,7 @@ export class EventService implements IEventService {
   async addEvent(createEventDto: CreateEventDto): Promise<EventResponseDto> {
     const host = await this.hostRepository.getHostProfile(createEventDto.hostId);
     if (!host) {
-      throw new Error("Host not found.");
+      throw new Error(MESSAGES.COMMON.ERROR.NO_ACCOUNT);
     }
     if (!host.isVerified || host.isBlocked) {
       throw new Error(MESSAGES.HOST.ERROR.HOST_NOT_VERIFIED);
@@ -112,7 +112,7 @@ export class EventService implements IEventService {
     const notifications: CreateNotificationDto[] = userIds.map((uid) => ({
     user: uid.toString(),
     event: updatedEvent._id.toString(),
-    message: `The event "${updatedEvent.title}" has been updated. Please visit your Bookings for the updated details`,
+    message: MESSAGES.HOST.SUCCESS.EVENT_UPDATED(updatedEvent.title)
 
   }));
 
@@ -144,7 +144,7 @@ export class EventService implements IEventService {
     const notifications: CreateNotificationDto[] = userIds.map((uid) => ({
       user: uid.toString(),
       event: updatedEvent._id.toString(),
-      message: `The event "${event.title}" has been cancelled. Reason: ${reason}. Your booking has been refunded.`,
+      message:MESSAGES.HOST.SUCCESS.EVENT_CANCELLED(event.title, reason)
     }));
 
     await this.notificationService.notifyMultipleUsers(notifications);

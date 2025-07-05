@@ -96,6 +96,25 @@ export class CouponRepository
     }
     return available;
   }
+  async couponUsage(
+  couponId: Types.ObjectId,
+  delta: number
+): Promise<void> {
+  const coupon = await this.model.findById(couponId);
+  if (!coupon) throw new Error("Coupon not found");
+
+  const newCount = coupon.usedCount + delta;
+  if (newCount < 0) {
+    throw new Error("Cannot reduce used count below zero");
+  }
+  if (newCount > coupon.couponQuantity) {
+    throw new Error("Coupon usage would exceed total quantity");
+  }
+
+  coupon.usedCount = newCount;
+  await coupon.save();
+}
+
 }
 
 

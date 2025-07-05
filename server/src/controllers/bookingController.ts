@@ -27,7 +27,6 @@ export class BookingController implements IBookingController {
   async createOrder(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { totalAmount } = req.body;
-      console.log(totalAmount);
 
       if (!req.user?.userId) {
         res.status(STATUS_CODES.UNAUTHORIZED).json({
@@ -57,8 +56,6 @@ export class BookingController implements IBookingController {
 
   async verifyPayment(req: AuthRequest, res: Response): Promise<void> {
     try {
-      console.log("entering verify controller");
-
       if (!req.user?.userId) {
         res.status(STATUS_CODES.UNAUTHORIZED).json({
           success: false,
@@ -88,8 +85,7 @@ export class BookingController implements IBookingController {
         res.status(STATUS_CODES.SUCCESS).json({
           success: true,
           message:
-            MESSAGES.USER.SUCCESS.BOOKING_CREATED ||
-            "Booking confirmed successfully",
+            MESSAGES.USER.SUCCESS.BOOKING_CREATED ,
           booking: result.booking
             ? BookingMapper.toDTO(result.booking)
             : undefined,
@@ -97,7 +93,7 @@ export class BookingController implements IBookingController {
       } else {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: result.message || "Payment verification failed",
+          message: result.message ,
         });
       }
     } catch (error) {
@@ -136,12 +132,12 @@ export class BookingController implements IBookingController {
           booking: result.booking
             ? BookingMapper.toDTO(result.booking)
             : undefined,
-          message: "Booking created successfully",
+          message: MESSAGES.USER.SUCCESS.BOOKING_CREATED,
         });
       } else {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: result.message || "Failed to create booking",
+          message: result.message || MESSAGES.USER.ERROR.BOOKING_FAILED,
         });
       }
     } catch (error) {
@@ -260,8 +256,6 @@ export class BookingController implements IBookingController {
       const detailedBookings: DetailedBookingDTO[] = bookings.map((b) =>
         BookingMapper.toDetailedDTO(b)
       );
-//console.log("bookings mapped at host controller",detailedBookings)
-
       const response: GetBookingsResponseDTO = {
         success: true,
         bookings: detailedBookings,
@@ -303,7 +297,6 @@ export class BookingController implements IBookingController {
 
       const { bookings, total, pages } =
         await this.bookingService.getBookingsByEvent(eventId, page, limit);
-console.log("bookings for admin side",bookings)
       const detailedBookings: DetailedBookingDTO[] = bookings.map((b) =>
         BookingMapper.toDetailedDTO(b)
       );

@@ -4,10 +4,7 @@ import { IHost } from "../../models/host";
 import { IUser } from "../../models/user";
 
 export interface IAdminService {
-  login(dto: AdminLoginDTO): Promise<AdminAuthResponseDTO>;
-  refreshToken(
-    refreshToken: string
-  ): Promise<{ token: string; message: string }>;
+  
   getHosts(
     page: number,
     limit: number

@@ -112,7 +112,6 @@ export class HostRepository
   const result = await Host.aggregate(pipeline).exec();
   const hosts  = result[0].hosts;
   const total  = result[0].totalCount[0]?.count || 0;
-  console.log("hosts from repository", hosts)
   return { hosts, total };
 }
 

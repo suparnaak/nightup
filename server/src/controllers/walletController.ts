@@ -94,7 +94,6 @@ export class WalletController implements IWalletController {
 
   async verifyPayment(req: AuthRequest, res: Response): Promise<void> {
     try {
-      console.log("verification service");
       const userId = req.user?.userId;
       if (!userId) {
         res.status(STATUS_CODES.UNAUTHORIZED).json({
@@ -119,7 +118,7 @@ export class WalletController implements IWalletController {
       ) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
-          message: "Missing required payment verification data",
+          message: MESSAGES.COMMON.ERROR.REQUIRED_PAYMENT_DATA,
         });
         return;
       }

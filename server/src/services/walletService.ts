@@ -40,8 +40,7 @@ export class WalletService implements IWalletService {
 
   async verifyPayment(userId: string, paymentData: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string; amount: number;}): Promise<boolean> {
     const isValid = this.paymentService.verifyPayment(paymentData);
-    console.log("payment data")
-    console.log(paymentData)
+
     if (isValid) {
      
       const rechargeAmount = paymentData.amount;

@@ -7,6 +7,7 @@ export interface BookingDTO {
   couponId?: string | null;
   totalAmount: number;
   discountedAmount: number;
+  platformFee: number;
   status: "pending" | "confirmed" | "cancelled";
   paymentMethod: "razorpay" | "wallet";
   paymentStatus: "paid" | "pending" | "refunded";

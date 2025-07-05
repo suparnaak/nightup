@@ -14,6 +14,7 @@ export interface IBooking extends Document {
   paymentStatus: "paid" | "pending" | "refunded";
   paymentId: string;
   ticketNumber: string;
+  platformFee: number;
   cancellation?: {
     cancelledBy: "user" | "host";
     cancelledAt: Date;
@@ -54,6 +55,7 @@ const bookingSchema = new Schema<IBooking>(
       enum: ["pending", "confirmed", "cancelled"],
       default: "pending",
     },
+    platformFee:   { type: Number, required: true, default: 0 },
     paymentMethod: {
       type: String,
       enum: ["razorpay", "wallet"],

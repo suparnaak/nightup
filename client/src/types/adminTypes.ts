@@ -21,6 +21,7 @@ export interface Host extends BaseUser {
 export interface RevenueData {
   totalRevenue: number;
   monthlyRevenue: { month: string; amount: number }[];
+  platformFeeRevenue: number;
   planRevenue: { planName: string; amount: number }[];
   transactionTypes: { type: string; count: number; amount: number }[];
   recentTransactions: Array<{

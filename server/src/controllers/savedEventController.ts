@@ -3,7 +3,6 @@ import { injectable, inject } from 'inversify';
 import TYPES from '../config/di/types';
 import { Request, Response } from "express";
 import { ISavedEventService } from '../services/interfaces/ISavedEventService';
-//import { IEventService } from '../services/interfaces/IEventService';
 import { STATUS_CODES, MESSAGES } from "../utils/constants";
 import { ISavedEventController } from "./interfaces/ISavedEventController";
 
@@ -32,7 +31,6 @@ export class SavedEventController implements ISavedEventController {
           return;
         }
         const savedEvents = await this.savedEventService.getSavedEvents(userId);
-        console.log("saved events:-",savedEvents)
         res.status(STATUS_CODES.SUCCESS).json({
           success: true,
           savedEvents,
@@ -57,7 +55,6 @@ export class SavedEventController implements ISavedEventController {
         return;
       }
       const { eventId } = req.body;
-      console.log("event id",typeof(eventId))
       if (!eventId) {
         res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
@@ -105,7 +102,6 @@ export class SavedEventController implements ISavedEventController {
         return;
       }
       const isRemoved = await this.savedEventService.removeSavedEvent(userId, eventId);
-      console.log("is removed controller",isRemoved)
       if (!isRemoved) {
         res.status(STATUS_CODES.NOT_FOUND).json({
           success: false,

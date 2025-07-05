@@ -1,43 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import AdminLayout from '../../layouts/AdminLayout';
-import { useBookingStore } from '../../store/bookingStore';
-import toast from 'react-hot-toast';
-import {
-  User,
-  Ticket,
-  Calendar,
-  Clock,
-  Percent,
-} from 'lucide-react';
-import Pagination from '../../components/common/Pagination';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import AdminLayout from "../../layouts/AdminLayout";
+import { useBookingStore } from "../../store/bookingStore";
+import toast from "react-hot-toast";
+import { User, Ticket, Calendar, Clock, Percent } from "lucide-react";
+import Pagination from "../../components/common/Pagination";
 
 const AdminEventBookings: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
-  const {
-    bookings,
-    isLoading,
-    error,
-    pagination,
-    fetchBookingsByEventAdmin,
-  } = useBookingStore();
+  const { bookings, isLoading, error, pagination, fetchBookingsByEventAdmin } =
+    useBookingStore();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     if (eventId) {
-      fetchBookingsByEventAdmin(eventId, currentPage, itemsPerPage)
-        .catch(err => toast.error(err.message));
+      fetchBookingsByEventAdmin(eventId, currentPage, itemsPerPage).catch(
+        (err) => toast.error(err.message)
+      );
     }
   }, [eventId, fetchBookingsByEventAdmin, currentPage, itemsPerPage]);
 
-  // Fix: Get event title from the event object instead of eventId
-  const eventTitle = bookings.length > 0 && bookings[0].event 
-    ? bookings[0].event.title 
-    : '';
-
-  //const goToFirstPage = () => setCurrentPage(1);
+  const eventTitle =
+    bookings.length > 0 && bookings[0].event ? bookings[0].event.title : "";
 
   if (isLoading) {
     return (
@@ -64,7 +50,7 @@ const AdminEventBookings: React.FC = () => {
       <div className="bg-purple-50 min-h-screen">
         <div className="p-6 max-w-6xl mx-auto">
           <h2 className="text-2xl font-bold text-purple-800 mb-6">
-            Bookings for "{eventTitle || 'Event'}"
+            Bookings for "{eventTitle || "Event"}"
           </h2>
 
           {bookings.length === 0 ? (
@@ -84,16 +70,15 @@ const AdminEventBookings: React.FC = () => {
               {/* Top pagination + per-page selector */}
               <div className="flex flex-col md:flex-row justify-between items-center bg-white rounded-lg shadow-md p-4 mb-6">
                 <div className="text-sm text-purple-700 mb-4 md:mb-0">
-                  Showing{' '}
+                  Showing{" "}
                   <span className="font-medium">
                     {(currentPage - 1) * itemsPerPage + 1}
-                  </span>{' '}
-                  to{' '}
+                  </span>{" "}
+                  to{" "}
                   <span className="font-medium">
                     {Math.min(currentPage * itemsPerPage, pagination.total)}
-                  </span>{' '}
-                  of{' '}
-                  <span className="font-medium">{pagination.total}</span>{' '}
+                  </span>{" "}
+                  of <span className="font-medium">{pagination.total}</span>{" "}
                   bookings
                 </div>
                 <div className="flex items-center space-x-4">
@@ -101,7 +86,7 @@ const AdminEventBookings: React.FC = () => {
                     Show
                     <select
                       value={itemsPerPage}
-                      onChange={e => {
+                      onChange={(e) => {
                         setItemsPerPage(Number(e.target.value));
                         setCurrentPage(1);
                       }}
@@ -123,41 +108,44 @@ const AdminEventBookings: React.FC = () => {
 
               {/* Bookings list */}
               <div className="space-y-6">
-                {bookings.map(booking => {
-                  // Fix: Get userName from the user object instead of userId
-                  const userName = booking.user?.name || 'Unknown User';
+                {bookings.map((booking) => {
+                  const userName = booking.user?.name || "Unknown User";
 
                   const totalTickets = booking.tickets.reduce(
                     (sum, t) => sum + t.quantity,
                     0
                   );
                   const bookingDate = new Date(booking.createdAt);
+                  const baseCost =
+                    booking.totalAmount +
+                    booking.discountedAmount -
+                    booking.platformFee;
 
-                  const status = booking.status?.toLowerCase() || 'pending';
+                  const status = booking.status?.toLowerCase() || "pending";
                   const statusClasses = {
                     bg:
-                      status === 'confirmed'
-                        ? 'bg-green-50'
-                        : status === 'pending'
-                        ? 'bg-yellow-50'
-                        : 'bg-red-50',
+                      status === "confirmed"
+                        ? "bg-green-50"
+                        : status === "pending"
+                        ? "bg-yellow-50"
+                        : "bg-red-50",
                     indicator:
-                      status === 'confirmed'
-                        ? 'bg-green-500'
-                        : status === 'pending'
-                        ? 'bg-yellow-500'
-                        : 'bg-red-500',
+                      status === "confirmed"
+                        ? "bg-green-500"
+                        : status === "pending"
+                        ? "bg-yellow-500"
+                        : "bg-red-500",
                     text:
-                      status === 'confirmed'
-                        ? 'text-green-700'
-                        : status === 'pending'
-                        ? 'text-yellow-700'
-                        : 'text-red-700',
+                      status === "confirmed"
+                        ? "text-green-700"
+                        : status === "pending"
+                        ? "text-yellow-700"
+                        : "text-red-700",
                   };
 
                   return (
                     <div
-                      key={booking.id} // Fix: Use booking.id instead of booking._id
+                      key={booking.id}
                       className="bg-white rounded-lg shadow-md overflow-hidden border border-purple-100 hover:border-purple-300 transition-all"
                     >
                       {/* Header */}
@@ -174,14 +162,11 @@ const AdminEventBookings: React.FC = () => {
                             </h3>
                             <div className="text-xs text-gray-500 flex items-center">
                               <Calendar size={12} className="mr-1" />
-                              {bookingDate.toLocaleDateString()}{' '}
-                              <Clock
-                                size={12}
-                                className="ml-2 mr-1"
-                              />
+                              {bookingDate.toLocaleDateString()}{" "}
+                              <Clock size={12} className="ml-2 mr-1" />
                               {bookingDate.toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
+                                hour: "2-digit",
+                                minute: "2-digit",
                               })}
                             </div>
                           </div>
@@ -196,7 +181,7 @@ const AdminEventBookings: React.FC = () => {
                             {booking.status
                               ? booking.status.charAt(0).toUpperCase() +
                                 booking.status.slice(1).toLowerCase()
-                              : 'Pending'}
+                              : "Pending"}
                           </span>
                         </div>
                       </div>
@@ -240,7 +225,9 @@ const AdminEventBookings: React.FC = () => {
                               <div className="flex justify-between items-center bg-white p-2 rounded shadow-sm">
                                 <span className="text-gray-600">Subtotal</span>
                                 <span className="text-gray-700">
-                                  ₹{booking.totalAmount + booking.discountedAmount}
+                                  ₹
+                                  {booking.totalAmount +
+                                    booking.discountedAmount}
                                 </span>
                               </div>
                               <div className="flex justify-between items-center bg-white p-2 rounded shadow-sm">
@@ -250,6 +237,21 @@ const AdminEventBookings: React.FC = () => {
                                 </span>
                                 <span className="text-red-600">
                                   -₹{booking.discountedAmount}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center bg-white p-2 rounded shadow-sm">
+                                <span className="text-gray-600">
+                                  Platform Fee
+                                </span>
+                                <span className="text-gray-700">
+                                  ₹{booking.platformFee.toFixed(2)}
+                                </span>
+                              </div>
+
+                              <div className="flex justify-between items-center bg-white p-2 rounded shadow-sm">
+                                <span className="text-gray-600">Base Cost</span>
+                                <span className="text-gray-700">
+                                  ₹{baseCost.toFixed(2)}
                                 </span>
                               </div>
                               <div className="flex justify-between items-center bg-purple-200 p-2 rounded shadow-sm">

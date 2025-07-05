@@ -94,7 +94,8 @@ const HostProfileManagement: React.FC = () => {
       const dataToSend = new FormData();
       dataToSend.append("name", formData.name);
       dataToSend.append("phone", formData.phone);
-      dataToSend.append("hostType", formData.hostType);
+      // Remove hostType from the data being sent since it's not editable
+      // dataToSend.append("hostType", formData.hostType);
 
       if (formData.password) {
         dataToSend.append("password", formData.password);
@@ -124,12 +125,28 @@ const HostProfileManagement: React.FC = () => {
       const response = await updateHostProfile(docFormData);
       toast.success(response.message || "Document updated successfully!");
       setIsEditingDocument(false);
+      setFormData(prev => ({ ...prev, document: null }));
     } catch (error: any) {
       console.error("Document upload error:", error);
       toast.error(error.response?.data?.message || "Document upload failed.");
     } finally {
       setUploading(false);
     }
+  };
+
+  const cancelDocumentUpload = () => {
+    setIsEditingDocument(false);
+    setFormData(prev => ({ ...prev, document: null }));
+  };
+
+  // Function to get document instruction based on host type
+  const getDocumentInstruction = () => {
+    if (formData.hostType === "promotor") {
+      return "Please upload a valid ID card (e.g., Aadhaar Card, Driving License, Passport)";
+    } else if (formData.hostType === "organizer") {
+      return "Please upload a license or company registration certificate";
+    }
+    return "Please upload a valid document";
   };
 
   return (
@@ -143,6 +160,7 @@ const HostProfileManagement: React.FC = () => {
           {/* Document Status Section */}
           <div className="bg-purple-100 p-4 rounded-lg mb-6">
             <h3 className="text-md font-semibold text-purple-700">Document Status</h3>
+            <p className="text-sm text-gray-600 mb-3">{getDocumentInstruction()}</p>
             {host?.documentUrl ? (
               <div className="mt-2">
                 <a
@@ -159,28 +177,55 @@ const HostProfileManagement: React.FC = () => {
                   <div>
                     <p className="text-yellow-600">Awaiting Admin Verification</p>
                     {isEditingDocument ? (
-                      <div>
-                        <input
-                          type="file"
-                          name="document"
-                          onChange={handleFileChange}
-                          accept=".pdf,image/*"
-                          className="block w-full text-sm mt-2"
-                        />
-                        <button
-                          onClick={handleDocumentSubmit}
-                          disabled={uploading}
-                          className="mt-2 px-4 py-2 min-w-[150px] bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                          {uploading ? <Spinner /> : "Replace Document"}
-                        </button>
+                      <div className="space-y-3 mt-3">
+                        <div className="flex items-center space-x-4">
+                          <label htmlFor="document-replace-pending" className="cursor-pointer">
+                            <div className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded inline-flex items-center space-x-2 transition-colors">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              </svg>
+                              <span>Choose New Document</span>
+                            </div>
+                          </label>
+                          <input
+                            id="document-replace-pending"
+                            type="file"
+                            name="document"
+                            onChange={handleFileChange}
+                            accept=".pdf,image/*"
+                            className="hidden"
+                          />
+                          {formData.document && (
+                            <span className="text-sm text-gray-600">{formData.document.name}</span>
+                          )}
+                        </div>
+                        {formData.document && (
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={handleDocumentSubmit}
+                              disabled={uploading}
+                              className="px-4 py-2 min-w-[150px] bg-green-600 hover:bg-green-700 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                              {uploading ? <Spinner /> : "Replace Document"}
+                            </button>
+                            <button
+                              onClick={cancelDocumentUpload}
+                              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <button
                         onClick={() => setIsEditingDocument(true)}
-                        className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                        className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm inline-flex items-center space-x-2"
                       >
-                        Replace Document
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>Replace Document</span>
                       </button>
                     )}
                   </div>
@@ -190,28 +235,55 @@ const HostProfileManagement: React.FC = () => {
                       Document Rejected{host.rejectionReason ? `: ${host.rejectionReason}` : ""}
                     </p>
                     {isEditingDocument ? (
-                      <div>
-                        <input
-                          type="file"
-                          name="document"
-                          onChange={handleFileChange}
-                          accept=".pdf,image/*"
-                          className="block w-full text-sm mt-2"
-                        />
-                        <button
-                          onClick={handleDocumentSubmit}
-                          disabled={uploading}
-                          className="mt-2 px-4 py-2 min-w-[150px] bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                          {uploading ? <Spinner /> : "Replace Document"}
-                        </button>
+                      <div className="space-y-3 mt-3">
+                        <div className="flex items-center space-x-4">
+                          <label htmlFor="document-replace-rejected" className="cursor-pointer">
+                            <div className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded inline-flex items-center space-x-2 transition-colors">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              </svg>
+                              <span>Choose New Document</span>
+                            </div>
+                          </label>
+                          <input
+                            id="document-replace-rejected"
+                            type="file"
+                            name="document"
+                            onChange={handleFileChange}
+                            accept=".pdf,image/*"
+                            className="hidden"
+                          />
+                          {formData.document && (
+                            <span className="text-sm text-gray-600">{formData.document.name}</span>
+                          )}
+                        </div>
+                        {formData.document && (
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={handleDocumentSubmit}
+                              disabled={uploading}
+                              className="px-4 py-2 min-w-[150px] bg-green-600 hover:bg-green-700 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                              {uploading ? <Spinner /> : "Replace Document"}
+                            </button>
+                            <button
+                              onClick={cancelDocumentUpload}
+                              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <button
                         onClick={() => setIsEditingDocument(true)}
-                        className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                        className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm inline-flex items-center space-x-2"
                       >
-                        Replace Document
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>Replace Document</span>
                       </button>
                     )}
                   </div>
@@ -220,21 +292,37 @@ const HostProfileManagement: React.FC = () => {
             ) : (
               <div className="mt-2">
                 <p className="text-red-600 mb-2">No document uploaded.</p>
-                <div>
-                  <input
-                    type="file"
-                    name="document"
-                    onChange={handleFileChange}
-                    accept=".pdf,image/*"
-                    className="block w-full text-sm"
-                  />
-                  <button
-                    onClick={handleDocumentSubmit}
-                    disabled={uploading}
-                    className="mt-2 px-4 py-2 min-w-[150px] bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {uploading ? <Spinner /> : "Submit Document"}
-                  </button>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-4">
+                    <label htmlFor="document-upload" className="cursor-pointer">
+                      <div className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded inline-flex items-center space-x-2 transition-colors">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span>Choose Document</span>
+                      </div>
+                    </label>
+                    <input
+                      id="document-upload"
+                      type="file"
+                      name="document"
+                      onChange={handleFileChange}
+                      accept=".pdf,image/*"
+                      className="hidden"
+                    />
+                    {formData.document && (
+                      <span className="text-sm text-gray-600">{formData.document.name}</span>
+                    )}
+                  </div>
+                  {formData.document && (
+                    <button
+                      onClick={handleDocumentSubmit}
+                      disabled={uploading}
+                      className="px-4 py-2 min-w-[150px] bg-green-600 hover:bg-green-700 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {uploading ? <Spinner /> : "Submit Document"}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -272,9 +360,12 @@ const HostProfileManagement: React.FC = () => {
                     type="text"
                     name="hostType"
                     value={formData.hostType}
-                    onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    readOnly
+                    disabled
+                    className="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+                    title="Host type cannot be modified"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Host type cannot be modified</p>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-purple-700">New Password</label>

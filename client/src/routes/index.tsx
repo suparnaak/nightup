@@ -110,19 +110,6 @@ const AppRoutes = () => {
           <Route path="/admin/events" element={<AdminEventsPage />} />
           <Route path="/admin/events/:eventId/bookings" element={<AdminEventBookingsPage />} />
         </Route>
-
-        {/* <Route element={<ProtectedRoute allowedRoles={["user", "host"]} />}> */}
-  {/* Regular chat routes */}
-  {/* <Route path="/conversations" element={<ConversationsPage />} />
-  <Route path="/chat/:conversationId" element={<ChatPage />} /> */}
-  
-  {/* Special route for starting a new chat from event page */}
-  {/* <Route path="/chat/:hostId/:entityType" element={<ChatPage />} /> */}
-  
-  {/* This is the specific route for chatting with a host about an event */}
-  {/* <Route path="/chat/:hostId/host" element={<ChatPage />} /> */}
-{/* </Route> */}
-
         {/* for all other routes */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

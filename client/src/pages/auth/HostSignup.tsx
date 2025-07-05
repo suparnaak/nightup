@@ -152,9 +152,8 @@ const HostSignup: React.FC = () => {
                 className="w-full border border-gray-300 p-2 rounded"
               >
                 <option value="">Select Host Type</option>
-                <option value="Music">Music</option>
-                <option value="Tech">Tech</option>
-                <option value="Sports">Sports</option>
+                <option value="organizer">Organizer</option>
+                <option value="promotor">Promotor</option>
                 {/* Add more options as needed */}
               </select>
               {formErrors.hostType && (

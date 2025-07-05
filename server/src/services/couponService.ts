@@ -4,6 +4,7 @@ import TYPES from '../config/di/types';
 import { ICouponRepository } from '../repositories/interfaces/ICouponRepository';
 import { ICoupon } from "../models/coupon";
 import { ICouponService } from "./interfaces/ICouponService";
+import { Types } from 'mongoose';
 
 @injectable()
 export class CouponService implements ICouponService {
@@ -62,5 +63,9 @@ export class CouponService implements ICouponService {
   ): Promise<ICoupon[]> {
     return await this.couponRepository.getAvailableCoupons(userId, minimumAmount);
   }
+  async adjustCouponUsage(id: string, delta: number): Promise<void> {
+  const objectId = new Types.ObjectId(id);
+  await this.couponRepository.couponUsage(objectId, delta);
+}
 }
 

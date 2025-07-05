@@ -146,7 +146,15 @@ const AdminDashboard: React.FC = () => {
                 {formatCurrency(revenueData.totalRevenue)}
               </p>
             </div>
-
+          {/* Platform Fee Revenue Card */}
+<div className="bg-white p-6 rounded-lg shadow">
+  <h3 className="text-lg font-medium text-gray-700 mb-2">
+    Platform Fee Revenue
+  </h3>
+  <p className="text-3xl font-bold text-green-700">
+    {formatCurrency(revenueData.platformFeeRevenue)}
+  </p>
+</div>
             {/* Monthly Revenue Chart */}
             <div className="bg-white p-6 rounded-lg shadow lg:col-span-2">
               <h3 className="text-lg font-medium text-gray-700 mb-4">

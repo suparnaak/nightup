@@ -15,21 +15,7 @@ export class SubscriptionController implements ISubscriptionController {
     @inject(TYPES.SubscriptionService)
     private subscriptionService: ISubscriptionService
   ){}
-  /* async getSubscriptions(req: Request, res: Response): Promise<void> {
-    try {
-      const subscriptions = await this.subscriptionService.getSubscriptions();
-      res.status(STATUS_CODES.SUCCESS).json({
-        success: true,
-        subscriptions,
-      });
-    } catch (error) {
-      console.error("Get Subscriptions Error:", error);
-      res.status(STATUS_CODES.SERVER_ERROR).json({
-        success: false,
-        message: MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
-      });
-    }
-  } */
+  
  async getSubscriptions(req: Request, res: Response): Promise<void> {
     try {
       const page = req.query.page ? parseInt(req.query.page as string) : 1;
@@ -130,7 +116,7 @@ export class SubscriptionController implements ISubscriptionController {
       });
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: MESSAGES.ADMIN.SUCCESS.SUBSCRIPTION_UPDATED || "Subscription updated successfully",
+        message: MESSAGES.ADMIN.SUCCESS.SUBSCRIPTION_UPDATED,
         subscription,
       });
     } catch (error) {
@@ -148,7 +134,7 @@ export class SubscriptionController implements ISubscriptionController {
       await this.subscriptionService.deleteSubscription(id);
       res.status(STATUS_CODES.SUCCESS).json({
         success: true,
-        message: MESSAGES.ADMIN.SUCCESS.SUBSCRIPTION_DELETED || "Subscription deleted successfully",
+        message: MESSAGES.ADMIN.SUCCESS.SUBSCRIPTION_DELETED,
       });
     } catch (error) {
       console.error("Delete Subscription Error:", error);
@@ -160,4 +146,3 @@ export class SubscriptionController implements ISubscriptionController {
   }
 }
 
-//export default new SubscriptionController();

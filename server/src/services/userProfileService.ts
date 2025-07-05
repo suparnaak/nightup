@@ -70,4 +70,3 @@ export class UserProfileService implements IUserProfileService {
   
 }
 
-//export default new UserProfileService();

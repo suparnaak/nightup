@@ -170,4 +170,3 @@ export class ChatRepository implements IChatRepository {
   }
 }
 
-//export default new ChatRepository();

@@ -2,7 +2,6 @@ import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
 import { Types } from "mongoose";
 import { IReviewRepository } from '../repositories/interfaces/IReviewRepository';
-import Booking from "../models/booking";
 import { IBookingRepository } from '../repositories/interfaces/IBookingRepository';
 import { IReviewDocument } from "../models/review";
 import { MESSAGES } from "../utils/constants";
@@ -46,7 +45,6 @@ export class ReviewService implements IReviewService {
   }
 
   async getReviewByBookingId(bookingId: string): Promise<IReviewDocument | null> {
-    console.log("booking id at service",bookingId)
     return await this.reviewRepository.findByBookingId(bookingId);
   }
 

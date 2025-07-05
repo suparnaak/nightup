@@ -51,4 +51,3 @@ export class SavedEventService implements ISavedEventService {
   }
 }
 
-//export default new SavedEventService();

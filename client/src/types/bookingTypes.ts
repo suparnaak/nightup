@@ -1,4 +1,5 @@
 export interface Booking {
+  platformFee: any;
   user: any;
   _id: string;           
   id: string;           

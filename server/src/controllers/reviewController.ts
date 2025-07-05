@@ -135,13 +135,12 @@ export class ReviewController implements IReviewController {
     try {
       const { hostId } = req.params;
       const reviews = await this.reviewService.getReviewsByHost(hostId);
-      console.log("reviews",reviews)
       res.status(STATUS_CODES.SUCCESS).json({ success: true, reviews });
     } catch (err: any) {
       console.error(err);
       res.status(STATUS_CODES.SERVER_ERROR).json({
         success: false,
-        message: err.message || "Internal server error",
+        message: err.message || MESSAGES.COMMON.ERROR.UNKNOWN_ERROR,
       });
     }
   }

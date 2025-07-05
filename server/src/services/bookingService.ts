@@ -10,8 +10,7 @@ import * as nodeCrypto from "crypto";
 import { Types } from "mongoose";
 import { MESSAGES } from "../utils/constants";
 import TYPES from "../config/di/types";
-import { BookingMapper } from "../mappers/BookingMapper";
-
+import { ICouponService } from "./interfaces/ICouponService";
 
 @injectable()
 export class BookingService implements IBookingService {
@@ -23,13 +22,14 @@ export class BookingService implements IBookingService {
     @inject(TYPES.WalletRepository)
     private walletRepository: IWalletRepository,
     @inject(TYPES.PaymentService)
-    private paymentService: IPaymentService
-  ){}
+    private paymentService: IPaymentService,
+    @inject(TYPES.CouponService)
+    private couponService: ICouponService
+  ) {}
   async createOrder(
     userId: string,
     totalAmount: number
   ): Promise<{ id: string }> {
-    console.log("service create order");
     const shortuserId = userId.slice(0, 6);
 
     const timestamp = Date.now().toString().slice(-4);
@@ -41,7 +41,7 @@ export class BookingService implements IBookingService {
       receipt,
     };
     const order = await this.paymentService.createOrder(options);
-    
+
     return order;
   }
 
@@ -73,7 +73,10 @@ export class BookingService implements IBookingService {
         new Types.ObjectId(bookingDetails.eventId)
       );
       if (!event) {
-        return { success: false, message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND };
+        return {
+          success: false,
+          message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND,
+        };
       }
 
       for (const ticket of bookingDetails.tickets) {
@@ -125,6 +128,9 @@ export class BookingService implements IBookingService {
           .toUpperCase(),
       };
 
+      if (bookingDetails.coupon) {
+        await this.couponService.adjustCouponUsage(bookingDetails.coupon, +1);
+      }
       const booking = await this.bookingRepository.createBooking(bookingData);
 
       return {
@@ -141,8 +147,6 @@ export class BookingService implements IBookingService {
   }
 
   async createBooking(data: Partial<IBooking>): Promise<IBooking> {
-    console.log("wallet booking data");
-    console.log(data);
     return await this.bookingRepository.createBooking(data);
   }
 
@@ -156,13 +160,14 @@ export class BookingService implements IBookingService {
     discountedAmount?: number;
     ticketNumber: string;
   }): Promise<{ success: boolean; message?: string; booking?: IBooking }> {
-    const { eventId, tickets, userId, totalAmount, paymentId, ticketNumber } = data;
-  
+    const { eventId, tickets, userId, totalAmount, paymentId, ticketNumber } =
+      data;
+
     const event = await this.eventRepository.getEventById(eventId);
     if (!event) {
       return { success: false, message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND };
     }
-  
+
     for (const ticket of tickets) {
       const eventTicket = event.tickets.find(
         (t) => t.ticketType === ticket.ticketType
@@ -175,12 +180,14 @@ export class BookingService implements IBookingService {
       }
     }
 
-      const walletData = await this.walletRepository.getWallet(userId);
-      if (!walletData.wallet || walletData.wallet.balance < totalAmount) {
-        return { success: false, message: MESSAGES.USER.ERROR.INSUFFICIENT_WALLET };
-      }
-    
-  
+    const walletData = await this.walletRepository.getWallet(userId);
+    if (!walletData.wallet || walletData.wallet.balance < totalAmount) {
+      return {
+        success: false,
+        message: MESSAGES.USER.ERROR.INSUFFICIENT_WALLET,
+      };
+    }
+
     const bookingData: Partial<IBooking> = {
       userId: new Types.ObjectId(userId),
       eventId: new Types.ObjectId(eventId),
@@ -194,10 +201,11 @@ export class BookingService implements IBookingService {
       couponId: data.couponId ? new Types.ObjectId(data.couponId) : undefined,
       discountedAmount: data.discountedAmount,
     };
-  
+    if (data.couponId) {
+      await this.couponService.adjustCouponUsage(data.couponId, +1);
+    }
     const booking = await this.bookingRepository.createBooking(bookingData);
-  
-    // Update event ticket counts
+
     for (const ticket of tickets) {
       const eventTicket = event.tickets.find(
         (t) => t.ticketType === ticket.ticketType
@@ -207,36 +215,38 @@ export class BookingService implements IBookingService {
       }
     }
     await this.eventRepository.editEvent(eventId, { tickets: event.tickets });
-  
-    // Deduct wallet balance
+
     await this.walletRepository.deductWalletBalance(
       userId,
       totalAmount,
       paymentId,
       "Booking payment for event"
     );
-  
-    // Make sure booking has a valid _id before trying to fetch the populated version
+
     if (!booking || !booking._id) {
-      return { 
-        success: false, 
-        message: MESSAGES.USER.ERROR.BOOKING_FAILED
+      return {
+        success: false,
+        message: MESSAGES.USER.ERROR.BOOKING_FAILED,
       };
     }
-    
-    const populatedBooking = await this.bookingRepository.findById(booking._id.toString());
-    
-    return { 
-      success: true, 
-      booking: populatedBooking || booking 
+
+    const populatedBooking = await this.bookingRepository.findById(
+      booking._id.toString()
+    );
+
+    return {
+      success: true,
+      booking: populatedBooking || booking,
     };
   }
 
-
- 
-async getUserBookings(userId: string, page: number = 1, limit: number = 10): Promise<{ bookings: IBooking[], total: number, pages: number }> {
-  return await this.bookingRepository.findByUserId(userId, page, limit);
-}
+  async getUserBookings(
+    userId: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ bookings: IBooking[]; total: number; pages: number }> {
+    return await this.bookingRepository.findByUserId(userId, page, limit);
+  }
   //cancellation
   async cancelBooking(
     userId: string,
@@ -244,7 +254,6 @@ async getUserBookings(userId: string, page: number = 1, limit: number = 10): Pro
     reason?: string
   ): Promise<{ success: boolean; message: string; booking?: IBooking }> {
     try {
-      
       const booking = await this.bookingRepository.findById(bookingId);
 
       if (!booking) {
@@ -265,21 +274,22 @@ async getUserBookings(userId: string, page: number = 1, limit: number = 10): Pro
         };
       }
 
-      
       const event = await this.eventRepository.getEventById(booking.eventId);
       if (!event) {
-        return { success: false, message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND };
+        return {
+          success: false,
+          message: MESSAGES.COMMON.ERROR.NO_EVENT_FOUND,
+        };
       }
-const eventStart = new Date(event.date);
-    const cutoff     = new Date(eventStart.getTime() - 24 * 60 * 60 * 1000);
-    if (new Date() > cutoff) {
-      return {
-        success: false,
-        message:
-          'Cannot cancel less than 24 hours before the event.',
-      };
-    }
-      
+      const eventStart = new Date(event.date);
+      const cutoff = new Date(eventStart.getTime() - 24 * 60 * 60 * 1000);
+      if (new Date() > cutoff) {
+        return {
+          success: false,
+          message: MESSAGES.USER.SUCCESS.NO_CANCEL,
+        };
+      }
+
       const updatedTickets = event.tickets.map((eventTicket) => {
         const bookingTicket = booking.tickets.find(
           (bt) => bt.ticketType === eventTicket.ticketType
@@ -299,7 +309,6 @@ const eventStart = new Date(event.date);
         tickets: updatedTickets,
       });
 
-      
       const cancelledBooking = await this.bookingRepository.cancelBooking(
         bookingId,
         userId,
@@ -310,25 +319,30 @@ const eventStart = new Date(event.date);
       );
 
       if (!cancelledBooking) {
-        return { success: false, message: MESSAGES.USER.ERROR.CANCELLATION_FAILED };
+        return {
+          success: false,
+          message: MESSAGES.USER.ERROR.CANCELLATION_FAILED,
+        };
       }
 
-      
       const refundAmount = booking.totalAmount;
       const refundId = "pay_" + nodeCrypto.randomBytes(6).toString("hex");
 
-      
       await this.walletRepository.updateWalletBalance(
         userId,
         refundAmount,
         refundId,
         "Refund for booking cancellation "
       );
-
+      if (cancelledBooking && cancelledBooking.couponId) {
+        await this.couponService.adjustCouponUsage(
+          cancelledBooking.couponId.toString(),
+          -1
+        );
+      }
       return {
         success: true,
-        message:
-          MESSAGES.USER.SUCCESS.CANCELLATION_SUCCESS,
+        message: MESSAGES.USER.SUCCESS.CANCELLATION_SUCCESS,
         booking: cancelledBooking,
       };
     } catch (error) {
@@ -340,23 +354,25 @@ const eventStart = new Date(event.date);
     }
   }
 
-    async getBookingsByEvent(eventId: string, page: number = 1, limit: number = 10): Promise<{ 
-      bookings: IBooking[], 
-      total: number, 
-      pages: number 
-    }> {
-      try {
-        return await this.bookingRepository.getBookingsByEvent(
-          eventId,
-          page,
-          limit
-        );
-      } catch (error) {
-        console.error("Error fetching bookings by event:", error);
-        throw new Error(MESSAGES.USER.ERROR.FETCH_BOOKING_FAILED);
-      }
+  async getBookingsByEvent(
+    eventId: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{
+    bookings: IBooking[];
+    total: number;
+    pages: number;
+  }> {
+    try {
+      return await this.bookingRepository.getBookingsByEvent(
+        eventId,
+        page,
+        limit
+      );
+    } catch (error) {
+      console.error("Error fetching bookings by event:", error);
+      throw new Error(MESSAGES.USER.ERROR.FETCH_BOOKING_FAILED);
     }
   }
+}
 
-
-//export default new BookingService();

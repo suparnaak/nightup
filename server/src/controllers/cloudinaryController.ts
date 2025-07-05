@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { v2 as cloudinary } from "cloudinary";
+import { MESSAGES, STATUS_CODES } from "../utils/constants";
 
 interface AuthRequest extends Request {
   user?: {
@@ -15,7 +16,7 @@ class CloudinaryController {
   ): Promise<void> => {
     try {
       if (!req.user?.userId) {
-        res.status(401).json({ message: "Unauthorized" });
+        res.status(STATUS_CODES.UNAUTHORIZED).json({ message: MESSAGES.COMMON.ERROR.UNAUTHORIZED });
         return;
       }
 
@@ -37,7 +38,7 @@ class CloudinaryController {
         process.env.CLOUDINARY_API_SECRET as string
       );
 
-      res.status(200).json({
+      res.status(STATUS_CODES.SUCCESS).json({
         signature,
         timestamp,
         cloudname: process.env.CLOUDINARY_CLOUD_NAME,
@@ -47,8 +48,8 @@ class CloudinaryController {
     } catch (error: any) {
       console.error("Error generating Cloudinary signature:", error);
       res
-        .status(500)
-        .json({ message: error.message || "Failed to generate signature" });
+        .status(STATUS_CODES.SERVER_ERROR)
+        .json({ message: error.message || MESSAGES.HOST.ERROR.FAILED_CLOUDINARY_SIGNATURE });
     }
   };
 }

@@ -20,8 +20,7 @@ import { useBookingStore } from "../../store/bookingStore";
 import Spinner from "../../components/common/Spinner";
 import toast from "react-hot-toast";
 import Pagination from "../../components/common/Pagination";
-import { isPast } from "date-fns"; 
-
+import { isPast } from "date-fns";
 
 const StatusBadge = ({ status }: { status: string }) => {
   const statusConfig = {
@@ -220,7 +219,9 @@ const MyBookingsPage: React.FC = () => {
   } = useBookingStore();
 
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(
+    null
+  );
   const [existingReview, setExistingReview] = useState<{
     rating: number;
     review: string;
@@ -239,7 +240,7 @@ const MyBookingsPage: React.FC = () => {
   const [loadingReviewStatus, setLoadingReviewStatus] = useState<
     Record<string, boolean>
   >({});
-const pageSize = 5
+  const pageSize = 5;
   useEffect(() => {
     setLocalBookings(bookings);
   }, [bookings]);
@@ -267,7 +268,9 @@ const pageSize = 5
             [booking.id || booking._id]: true,
           }));
           try {
-            const review = await getReviewByBookingId(booking.id || booking._id);
+            const review = await getReviewByBookingId(
+              booking.id || booking._id
+            );
             setBookingReviewStatus((prev) => ({
               ...prev,
               [booking.id || booking._id]: !!review,
@@ -357,27 +360,27 @@ const pageSize = 5
   };
 
   const isUpcoming = (date: string) => new Date(date) > new Date();
-  const generateQRData = (booking: typeof localBookings[0]) => {
-  const bookingId = booking.id || booking._id;
-  const ticketNum = booking.ticketNumber;
-  const title     = booking.event?.title || "Unknown Event";
+  const generateQRData = (booking: (typeof localBookings)[0]) => {
+    const bookingId = booking.id || booking._id;
+    const ticketNum = booking.ticketNumber;
+    const title = booking.event?.title || "Unknown Event";
 
-  // Format date/time nicely
-  const date = booking.event?.date
-    ? new Date(booking.event.date).toLocaleString(undefined, {
-        weekday: "short",
-        year:     "numeric",
-        month:    "short",
-        day:      "numeric",
-        hour:     "2-digit",
-        minute:   "2-digit",
-      })
-    : "Unknown Date";
+    // Format date/time nicely
+    const date = booking.event?.date
+      ? new Date(booking.event.date).toLocaleString(undefined, {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "Unknown Date";
 
-  const venue = booking.event?.venue || "Unknown Venue";
-  const total = `₹${booking.totalAmount.toFixed(2)}`;
+    const venue = booking.event?.venue || "Unknown Venue";
+    const total = `₹${booking.totalAmount.toFixed(2)}`;
 
-  return `
+    return `
 Booking ID: ${bookingId}
 Ticket #:   ${ticketNum}
 Event:      ${title}
@@ -386,8 +389,7 @@ Venue:      ${venue}
 Total:      ${total}
 Status:     ${booking.status} (${booking.paymentStatus})
   `.trim();
-};
-
+  };
 
   if (isLoading && !localBookings.length) {
     return (
@@ -419,9 +421,7 @@ Status:     ${booking.status} (${booking.paymentStatus})
                   <BookOpen className="h-12 w-12 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-white">
-                    My Bookings
-                  </h1>
+                  <h1 className="text-3xl font-bold text-white">My Bookings</h1>
                   <p className="text-purple-100 mt-1">
                     Manage your event tickets and bookings
                   </p>
@@ -446,14 +446,19 @@ Status:     ${booking.status} (${booking.paymentStatus})
                 <div className="h-16 w-16 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-4">
                   <Ticket className="h-8 w-8 text-purple-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-purple-800 mb-2">No Bookings Yet</h3>
-                <p className="text-purple-600">You haven't made any bookings yet. Start exploring events!</p>
+                <h3 className="text-xl font-semibold text-purple-800 mb-2">
+                  No Bookings Yet
+                </h3>
+                <p className="text-purple-600">
+                  You haven't made any bookings yet. Start exploring events!
+                </p>
               </div>
             ) : (
               <>
                 <div className="mb-6 text-center">
                   <p className="text-purple-700 font-medium">
-                    {localBookings.length} {localBookings.length === 1 ? 'Booking' : 'Bookings'} Found
+                    {localBookings.length}{" "}
+                    {localBookings.length === 1 ? "Booking" : "Bookings"} Found
                   </p>
                 </div>
 
@@ -480,15 +485,14 @@ Status:     ${booking.status} (${booking.paymentStatus})
                                 <Calendar className="w-5 h-5 mr-2" />
                                 {booking.event && (
                                   <>
-                                    {new Date(booking.event.date).toLocaleDateString(
-                                      undefined,
-                                      {
-                                        weekday: "long",
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric",
-                                      }
-                                    )}
+                                    {new Date(
+                                      booking.event.date
+                                    ).toLocaleDateString(undefined, {
+                                      weekday: "long",
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                    })}
                                   </>
                                 )}
                               </div>
@@ -496,20 +500,20 @@ Status:     ${booking.status} (${booking.paymentStatus})
                                 <Clock className="w-5 h-5 mr-2" />
                                 {booking.event && (
                                   <>
-                                    {new Date(booking.event.date).toLocaleTimeString(
-                                      undefined,
-                                      {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      }
-                                    )}
+                                    {new Date(
+                                      booking.event.date
+                                    ).toLocaleTimeString(undefined, {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
                                   </>
                                 )}
                               </div>
                               <div className="flex items-center">
                                 <MapPin className="w-5 h-5 mr-2" />
                                 <span>
-                                  {booking.event?.venue?.split(",")[0] || "Unknown Venue"}
+                                  {booking.event?.venue?.split(",")[0] ||
+                                    "Unknown Venue"}
                                 </span>
                               </div>
                             </div>
@@ -525,7 +529,10 @@ Status:     ${booking.status} (${booking.paymentStatus})
                               </div>
                               <div className="space-y-2">
                                 {booking.tickets?.map((t, i) => (
-                                  <div key={i} className="flex justify-between text-sm">
+                                  <div
+                                    key={i}
+                                    className="flex justify-between text-sm"
+                                  >
                                     <div>
                                       <span>
                                         {t.ticketType} × {t.quantity}
@@ -534,9 +541,19 @@ Status:     ${booking.status} (${booking.paymentStatus})
                                         (₹{t.price.toFixed(2)} each)
                                       </span>
                                     </div>
-                                    <span>₹{(t.price * t.quantity).toFixed(2)}</span>
+                                    <span>
+                                      ₹{(t.price * t.quantity).toFixed(2)}
+                                    </span>
                                   </div>
                                 ))}
+                              </div>
+                              {/* Platform Fee */}
+                              <div className="flex items-center text-sm text-gray-600">
+                                 <span className="mr-2">Platform Fee:</span>
+                                <span className="font-medium">
+                                  ₹{(booking.platformFee ?? 0).toFixed(2)}
+                                </span>
+                                {" "}
                               </div>
                               <div className="flex items-center">
                                 <Tag className="w-5 h-5 mr-2" />
@@ -548,7 +565,8 @@ Status:     ${booking.status} (${booking.paymentStatus})
                                   <span className="ml-2 line-through text-purple-400">
                                     ₹
                                     {(
-                                      booking.totalAmount + booking.discountedAmount
+                                      booking.totalAmount +
+                                      booking.discountedAmount
                                     ).toFixed(2)}
                                   </span>
                                 )}
@@ -564,7 +582,9 @@ Status:     ${booking.status} (${booking.paymentStatus})
                               </div>
                               <span>
                                 Booked on{" "}
-                                {new Date(booking.createdAt).toLocaleDateString()}
+                                {new Date(
+                                  booking.createdAt
+                                ).toLocaleDateString()}
                               </span>
                             </div>
 
@@ -572,7 +592,9 @@ Status:     ${booking.status} (${booking.paymentStatus})
                               {booking.status === "confirmed" && (
                                 <button
                                   onClick={() =>
-                                    setShowQR(showQR === bookingId ? null : bookingId)
+                                    setShowQR(
+                                      showQR === bookingId ? null : bookingId
+                                    )
                                   }
                                   className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100"
                                 >
@@ -583,7 +605,9 @@ Status:     ${booking.status} (${booking.paymentStatus})
                               {isUpcoming(booking.event?.date || "") &&
                                 booking.status !== "cancelled" && (
                                   <button
-                                    onClick={() => setCancelBookingId(bookingId)}
+                                    onClick={() =>
+                                      setCancelBookingId(bookingId)
+                                    }
                                     className="px-4 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100"
                                   >
                                     Cancel Booking
@@ -591,35 +615,34 @@ Status:     ${booking.status} (${booking.paymentStatus})
                                 )}
                               {booking.event &&
                                 isPast(new Date(booking.event.date)) &&
-                                booking.status !== "cancelled" && (
-                                  loadingReviewStatus[bookingId] ? (
-                                    <button
-                                      disabled
-                                      className="px-4 py-2 bg-purple-300 text-white rounded-md flex items-center gap-2"
-                                    >
-                                      <Spinner /> Checking...
-                                    </button>
-                                  ) : bookingReviewStatus[bookingId] ? (
-                                    <button
-                                      onClick={() => handleViewReview(bookingId)}
-                                      className="px-4 py-2 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100 flex items-center gap-2"
-                                    >
-                                      <Eye size={16} /> View Review
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => {
-                                        setSelectedBookingId(bookingId);
-                                        setViewOnlyReview(false);
-                                        setExistingReview(null);
-                                        setShowReviewModal(true);
-                                      }}
-                                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-                                    >
-                                      Write Review
-                                    </button>
-                                  )
-                                )}
+                                booking.status !== "cancelled" &&
+                                (loadingReviewStatus[bookingId] ? (
+                                  <button
+                                    disabled
+                                    className="px-4 py-2 bg-purple-300 text-white rounded-md flex items-center gap-2"
+                                  >
+                                    <Spinner /> Checking...
+                                  </button>
+                                ) : bookingReviewStatus[bookingId] ? (
+                                  <button
+                                    onClick={() => handleViewReview(bookingId)}
+                                    className="px-4 py-2 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100 flex items-center gap-2"
+                                  >
+                                    <Eye size={16} /> View Review
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedBookingId(bookingId);
+                                      setViewOnlyReview(false);
+                                      setExistingReview(null);
+                                      setShowReviewModal(true);
+                                    }}
+                                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                                  >
+                                    Write Review
+                                  </button>
+                                ))}
                             </div>
 
                             {showQR === bookingId && (

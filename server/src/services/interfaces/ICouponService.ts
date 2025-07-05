@@ -36,6 +36,7 @@ export interface ICouponService {
         userId: string,
         minimumAmount?: number
       ): Promise<ICoupon[]>
-
+      
+      adjustCouponUsage(id: string, delta: number): Promise<void>
 
 }

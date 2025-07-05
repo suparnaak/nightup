@@ -97,7 +97,6 @@ export class EventRepository
     if (!doc) return null;
 
     doc.hostId = doc.hostId._id;
-    console.log("repository event details", doc);
     return doc as IEventDocument;
   }
 
