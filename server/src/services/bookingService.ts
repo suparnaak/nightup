@@ -8,7 +8,7 @@ import { IWalletRepository } from "../repositories/interfaces/IWalletRepository"
 import { IPaymentService } from "./interfaces/IPaymentService";
 import * as nodeCrypto from "crypto";
 import { Types } from "mongoose";
-import { MESSAGES } from "../utils/constants";
+import { MESSAGES, PLATFORM_FEE } from "../utils/constants";
 import TYPES from "../config/di/types";
 import { ICouponService } from "./interfaces/ICouponService";
 
@@ -116,7 +116,7 @@ export class BookingService implements IBookingService {
         couponId: bookingDetails.coupon
           ? new Types.ObjectId(bookingDetails.coupon)
           : null,
-        totalAmount: bookingDetails.totalAmount,
+        totalAmount: bookingDetails.totalAmount - PLATFORM_FEE,
         discountedAmount: bookingDetails.discountedAmount,
         paymentMethod: "razorpay",
         paymentStatus: "paid",
@@ -131,6 +131,7 @@ export class BookingService implements IBookingService {
       if (bookingDetails.coupon) {
         await this.couponService.adjustCouponUsage(bookingDetails.coupon, +1);
       }
+      console.log("received at razor pay", bookingData.totalAmount);
       const booking = await this.bookingRepository.createBooking(bookingData);
 
       return {
@@ -192,7 +193,7 @@ export class BookingService implements IBookingService {
       userId: new Types.ObjectId(userId),
       eventId: new Types.ObjectId(eventId),
       tickets,
-      totalAmount,
+      totalAmount: totalAmount - PLATFORM_FEE,
       paymentMethod: "wallet",
       paymentId,
       paymentStatus: "paid",
@@ -375,4 +376,3 @@ export class BookingService implements IBookingService {
     }
   }
 }
-

@@ -549,17 +549,20 @@ Status:     ${booking.status} (${booking.paymentStatus})
                               </div>
                               {/* Platform Fee */}
                               <div className="flex items-center text-sm text-gray-600">
-                                 <span className="mr-2">Platform Fee:</span>
+                                <span className="mr-2">Platform Fee:</span>
                                 <span className="font-medium">
                                   ₹{(booking.platformFee ?? 0).toFixed(2)}
-                                </span>
-                                {" "}
+                                </span>{" "}
                               </div>
                               <div className="flex items-center">
                                 <Tag className="w-5 h-5 mr-2" />
                                 Total:
                                 <span className="ml-2 font-semibold">
-                                  ₹{booking.totalAmount.toFixed(2)}
+                                  ₹
+                                  {(
+                                    booking.totalAmount +
+                                    (booking.platformFee ?? 0)
+                                  ).toFixed(2)}
                                 </span>
                                 {booking.discountedAmount > 0 && (
                                   <span className="ml-2 line-through text-purple-400">

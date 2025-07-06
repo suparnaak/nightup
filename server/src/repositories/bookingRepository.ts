@@ -5,7 +5,12 @@ import Booking, { IBooking } from "../models/booking";
 import { IBookingRepository } from "./interfaces/IBookingRepository";
 import { IWalletRepository } from "./interfaces/IWalletRepository";
 import { BaseRepository } from "./baseRepository/baseRepository";
-import { CANCEL_REFUND, CANCEL_REASON, MESSAGES, PLATFORM_FEE } from "../utils/constants";
+import {
+  CANCEL_REFUND,
+  CANCEL_REASON,
+  MESSAGES,
+  PLATFORM_FEE,
+} from "../utils/constants";
 
 @injectable()
 export class BookingRepository
